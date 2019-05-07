@@ -19,7 +19,7 @@ public:
 
     BitBoard(U64 mask) noexcept : board(mask) {};
 
-    BitBoard(unsigned int x, unsigned int y) noexcept : board(1uL << (7 - x) << (y << 3u)) {};
+    BitBoard(unsigned int x, unsigned int y) noexcept : board(1uL << (8 * y + x)) {};
 
     BitBoard(const SquarePosition position) noexcept : BitBoard(position.getX(), position.getY()) {}
 

@@ -25,7 +25,9 @@ TEST(SquarePositionTest, SquarePositionsCorrectnessFromString) {
 TEST(SquarePositionTest, SquarePositionsCorrectnessFromBitBoard) {
     for (int x = 0; x < 8; x++)
         for (int y = 0; y < 8; y++) {
-            SquarePosition square(x, y);
-            ASSERT_EQ(square, BitBoard(square).asSquarePosition());
+            SquarePosition expected(x, y);
+            BitBoard bitBoard = BitBoard(expected);
+            SquarePosition calculated = bitBoard.asSquarePosition();
+            ASSERT_EQ(expected, calculated);
         }
 }
