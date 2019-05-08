@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <ostream>
+#include <initializer_list>
 #include "SquarePosition.h"
 
 using U64 = unsigned long int;
@@ -10,10 +11,11 @@ using U64 = unsigned long int;
 using namespace std;
 
 class BitBoard {
+
+    static SquarePosition squarePositions[67];
     U64 board;
 
 public:
-    static SquarePosition squarePositions[67];
 
     BitBoard() noexcept : board(0) {}
 
@@ -23,16 +25,49 @@ public:
 
     BitBoard(const SquarePosition position) noexcept : BitBoard(position.getX(), position.getY()) {}
 
-    static BitBoard fromByteArray(const unsigned char ranks8to1[8]) {
-        return {(U64)(((((((
-                (U64)ranks8to1[0] << 8u |
-                (U64)ranks8to1[1]) << 8u |
-                (U64)ranks8to1[2]) << 8u |
-                (U64)ranks8to1[3]) << 8u |
-                (U64)ranks8to1[4]) << 8u |
-                (U64)ranks8to1[5]) << 8u |
-                (U64)ranks8to1[6]) << 8u |
-                (U64)ranks8to1[7])};
+    BitBoard(const initializer_list<SquarePosition>& positions) noexcept {
+        for (auto& pos : positions) {
+            board |= 1uL << (8 * pos.getY() + pos.getX());
+        }
+    }
+
+    BitBoard(const initializer_list<string>& positions) noexcept {
+        board = 0;
+        for (auto& pos : positions) {
+            board |= BitBoard(SquarePosition(pos)).board;
+        }
+    }
+
+    BitBoard shiftLeft(const unsigned int arg) const {
+        return {board >> arg};
+    }
+
+    BitBoard shiftRight(const unsigned int arg) const {
+        return {board << arg};
+    }
+
+    BitBoard shiftUp(const unsigned int arg) const {
+        return {board << (8 * arg)};
+    }
+
+    BitBoard shiftDown(const unsigned int arg) const {
+        return {board >> (8 * arg)};
+    }
+
+    BitBoard shiftUpLeft(const unsigned int arg) const {
+        return shiftUp(arg).shiftLeft(arg);
+    }
+
+    BitBoard shiftUpRight(const unsigned int arg) const {
+        return shiftUp(arg).shiftRight(arg);
+    }
+
+    BitBoard shiftDownLeft(const unsigned int arg) const {
+        return shiftDown(arg).shiftLeft(arg);
+    }
+
+    BitBoard shiftDownRight(const unsigned int arg) const {
+        return shiftDown(arg).shiftRight(arg);
     }
 
     bool operator==(const U64 rhs) const {
@@ -101,12 +136,12 @@ public:
         return {~board};
     }
 
-    bool operator[](const SquarePosition position) const {
-        return (board & (1L << (7 - position.getX()) << (position.getY() << 3))) != 0;
-    }
-
     bool operator[](const BitBoard position) const {
         return (board & position.board) != 0;
+    }
+
+    bool operator[](const SquarePosition position) const {
+        return (*this)[BitBoard(position)];
     }
 
     bool isEmpty() const {
@@ -127,5 +162,21 @@ public:
     }
 };
 
+static const BitBoard fileA = 0x0101010101010101;
+static const BitBoard fileB = 0x0202020202020202;
+static const BitBoard fileC = 0x0404040404040404;
+static const BitBoard fileD = 0x0808080808080808;
+static const BitBoard fileE = 0x1010101010101010;
+static const BitBoard fileF = 0x2020202020202020;
+static const BitBoard fileG = 0x4040404040404040;
+static const BitBoard fileH = 0x8080808080808080;
+static const BitBoard rank1 = 0x00000000000000FF;
+static const BitBoard rank2 = 0x000000000000FF00;
+static const BitBoard rank3 = 0x0000000000FF0000;
+static const BitBoard rank4 = 0x00000000FF000000;
+static const BitBoard rank5 = 0x000000FF00000000;
+static const BitBoard rank6 = 0x0000FF0000000000;
+static const BitBoard rank7 = 0x00FF000000000000;
+static const BitBoard rank8 = 0xFF00000000000000;
 
 #endif //CHESSENGINE_BITBOARD_H

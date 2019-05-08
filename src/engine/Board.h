@@ -5,19 +5,8 @@
 #include "BitBoard.h"
 #include "SquarePosition.h"
 #include "Move.h"
-
-enum Color {
-    WHITE = 0, BLACK = 1
-};
-
-enum Piece {
-    PAWN = 0, KNIGHT, BISHOP, ROOK, QUEEN, KING
-};
-
-const BitBoard fileH = 0x0101010101010101;
-const BitBoard fileA = 0x8080808080808080;
-const BitBoard rank1 = 0x00000000000000FF;
-const BitBoard rank8 = 0xFF00000000000000;
+#include <Piece.h>
+#include <Color.h>
 
 class Board {
     BitBoard hasPieceOfColor[2];

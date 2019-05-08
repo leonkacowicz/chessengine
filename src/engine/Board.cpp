@@ -1,27 +1,23 @@
-#include "Board.h"
-#include "Move.h"
+#include <Color.h>
+#include <Board.h>
+#include <Move.h>
 #include <iostream>
 #include <vector>
 #include <string>
 #include <sstream>
 
-using std::cout;
-using std::endl;
-
-Color oppositeColor(Color color) {
-    return (Color)(1 - color);
-}
+using namespace std;
 
 bool Board::isCheckmate() const {
     return false;
 }
 
-std::string Board::toString() const {
-    auto ret = std::stringstream();
+string Board::toString() const {
+    auto ret = stringstream();
     for (int y = 7; y >= 0; y--) {
         ret << " " << (y+1) << "  ";
         for (int x = 0; x <= 7; x++) {
-            auto position = BitBoard(x, y);
+            BitBoard position(x, y);
             char c = '.';
             if (hasPieceOfColor[WHITE][position] || hasPieceOfColor[BLACK][position]) {
                 if (hasPieceOfType[BISHOP][position]) c = 'B';
@@ -59,10 +55,10 @@ void Board::setInitialPosition()
 void Board::calculateAttacks() {
     for (auto position = BitBoard(1); !position.isEmpty(); position <<= 1)
     {
-        if (!hasPieceOfColor[WHITE][position] && !hasPieceOfColor[BLACK][position]) continue;
-
         if (position[kingPosition[WHITE]] || position[kingPosition[BLACK]])
             calculateKingAttacks(position);
+
+        if (!hasPieceOfColor[WHITE][position] && !hasPieceOfColor[BLACK][position]) continue;
 
         if (hasPieceOfType[ROOK][position])
             calculateRookAttacks(position);
@@ -87,46 +83,46 @@ void Board::calculateKingAttacks(const BitBoard origin) {
     Color attackerColor = hasPieceOfColor[BLACK][origin] ? BLACK : WHITE;
 
     if (!rank8[origin]) {
-        auto north = origin << 8;
+        auto north = origin.shiftUp(1);
         if (!hasPieceOfColor[attackerColor][north])
             attacks[attackerColor] |= north;
 
         if (!fileA[origin]) {
-            auto northwest = origin << 9;
+            auto northwest = origin.shiftUpLeft(1);
             if (!hasPieceOfColor[attackerColor][northwest])
                 attacks[attackerColor] |= northwest;
         }
 
         if (!fileH[origin]) {
-            auto northeast = origin << 7;
+            auto northeast = origin.shiftUpRight(1);
             if(!hasPieceOfColor[attackerColor][northeast])
                 attacks[attackerColor] |= northeast;
         }
     }
     if (!rank1[origin]) {
-        auto south = origin >> 8;
+        auto south = origin.shiftDown(1);
         if (!hasPieceOfColor[attackerColor][south])
             attacks[attackerColor] |= south;
 
         if (!fileA[origin]) {
-            auto southwest = origin >> 7;
+            auto southwest = origin.shiftDownLeft(1);
             if (!hasPieceOfColor[attackerColor][southwest])
                 attacks[attackerColor] |= southwest;
         }
 
         if (!fileH[origin]) {
-            auto southeast = origin >> 9;
+            auto southeast = origin.shiftDownRight(1);
             if (!hasPieceOfColor[attackerColor][southeast])
                 attacks[attackerColor] |= southeast;
         }
     }
     if (!fileA[origin]) {
-        auto west = origin << 1;
+        auto west = origin.shiftLeft(1);
         if (!hasPieceOfColor[attackerColor][west])
             attacks[attackerColor] |= west;
     }
     if (!fileH[origin]) {
-        auto east = origin >> 1;
+        auto east = origin.shiftRight(1);
         if (!hasPieceOfColor[attackerColor][east])
             attacks[attackerColor] |= east;
     }
@@ -135,14 +131,14 @@ void Board::calculateKingAttacks(const BitBoard origin) {
 void Board::calculateRookAttacks(const BitBoard origin) {
     // naive implementation
     Color attackerColor = hasPieceOfColor[BLACK][origin] ? BLACK : WHITE;
-    Color opposite = oppositeColor(attackerColor);
+    Color oppositeColor = opposite(attackerColor);
 
     BitBoard square = origin;
     while (!rank8[square]) {
         square <<= 8;
         if (hasPieceOfColor[attackerColor][square]) break;
         attacks[attackerColor] |= square;
-        if (hasPieceOfColor[opposite][square]) break;
+        if (hasPieceOfColor[oppositeColor][square]) break;
     }
 
     square = origin;
@@ -150,23 +146,23 @@ void Board::calculateRookAttacks(const BitBoard origin) {
         square >>= 8;
         if (hasPieceOfColor[attackerColor][square]) break;
         attacks[attackerColor] |= square;
-        if (hasPieceOfColor[opposite][square]) break;
+        if (hasPieceOfColor[oppositeColor][square]) break;
     }
 
     square = origin;
     while (!fileA[square]) {
-        square <<= 1;
+        square >>= 1;
         if (hasPieceOfColor[attackerColor][square]) break;
         attacks[attackerColor] |= square;
-        if (hasPieceOfColor[opposite][square]) break;
+        if (hasPieceOfColor[oppositeColor][square]) break;
     }
 
     square = origin;
     while (!fileH[square]) {
-        square >>= 1;
+        square <<= 1;
         if (hasPieceOfColor[attackerColor][square]) break;
         attacks[attackerColor] |= square;
-        if (hasPieceOfColor[opposite][square]) break;
+        if (hasPieceOfColor[oppositeColor][square]) break;
     }
 }
 
@@ -249,7 +245,7 @@ void Board::putKing(Color color, SquarePosition position) {
 
 void Board::setPieceColor(Color color, BitBoard bitBoard) {
     hasPieceOfColor[color] |= bitBoard;
-    hasPieceOfColor[oppositeColor(color)] &= ~bitBoard;
+    hasPieceOfColor[opposite(color)] &= ~bitBoard;
 }
 
 BitBoard Board::getAttacksFrom(Color color) const {
@@ -258,14 +254,14 @@ BitBoard Board::getAttacksFrom(Color color) const {
 
 void Board::addRookPossibleMoves(BitBoard origin, std::vector<Move> & moves) {
     Color attackerColor = hasPieceOfColor[BLACK][origin] ? BLACK : WHITE;
-    Color opposite = oppositeColor(attackerColor);
+    Color oppositeColor = opposite(attackerColor);
 
     BitBoard square = origin;
     while (!rank8[square]) {
         square <<= 8;
         if (hasPieceOfColor[attackerColor][square]) break;
         moves.push_back(Move(origin.asSquarePosition(), square.asSquarePosition()));
-        if (hasPieceOfColor[opposite][square]) break;
+        if (hasPieceOfColor[oppositeColor][square]) break;
     }
 
     square = origin;
@@ -273,7 +269,7 @@ void Board::addRookPossibleMoves(BitBoard origin, std::vector<Move> & moves) {
         square >>= 8;
         if (hasPieceOfColor[attackerColor][square]) break;
         moves.push_back(Move(origin.asSquarePosition(), square.asSquarePosition()));
-        if (hasPieceOfColor[opposite][square]) break;
+        if (hasPieceOfColor[oppositeColor][square]) break;
     }
 
     square = origin;
@@ -281,7 +277,7 @@ void Board::addRookPossibleMoves(BitBoard origin, std::vector<Move> & moves) {
         square <<= 1;
         if (hasPieceOfColor[attackerColor][square]) break;
         moves.push_back(Move(origin.asSquarePosition(), square.asSquarePosition()));
-        if (hasPieceOfColor[opposite][square]) break;
+        if (hasPieceOfColor[oppositeColor][square]) break;
     }
 
     square = origin;
@@ -289,7 +285,7 @@ void Board::addRookPossibleMoves(BitBoard origin, std::vector<Move> & moves) {
         square >>= 1;
         if (hasPieceOfColor[attackerColor][square]) break;
         moves.push_back(Move(origin.asSquarePosition(), square.asSquarePosition()));
-        if (hasPieceOfColor[opposite][square]) break;
+        if (hasPieceOfColor[oppositeColor][square]) break;
     }
 }
 
