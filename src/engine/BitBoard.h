@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <ostream>
 #include <initializer_list>
-#include "SquarePosition.h"
+#include "Square.h"
 
 using U64 = unsigned long int;
 
@@ -12,7 +12,7 @@ using namespace std;
 
 class BitBoard {
 
-    static SquarePosition squarePositions[67];
+    static Square squarePositions[67];
     U64 board;
 
 public:
@@ -23,10 +23,10 @@ public:
 
     BitBoard(unsigned int x, unsigned int y) noexcept : board(1uL << (8 * y + x)) {};
 
-    BitBoard(const SquarePosition position) noexcept : BitBoard(position.getX(), position.getY()) {}
+    BitBoard(const Square square) noexcept : BitBoard(square.getX(), square.getY()) {}
 
-    BitBoard(const initializer_list<SquarePosition>& positions) noexcept {
-        for (auto& pos : positions) {
+    BitBoard(const initializer_list<Square>& squares) noexcept {
+        for (auto& pos : squares) {
             board |= 1uL << (8 * pos.getY() + pos.getX());
         }
     }
@@ -34,7 +34,7 @@ public:
     BitBoard(const initializer_list<string>& positions) noexcept {
         board = 0;
         for (auto& pos : positions) {
-            board |= BitBoard(SquarePosition(pos)).board;
+            board |= BitBoard(Square(pos)).board;
         }
     }
 
@@ -140,15 +140,15 @@ public:
         return (board & position.board) != 0;
     }
 
-    bool operator[](const SquarePosition position) const {
-        return (*this)[BitBoard(position)];
+    bool operator[](const Square square) const {
+        return (*this)[BitBoard(square)];
     }
 
     bool isEmpty() const {
         return board == 0;
     }
 
-    SquarePosition asSquarePosition() const {
+    Square asSquarePosition() const {
         // https://www.chessprogramming.org/BitScan
         return BitBoard::squarePositions[(board & -board) % 67];
     }
@@ -157,7 +157,7 @@ public:
         // https://www.chessprogramming.org/BitScan
         for (int y = 0; y < 8; y++) for (int x = 0; x < 8; x++) {
             BitBoard bitBoard(x, y);
-            squarePositions[(bitBoard.board & -bitBoard.board) % 67] = SquarePosition(x, y);
+            squarePositions[(bitBoard.board & -bitBoard.board) % 67] = Square(x, y);
         }
     }
 };

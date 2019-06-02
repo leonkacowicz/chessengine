@@ -4,4 +4,4 @@
 
 #include "BitBoard.h"
 
-SquarePosition BitBoard::squarePositions[67];
+Square BitBoard::squarePositions[67];

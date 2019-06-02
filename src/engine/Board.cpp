@@ -71,9 +71,8 @@ std::vector<Move> Board::getPossibleMovesFor(Color color) {
     for (auto position = BitBoard(1); !position.isEmpty(); position <<= 1)
     {
         if (!hasPieceOfColor[color][position]) continue;
-
-        if (hasPieceOfType[ROOK][position])
-            addRookPossibleMoves(position, moves);
+        if (hasPieceOfType[ROOK][position]) addRookPossibleMoves(position, moves);
+        if (hasPieceOfType[KING][position]) addKingPossibleMoves(position, moves);
     }
 
     return moves;
@@ -166,7 +165,43 @@ void Board::calculateRookAttacks(const BitBoard origin) {
     }
 }
 
-void Board::putPiece(Piece piece, Color color, SquarePosition position) {
+std::vector<Move> Board::pseudo_legal_rook_moves(const BitBoard origin, Color attackerColor) const noexcept {
+    std::vector<Move> ret;
+    Color oppositeColor = opposite(attackerColor);
+    BitBoard square = origin;
+    while (!rank8[square]) {
+        square = square.shiftUp(1);
+        if (hasPieceOfColor[attackerColor][square]) break;
+        ret.emplace_back(origin.asSquarePosition(), square.asSquarePosition());
+        if (hasPieceOfColor[oppositeColor][square]) break;
+    }
+
+    square = origin;
+    while (!rank1[square]) {
+        square = square.shiftDown(1);
+        if (hasPieceOfColor[attackerColor][square]) break;
+        ret.emplace_back(origin.asSquarePosition(), square.asSquarePosition());
+        if (hasPieceOfColor[oppositeColor][square]) break;
+    }
+
+    square = origin;
+    while (!fileA[square]) {
+        square = square.shiftLeft(1);
+        if (hasPieceOfColor[attackerColor][square]) break;
+        ret.emplace_back(origin.asSquarePosition(), square.asSquarePosition());
+        if (hasPieceOfColor[oppositeColor][square]) break;
+    }
+
+    square = origin;
+    while (!fileH[square]) {
+        square = square.shiftRight(1);
+        if (hasPieceOfColor[attackerColor][square]) break;
+        ret.emplace_back(origin.asSquarePosition(), square.asSquarePosition());
+        if (hasPieceOfColor[oppositeColor][square]) break;
+    }
+}
+
+void Board::putPiece(Piece piece, Color color, Square position) {
     if (piece == PAWN) return putPawn(color, position);
     if (piece == BISHOP) return putBishop(color, position);
     if (piece == KNIGHT) return putKight(color, position);
@@ -175,7 +210,7 @@ void Board::putPiece(Piece piece, Color color, SquarePosition position) {
     if (piece == KING) return putKing(color, position);
 }
 
-void Board::putPawn(Color color, SquarePosition position) {
+void Board::putPawn(Color color, Square position) {
     auto bitBoard = BitBoard(position);
     auto invBitBoard = ~bitBoard;
     setPieceColor(color, bitBoard);
@@ -186,7 +221,7 @@ void Board::putPawn(Color color, SquarePosition position) {
     hasPieceOfType[QUEEN] &= invBitBoard;
 }
 
-void Board::putKight(Color color, SquarePosition position){
+void Board::putKight(Color color, Square position){
     auto bitBoard = BitBoard(position);
     auto invBitBoard = ~bitBoard;
     setPieceColor(color, bitBoard);
@@ -197,7 +232,7 @@ void Board::putKight(Color color, SquarePosition position){
     hasPieceOfType[QUEEN] &= invBitBoard;
 }
 
-void Board::putBishop(Color color, SquarePosition position){
+void Board::putBishop(Color color, Square position){
     auto bitBoard = BitBoard(position);
     auto invBitBoard = ~bitBoard;
     setPieceColor(color, bitBoard);
@@ -208,7 +243,7 @@ void Board::putBishop(Color color, SquarePosition position){
     hasPieceOfType[QUEEN] &= invBitBoard;
 }
 
-void Board::putRook(Color color, SquarePosition position){
+void Board::putRook(Color color, Square position){
     auto bitBoard = BitBoard(position);
     auto invBitBoard = ~bitBoard;
     setPieceColor(color, bitBoard);
@@ -219,7 +254,7 @@ void Board::putRook(Color color, SquarePosition position){
     hasPieceOfType[QUEEN] &= invBitBoard;
 }
 
-void Board::putQueen(Color color, SquarePosition position) {
+void Board::putQueen(Color color, Square position) {
     auto bitBoard = BitBoard(position);
     auto invBitBoard = ~bitBoard;
     setPieceColor(color, bitBoard);
@@ -230,7 +265,7 @@ void Board::putQueen(Color color, SquarePosition position) {
     hasPieceOfType[QUEEN] |= bitBoard;
 }
 
-void Board::putKing(Color color, SquarePosition position) {
+void Board::putKing(Color color, Square position) {
     hasPieceOfColor[color] &= ~(BitBoard(kingPosition[color]));
     kingPosition[color] = position;
     auto bitBoard = BitBoard(position);
@@ -260,7 +295,8 @@ void Board::addRookPossibleMoves(BitBoard origin, std::vector<Move> & moves) {
     while (!rank8[square]) {
         square <<= 8;
         if (hasPieceOfColor[attackerColor][square]) break;
-        moves.push_back(Move(origin.asSquarePosition(), square.asSquarePosition()));
+        moves.emplace_back(origin.asSquarePosition(), square.asSquarePosition());
+
         if (hasPieceOfColor[oppositeColor][square]) break;
     }
 
@@ -268,7 +304,7 @@ void Board::addRookPossibleMoves(BitBoard origin, std::vector<Move> & moves) {
     while (!rank1[square]) {
         square >>= 8;
         if (hasPieceOfColor[attackerColor][square]) break;
-        moves.push_back(Move(origin.asSquarePosition(), square.asSquarePosition()));
+        moves.emplace_back(origin.asSquarePosition(), square.asSquarePosition());
         if (hasPieceOfColor[oppositeColor][square]) break;
     }
 
@@ -276,7 +312,7 @@ void Board::addRookPossibleMoves(BitBoard origin, std::vector<Move> & moves) {
     while (!fileA[square]) {
         square <<= 1;
         if (hasPieceOfColor[attackerColor][square]) break;
-        moves.push_back(Move(origin.asSquarePosition(), square.asSquarePosition()));
+        moves.emplace_back(origin.asSquarePosition(), square.asSquarePosition());
         if (hasPieceOfColor[oppositeColor][square]) break;
     }
 
@@ -284,8 +320,40 @@ void Board::addRookPossibleMoves(BitBoard origin, std::vector<Move> & moves) {
     while (!fileH[square]) {
         square >>= 1;
         if (hasPieceOfColor[attackerColor][square]) break;
-        moves.push_back(Move(origin.asSquarePosition(), square.asSquarePosition()));
+        moves.emplace_back(origin.asSquarePosition(), square.asSquarePosition());
         if (hasPieceOfColor[oppositeColor][square]) break;
     }
+}
+
+void Board::addKingPossibleMoves(BitBoard origin, std::vector<Move>& moves) {
+
+
+}
+
+Board::Board(const string& fen) {
+
+    stringstream ss(fen);
+
+    string piecePlacement;
+    getline(ss, piecePlacement, ' ');
+
+    string side_to_move;
+    getline(ss, side_to_move, ' ');
+
+    string castling;
+    getline(ss, castling, ' ');
+
+    string en_passant;
+    getline(ss, en_passant, ' ');
+
+    string half_move_clock;
+    getline(ss, half_move_clock, ' ');
+
+    string full_move_counter;
+    getline(ss, full_move_counter, ' ');
+
+    sideToPlay = side_to_move == "b";
+
+
 }
 

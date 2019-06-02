@@ -1,7 +1,7 @@
 set(engine_src
         Board.h Board.cpp
         BitBoard.cpp BitBoard.h
-        SquarePosition.cpp SquarePosition.h
+        Square.cpp Square.h
         Move.cpp Move.h
         Color.cpp Color.h
         Piece.h)

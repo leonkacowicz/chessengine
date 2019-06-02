@@ -2,15 +2,21 @@
 #define CHESSENGINE_MOVE_H
 
 
-#include "SquarePosition.h"
+#include "Square.h"
 
 class Move {
 private:
-    SquarePosition origin;
-    SquarePosition destination;
+    Square origin;
+    Square destination;
+    char promotion; // 0, n, r, b, q
 
 public:
-    Move(SquarePosition origin, SquarePosition destination) : origin(origin), destination(destination) {};
+    Move(Square origin, Square destination) : origin(origin), destination(destination), promotion(0) {};
+    Move(Square origin, Square destination, char promotion) : origin(origin), destination(destination), promotion(promotion) {};
+
+    bool operator==(const Move& rhs) const {
+        return destination == rhs.destination && origin == rhs.origin && promotion == rhs.promotion;
+    }
 };
 
 
