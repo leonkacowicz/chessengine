@@ -24,6 +24,12 @@ public:
     bool operator==(Square rhs) const {
         return coords == rhs.coords;
     }
+
+    string to_string() const {
+        char file = static_cast<char>('a' + getX());
+        char rank = static_cast<char>('1' + getY());
+        return string({file, rank});
+    }
 };
 
 
