@@ -6,4 +6,5 @@ target_link_libraries(
         libgtest
         libgmock
 )
+
 add_test(NAME arbiter_test COMMAND arbiter_test)

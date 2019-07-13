@@ -1,13 +1,12 @@
+#ifndef CHESSENGINE_ARBITER_H
+#define CHESSENGINE_ARBITER_H
+
 #include <iostream>
 #include <string>
+#include <bits/unique_ptr.h>
+#include "process.h"
 
 using namespace std;
-
-struct process {
-    int pid;
-    int stdin_fd;
-    int stdout_fd;
-};
 
 class arbiter {
     const string& white_player;
@@ -16,11 +15,13 @@ class arbiter {
     int black_time;
     int increment;
 
-    process white;
-    process black;
+    unique_ptr<process> white;
+    unique_ptr<process> black;
 
 public:
     arbiter(const string& white_player, const string& black_player, int total_seconds_per_player, int increment);
     void start_players();
     void hello();
 };
+
+#endif

@@ -13,9 +13,23 @@ arbiter::arbiter(const string &white_player, const string &black_player, int tot
 
 }
 
-
-
 void arbiter::start_players() {
+
+    white = make_unique<process>(white_player);
+//    black = make_unique<process>(process(black_player));
+
+    white->stdin << "uci" << endl;
+//    black->stdin << "uci" << endl;
+
+    string line;
+    do {
+        white->stdout >> line;
+        cout << "[DEBUG] [WHITE] " << line << endl;
+    } while (line == "uciok");
+
+//    do {
+//        black->stdout >> line;
+//    } while (line == "uciok");
 
 
 }

@@ -2,28 +2,10 @@
 #include <gtest/gtest.h>
 #include <spawn.h>
 #include <process.h>
+#include <arbiter.h>
 
 using namespace std;
 
-TEST(arbiter_test, start_process_streams) {
-    process p("cat");
+TEST(arbiter_test, arbiter_can_start_white_player) {
 
-    string test_str("ksdfjaasdfjbasdkljfbadkljfb");
-
-    //write(process.stdin_fd, test_str.c_str(), sizeof(char));
-    p.stdin << test_str;
-    p.send_eof();
-
-    //read(process.stdout_fd, buf, test_str.size());
-    string received;
-    p.stdout >> received;
-    p.wait();
-
-    ASSERT_GT(p.pid, 0);
-    ASSERT_STREQ(test_str.c_str(), received.c_str());
-}
-
-int main(int argc, char **argv) {
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }
