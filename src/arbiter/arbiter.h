@@ -21,6 +21,7 @@ class arbiter {
 public:
     arbiter(const string& white_player, const string& black_player, int total_seconds_per_player, int increment);
     void start_players();
+    void start_game();
     void hello();
 };
 
