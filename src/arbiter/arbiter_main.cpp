@@ -12,9 +12,9 @@ int main(int argc, char ** argv) {
         return -1;
     }
 
-    arbiter arbiter;
+    arbiter arb("cat", "cat", 3 * 60, 1);
 
-    arbiter.hello();
+    arb.hello();
 }
 
 void print_usage() {
