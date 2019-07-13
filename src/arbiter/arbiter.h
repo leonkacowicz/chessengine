@@ -18,6 +18,7 @@ class arbiter {
     unique_ptr<process> white;
     unique_ptr<process> black;
 
+
 public:
     arbiter(const string& white_player, const string& black_player, int total_seconds_per_player, int increment);
     void start_players();

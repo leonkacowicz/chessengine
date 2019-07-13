@@ -1,5 +1,7 @@
 #include <iostream>
 #include <unistd.h>
+#include <vector>
+#include <sstream>
 #include "arbiter.h"
 
 void arbiter::hello() {
@@ -7,9 +9,9 @@ void arbiter::hello() {
 }
 
 arbiter::arbiter(const string &white_player, const string &black_player, int total_seconds_per_player, int increment) :
-    white_player(white_player), black_player(black_player),
-    white_time(total_seconds_per_player), black_time(total_seconds_per_player),
-    increment(increment) {
+        white_player(white_player), black_player(black_player),
+        white_time(total_seconds_per_player), black_time(total_seconds_per_player),
+        increment(increment) {
 
 }
 
@@ -34,13 +36,17 @@ void arbiter::start_players() {
     cout << "[DEBUG] Engines started" << endl;
 }
 
-string getmove(istream& in) {
-    string s;
+string getmove(istream &in, string color_to_log) {
+    string line;
     do {
-        in >> s;
-    } while (s != "bestmove");
-    in >> s;
-    return s;
+        getline(in, line);
+        cout << "[DEBUG] [" << color_to_log << "] " << line << endl;
+    } while (line.rfind("bestmove ", 0) != 0);
+
+    stringstream ss(line.substr(9));
+    string bestmove;
+    ss >> bestmove;
+    return bestmove;
 }
 
 void arbiter::start_game() {
@@ -50,15 +56,50 @@ void arbiter::start_game() {
 
     white->stdin << "position startpos" << endl;
     white->stdin << "go wtime " << white_time << " btime " << black_time
-                << " winc " << increment << " binc " << increment << endl;
+                 << " winc " << increment << " binc " << increment << endl;
 
-    string whitemove = getmove(white->stdout);
+    vector<string> moves;
+
+    string whitemove = getmove(white->stdout, "WHITE");
     cout << "White moves " << whitemove << endl;
+
+    moves.push_back(whitemove);
 
     black->stdin << "position startpos moves " << whitemove << endl;
     black->stdin << "go wtime " << white_time << " btime " << black_time
                  << " winc " << increment << " binc " << increment << endl;
 
-    string blackmove = getmove(black->stdout);
+    string blackmove = getmove(black->stdout, "BLACK");
     cout << "Black moves " << blackmove << endl;
+    moves.push_back(blackmove);
+
+    for (int i = 2; i < 2000; i++) {
+
+        cout << i << endl;
+        white->stdin << "position startpos moves";
+        for (auto move = begin(moves); move != end(moves); move++) {
+            white->stdin << " " << *move;
+        }
+        white->stdin << endl;
+        white->stdin << "go wtime " << white_time << " btime " << black_time
+                     << " winc " << increment << " binc " << increment << endl;
+
+        whitemove = getmove(white->stdout, "WHITE");
+        if (whitemove == "(none)") return;
+        cout << "White moves " << whitemove << endl;
+        moves.push_back(whitemove);
+
+        black->stdin << "position startpos moves";
+        for (auto move = begin(moves); move != end(moves); move++) {
+            black->stdin << " " << *move;
+        }
+        black->stdin << endl;
+        black->stdin << "go wtime " << white_time << " btime " << black_time
+                     << " winc " << increment << " binc " << increment << endl;
+
+        blackmove = getmove(black->stdout, "BLACK");
+        if (blackmove == "(none)") return;
+        cout << "Black moves " << blackmove << endl;
+        moves.push_back(blackmove);
+    }
 }
