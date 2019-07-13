@@ -1,3 +1,7 @@
 add_subdirectory(engine)
 add_executable(chessengine main.cpp)
 target_link_libraries(chessengine engine)
+
+add_subdirectory(arbiter)
+add_executable(chessarbiter arbiter/arbiter_main.cpp)
+target_link_libraries(chessarbiter arbiter)
