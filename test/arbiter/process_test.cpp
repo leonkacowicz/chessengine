@@ -1,6 +1,5 @@
 #include <string>
 #include <gtest/gtest.h>
-#include <spawn.h>
 #include <process.h>
 
 using namespace std;
