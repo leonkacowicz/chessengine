@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 #include <bits/unique_ptr.h>
 #include "process.h"
 
@@ -15,15 +16,15 @@ class arbiter {
     int black_time;
     int increment;
 
-    unique_ptr<process> white;
-    unique_ptr<process> black;
+    shared_ptr<process> white;
+    shared_ptr<process> black;
 
 
 public:
     arbiter(const string& white_player, const string& black_player, int total_seconds_per_player, int increment);
     void start_players();
     void start_game();
-    void hello();
+    void calculate_next_move(process*, vector<string> &);
 };
 
 #endif

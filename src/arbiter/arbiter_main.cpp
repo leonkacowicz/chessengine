@@ -17,7 +17,6 @@ int main(int argc, char ** argv) {
 
     arbiter arb(argv[1], argv[2], atoi(argv[3]), atoi(argv[4]));
 
-    arb.hello();
     arb.start_players();
     arb.start_game();
 }
