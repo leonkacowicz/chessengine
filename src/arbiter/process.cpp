@@ -1,7 +1,5 @@
-#include <memory>
 
 #include <memory>
-
 #include <unistd.h>
 #include <iostream>
 #include <string>
@@ -46,8 +44,6 @@ process::process(const string & executable) : stdin(NULL), stdout(NULL) {
     } else if (pid == -1) {
         __throw_runtime_error("Failed to child process.");
     } else {
-        stdout_fd = child_to_parent[PIPE_OUT];
-        stdin_fd = parent_to_child[PIPE_IN];
         close(parent_to_child[PIPE_OUT]);
         close(child_to_parent[PIPE_IN]);
 

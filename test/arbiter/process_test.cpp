@@ -10,11 +10,11 @@ TEST(process_test, start_process_streams) {
 
     string test_str("ksdfjaasdfjbasdkljfbadkljfb");
 
-    p.stdin << test_str;
+    p << test_str;
     p.send_eof();
 
     string received;
-    p.stdout >> received;
+    p >> received;
     p.wait();
 
     ASSERT_GT(p.pid, 0);
