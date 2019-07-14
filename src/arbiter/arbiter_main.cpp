@@ -1,4 +1,6 @@
 #include <iostream>
+#include "process.h"
+#include "player.h"
 #include "arbiter.h"
 
 using namespace std;
@@ -15,7 +17,11 @@ int main(int argc, char ** argv) {
         printf("argv[%d] = %s\n", i, argv[i]);
     }
 
-    arbiter arb(argv[1], argv[2], atoi(argv[3]), atoi(argv[4]));
+    process white_proc(argv[1]);
+    process black_proc(argv[2]);
+    player white(white_proc.stdin, white_proc.stdout);
+    player black(black_proc.stdin, black_proc.stdout);
+    arbiter arb(white, black, atoi(argv[3]), atoi(argv[4]));
 
     arb.start_players();
     arb.start_game();
