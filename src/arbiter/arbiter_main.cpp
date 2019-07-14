@@ -15,7 +15,7 @@ int main(int argc, char ** argv) {
         printf("argv[%d] = %s\n", i, argv[i]);
     }
 
-    arbiter arb(argv[1], argv[2], 3 * 60, 1);
+    arbiter arb(argv[1], argv[2], atoi(argv[3]), atoi(argv[4]));
 
     arb.hello();
     arb.start_players();

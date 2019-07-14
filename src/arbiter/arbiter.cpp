@@ -54,6 +54,8 @@ void arbiter::start_game() {
     white->stdin << "ucinewgame" << endl;
     black->stdin << "ucinewgame" << endl;
 
+    white->stdin << "setoption name Threads value 8" << endl;
+
     white->stdin << "position startpos" << endl;
     white->stdin << "go wtime " << white_time << " btime " << black_time
                  << " winc " << increment << " binc " << increment << endl;
@@ -85,7 +87,7 @@ void arbiter::start_game() {
                      << " winc " << increment << " binc " << increment << endl;
 
         whitemove = getmove(white->stdout, "WHITE");
-        if (whitemove == "(none)") return;
+        if (whitemove == "(none)") break;
         cout << "White moves " << whitemove << endl;
         moves.push_back(whitemove);
 
@@ -98,8 +100,16 @@ void arbiter::start_game() {
                      << " winc " << increment << " binc " << increment << endl;
 
         blackmove = getmove(black->stdout, "BLACK");
-        if (blackmove == "(none)") return;
+        if (blackmove == "(none)") break;
         cout << "Black moves " << blackmove << endl;
         moves.push_back(blackmove);
     }
+
+    int k = 0;
+    for (auto move = begin(moves); move != end(moves); move++) {
+        if (k % 2 == 0) cout << endl << k/2 + 1 << ". ";
+        cout << *move << " ";
+        k++;
+    }
+    cout << endl;
 }
