@@ -1,4 +1,4 @@
-#include <Color.h>
+#include "../chess/color.h"
 #include <Board.h>
 #include <Move.h>
 #include <iostream>
@@ -65,7 +65,7 @@ void Board::calculateAttacks() {
     }
 }
 
-std::vector<Move> Board::getPossibleMovesFor(Color color) {
+std::vector<Move> Board::getPossibleMovesFor(color color) {
     std::vector<Move> moves;
 
     for (auto position = BitBoard(1); !position.isEmpty(); position <<= 1)
@@ -79,7 +79,7 @@ std::vector<Move> Board::getPossibleMovesFor(Color color) {
 }
 
 void Board::calculateKingAttacks(const BitBoard origin) {
-    Color attackerColor = hasPieceOfColor[BLACK][origin] ? BLACK : WHITE;
+    color attackerColor = hasPieceOfColor[BLACK][origin] ? BLACK : WHITE;
 
     if (!rank8[origin]) {
         auto north = origin.shiftUp(1);
@@ -129,8 +129,8 @@ void Board::calculateKingAttacks(const BitBoard origin) {
 
 void Board::calculateRookAttacks(const BitBoard origin) {
     // naive implementation
-    Color attackerColor = hasPieceOfColor[BLACK][origin] ? BLACK : WHITE;
-    Color oppositeColor = opposite(attackerColor);
+    color attackerColor = hasPieceOfColor[BLACK][origin] ? BLACK : WHITE;
+    color oppositeColor = opposite(attackerColor);
 
     BitBoard square = origin;
     while (!rank8[square]) {
@@ -165,9 +165,9 @@ void Board::calculateRookAttacks(const BitBoard origin) {
     }
 }
 
-std::vector<Move> Board::pseudo_legal_rook_moves(const BitBoard origin, Color attackerColor) const noexcept {
+std::vector<Move> Board::pseudo_legal_rook_moves(const BitBoard origin, color attackerColor) const noexcept {
     std::vector<Move> ret;
-    Color oppositeColor = opposite(attackerColor);
+    color oppositeColor = opposite(attackerColor);
     BitBoard square = origin;
     while (!rank8[square]) {
         square = square.shiftUp(1);
@@ -201,7 +201,7 @@ std::vector<Move> Board::pseudo_legal_rook_moves(const BitBoard origin, Color at
     }
 }
 
-void Board::putPiece(Piece piece, Color color, Square position) {
+void Board::putPiece(Piece piece, color color, Square position) {
     if (piece == PAWN) return putPawn(color, position);
     if (piece == BISHOP) return putBishop(color, position);
     if (piece == KNIGHT) return putKight(color, position);
@@ -210,7 +210,7 @@ void Board::putPiece(Piece piece, Color color, Square position) {
     if (piece == KING) return putKing(color, position);
 }
 
-void Board::putPawn(Color color, Square position) {
+void Board::putPawn(color color, Square position) {
     auto bitBoard = BitBoard(position);
     auto invBitBoard = ~bitBoard;
     setPieceColor(color, bitBoard);
@@ -221,7 +221,7 @@ void Board::putPawn(Color color, Square position) {
     hasPieceOfType[QUEEN] &= invBitBoard;
 }
 
-void Board::putKight(Color color, Square position){
+void Board::putKight(color color, Square position){
     auto bitBoard = BitBoard(position);
     auto invBitBoard = ~bitBoard;
     setPieceColor(color, bitBoard);
@@ -232,7 +232,7 @@ void Board::putKight(Color color, Square position){
     hasPieceOfType[QUEEN] &= invBitBoard;
 }
 
-void Board::putBishop(Color color, Square position){
+void Board::putBishop(color color, Square position){
     auto bitBoard = BitBoard(position);
     auto invBitBoard = ~bitBoard;
     setPieceColor(color, bitBoard);
@@ -243,7 +243,7 @@ void Board::putBishop(Color color, Square position){
     hasPieceOfType[QUEEN] &= invBitBoard;
 }
 
-void Board::putRook(Color color, Square position){
+void Board::putRook(color color, Square position){
     auto bitBoard = BitBoard(position);
     auto invBitBoard = ~bitBoard;
     setPieceColor(color, bitBoard);
@@ -254,7 +254,7 @@ void Board::putRook(Color color, Square position){
     hasPieceOfType[QUEEN] &= invBitBoard;
 }
 
-void Board::putQueen(Color color, Square position) {
+void Board::putQueen(color color, Square position) {
     auto bitBoard = BitBoard(position);
     auto invBitBoard = ~bitBoard;
     setPieceColor(color, bitBoard);
@@ -265,7 +265,7 @@ void Board::putQueen(Color color, Square position) {
     hasPieceOfType[QUEEN] |= bitBoard;
 }
 
-void Board::putKing(Color color, Square position) {
+void Board::putKing(color color, Square position) {
     hasPieceOfColor[color] &= ~(BitBoard(kingPosition[color]));
     kingPosition[color] = position;
     auto bitBoard = BitBoard(position);
@@ -278,18 +278,18 @@ void Board::putKing(Color color, Square position) {
     hasPieceOfType[QUEEN] &= invBitBoard;
 }
 
-void Board::setPieceColor(Color color, BitBoard bitBoard) {
+void Board::setPieceColor(color color, BitBoard bitBoard) {
     hasPieceOfColor[color] |= bitBoard;
     hasPieceOfColor[opposite(color)] &= ~bitBoard;
 }
 
-BitBoard Board::getAttacksFrom(Color color) const {
+BitBoard Board::getAttacksFrom(color color) const {
     return attacks[color];
 }
 
 void Board::addRookPossibleMoves(BitBoard origin, std::vector<Move> & moves) {
-    Color attackerColor = hasPieceOfColor[BLACK][origin] ? BLACK : WHITE;
-    Color oppositeColor = opposite(attackerColor);
+    color attackerColor = hasPieceOfColor[BLACK][origin] ? BLACK : WHITE;
+    color oppositeColor = opposite(attackerColor);
 
     BitBoard square = origin;
     while (!rank8[square]) {

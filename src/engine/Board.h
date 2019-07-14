@@ -6,7 +6,7 @@
 #include "Square.h"
 #include "Move.h"
 #include <Piece.h>
-#include <Color.h>
+#include "../chess/color.h"
 
 class Board {
     BitBoard hasPieceOfColor[2];
@@ -40,28 +40,28 @@ public:
 
     void calculateRookAttacks(BitBoard origin);
 
-    void putPiece(Piece piece, Color color, Square position);
+    void putPiece(Piece piece, color color, Square position);
 
-    void putPawn(Color color, Square position);
-    void putKight(Color color, Square position);
-    void putBishop(Color color, Square position);
-    void putRook(Color color, Square position);
-    void putQueen(Color color, Square position);
-    void putKing(Color color, Square position);
+    void putPawn(color color, Square position);
+    void putKight(color color, Square position);
+    void putBishop(color color, Square position);
+    void putRook(color color, Square position);
+    void putQueen(color color, Square position);
+    void putKing(color color, Square position);
 
-    void setPieceColor(Color color, BitBoard bitBoard);
+    void setPieceColor(color color, BitBoard bitBoard);
 
-    BitBoard getAttacksFrom(Color color) const;
+    BitBoard getAttacksFrom(color color) const;
 
     void calculateKingAttacks(const BitBoard origin);
 
-    std::vector<Move> getPossibleMovesFor(Color color);
+    std::vector<Move> getPossibleMovesFor(color color);
 
     void addRookPossibleMoves(BitBoard board, std::vector<Move> &moves);
 
     void addKingPossibleMoves(BitBoard origin, vector<Move> &moves);
 
-    vector<Move> pseudo_legal_rook_moves(const BitBoard origin, Color attackerColor) const noexcept;
+    vector<Move> pseudo_legal_rook_moves(const BitBoard origin, color attackerColor) const noexcept;
 };
 
 

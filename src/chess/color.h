@@ -5,10 +5,10 @@
 #ifndef CHESSENGINE_COLOR_H
 #define CHESSENGINE_COLOR_H
 
-enum Color : int {
+enum color : int {
     WHITE = 0, BLACK = 1
 };
 
-Color opposite(Color color);
+color opposite(color color);
 
 #endif //CHESSENGINE_COLOR_H
