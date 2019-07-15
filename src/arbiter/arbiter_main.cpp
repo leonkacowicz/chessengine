@@ -19,8 +19,8 @@ int main(int argc, char ** argv) {
 
     process white_proc(argv[1]);
     process black_proc(argv[2]);
-    player white(white_proc.stdin, white_proc.stdout);
-    player black(black_proc.stdin, black_proc.stdout);
+    player white(WHITE, white_proc.stdin, white_proc.stdout);
+    player black(BLACK, black_proc.stdin, black_proc.stdout);
     arbiter arb(white, black, atoi(argv[3]), atoi(argv[4]));
 
     arb.start_players();

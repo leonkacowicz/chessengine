@@ -15,9 +15,7 @@ class player {
     istream& out;
 
 public:
-
-    //player(process& p): in(p.stdin), out(p.stdout) {}
-    player(ostream& in, istream& out): in(in), out(out) {}
+    player(color c, ostream& in, istream& out): c(c), in(in), out(out) {}
 
     void start_player() {
         in << "uci" << endl;
