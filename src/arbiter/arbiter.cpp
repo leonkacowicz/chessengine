@@ -37,7 +37,7 @@ void arbiter::start_game() {
         cout << "White moves " << whitemove << endl;
         moves.push_back(whitemove);
 
-        white.set_position(moves);
+        black.set_position(moves);
         black.calculate_next_move(white_time, black_time, increment, increment);
         string blackmove = black.get_next_move();
         if (blackmove == "(none)") break;

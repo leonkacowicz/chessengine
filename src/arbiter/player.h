@@ -35,7 +35,7 @@ public:
     void set_position(const vector<string>& moves) {
         in << "position startpos";
         if (!moves.empty()) {
-            in << " moves ";
+            in << " moves";
             for (auto move = begin(moves); move != end(moves); move++) {
                 in << " " << *move;
             }
