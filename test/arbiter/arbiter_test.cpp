@@ -11,8 +11,8 @@ using namespace std;
 TEST(arbiter_test, arbiter_can_start_players) {
 
     stringstream white_in, white_out("uciok\n"), black_in, black_out("uciok\n");
-    player white(white_in, white_out);
-    player black(black_in, black_out);
+    player white(color::WHITE, white_in, white_out);
+    player black(color::BLACK, black_in, black_out);
 
     arbiter arb(white, black, 10000, 0);
 
@@ -33,8 +33,8 @@ TEST(arbiter_test, arbiter_can_start_players) {
 TEST(arbiter_test, arbiter_passes_moves_from_one_player_another) {
 
     stringstream white_in, white_out, black_in, black_out;
-    player white(white_in, white_out);
-    player black(black_in, black_out);
+    player white(color::WHITE, white_in, white_out);
+    player black(color::BLACK, black_in, black_out);
 
     white_out << "bestmove e2e4" << endl;
     white_out << "bestmove a2a4" << endl;
