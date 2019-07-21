@@ -51,10 +51,13 @@ public:
 
     string get_next_move() {
         string line;
+        string info;
         do {
             getline(out, line);
-            cout << "[DEBUG] [" << (player_color == 1 ? "BLACK" : "WHITE") << "] " << line << endl;
+            if (line.substr(0, 5) == "info ") info = line;
+            else cout << "[DEBUG] [" << (player_color == 1 ? "BLACK" : "WHITE") << "] " << line << endl;
         } while (line.rfind("bestmove ", 0) != 0);
+        cout << "[DEBUG] [" << (player_color == 1 ? "BLACK" : "WHITE") << "] " << info << endl;
 
         stringstream ss(line.substr(9));
         string bestmove;
