@@ -19,6 +19,9 @@ class Board {
     bool castleKingSideAllowedFor[2];
     bool sideToPlay;
 
+    void addRookPossibleMoves(BitBoard board, std::vector<Move> &moves);
+    void addKingPossibleMoves(BitBoard origin, vector<Move> &moves);
+    vector<Move> pseudo_legal_rook_moves(const BitBoard origin, color attackerColor) const noexcept;
 public:
 
     Board() :
@@ -57,11 +60,6 @@ public:
 
     std::vector<Move> getPossibleMovesFor(color color);
 
-    void addRookPossibleMoves(BitBoard board, std::vector<Move> &moves);
-
-    void addKingPossibleMoves(BitBoard origin, vector<Move> &moves);
-
-    vector<Move> pseudo_legal_rook_moves(const BitBoard origin, color attackerColor) const noexcept;
 };
 
 

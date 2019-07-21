@@ -7,9 +7,9 @@
 #include <mutex>
 #include "arbiter.h"
 
-arbiter::arbiter(player& white_player, player& black_player, chrono::milliseconds total_seconds_per_player, chrono::milliseconds increment) :
+arbiter::arbiter(player& white_player, player& black_player, chrono::milliseconds initial_time, chrono::milliseconds increment) :
         white(white_player), black(black_player),
-        white_time(total_seconds_per_player), black_time(total_seconds_per_player),
+        white_time(initial_time), black_time(initial_time),
         increment(increment)
      {
 
@@ -27,9 +27,6 @@ void arbiter::start_players() {
 
     white_thread = thread([&] { player_loop(white, white_mutexes); });
     black_thread = thread([&] { player_loop(black, black_mutexes); });
-
-//    white_thread.detach();
-//    black_thread.detach();
 
     cout << "[DEBUG] Engines started" << endl;
 }

@@ -38,7 +38,7 @@ class arbiter {
 
     vector<string> moves;
 public:
-    arbiter(player& white_player, player& black_player, chrono::milliseconds total_seconds_per_player, chrono::milliseconds increment);
+    arbiter(player& white_player, player& black_player, chrono::milliseconds initial_time, chrono::milliseconds increment);
     void start_players();
     void start_game();
 };
