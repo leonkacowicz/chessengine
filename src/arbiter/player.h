@@ -6,6 +6,7 @@
 #include <sstream>
 #include <iostream>
 #include <color.h>
+#include <chrono>
 
 using namespace std;
 
@@ -41,11 +42,14 @@ public:
         in << endl;
     }
 
-    void calculate_next_move(int white_time_millis, int black_time_millis, int white_increment, int black_increment) {
-        in << "go wtime " << white_time_millis
-            << " btime " << black_time_millis
-            << " winc " << white_increment
-            << " binc " << black_increment
+    void calculate_next_move(chrono::milliseconds white_time,
+                             chrono::milliseconds black_time,
+                             chrono::milliseconds white_increment,
+                             chrono::milliseconds black_increment) {
+        in << "go wtime " << white_time.count()
+            << " btime " << black_time.count()
+            << " winc " << white_increment.count()
+            << " binc " << black_increment.count()
             << endl;
     }
 

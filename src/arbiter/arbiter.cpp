@@ -7,7 +7,7 @@
 #include <mutex>
 #include "arbiter.h"
 
-arbiter::arbiter(player& white_player, player& black_player, int total_seconds_per_player, int increment) :
+arbiter::arbiter(player& white_player, player& black_player, chrono::milliseconds total_seconds_per_player, chrono::milliseconds increment) :
         white(white_player), black(black_player),
         white_time(total_seconds_per_player), black_time(total_seconds_per_player),
         increment(increment)
@@ -63,10 +63,10 @@ void arbiter::start_game() {
 
         if (i > 1) {
             auto last_move_time = chrono::system_clock::now();
-            auto move_duration = chrono::duration_cast<chrono::milliseconds>(last_move_time - last_time_point).count();
+            auto move_duration = chrono::duration_cast<chrono::milliseconds>(last_move_time - last_time_point);
             white_time -= move_duration;
             last_time_point = last_move_time;
-            cout << "White took " << move_duration << " and now has " << white_time << endl;
+            cout << "White took " << move_duration.count() << " and now has " << white_time.count() << endl;
         }
 
         cout << "White moves " << moves.back() << endl;
@@ -82,10 +82,10 @@ void arbiter::start_game() {
         if (moves.back() == "(none)") break;
         if (i > 1) {
             auto last_move_time = chrono::system_clock::now();
-            auto move_duration = chrono::duration_cast<chrono::milliseconds>(last_move_time - last_time_point).count();
+            auto move_duration = chrono::duration_cast<chrono::milliseconds>(last_move_time - last_time_point);
             black_time -= move_duration;
             last_time_point = last_move_time;
-            cout << "Black took " << move_duration << " and now has " << black_time << endl;
+            cout << "Black took " << move_duration.count() << " and now has " << black_time.count() << endl;
         }
 
     }

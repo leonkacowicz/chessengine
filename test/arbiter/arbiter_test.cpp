@@ -16,7 +16,7 @@ TEST(arbiter_test, arbiter_can_start_players) {
     player white(color::WHITE, white_in, white_out);
     player black(color::BLACK, black_in, black_out);
 
-    arbiter arb(white, black, 1000, 0);
+    arbiter arb(white, black, 1000ms, 0ms);
 
     arb.start_players();
     arb.start_game();
@@ -45,7 +45,7 @@ TEST(arbiter_test, arbiter_passes_moves_from_one_player_another) {
     black_out << "bestmove a7a5" << endl;
     black_out << "bestmove (none)" << endl;
 
-    arbiter arb(white, black, 10000, 0);
+    arbiter arb(white, black, 10000ms, 0ms);
 
     arb.start_players();
     arb.start_game();

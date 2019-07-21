@@ -19,9 +19,9 @@ struct mutexes {
 };
 
 class arbiter {
-    int white_time;
-    int black_time;
-    int increment;
+    chrono::milliseconds white_time;
+    chrono::milliseconds black_time;
+    chrono::milliseconds increment;
 
     player& white;
     player& black;
@@ -38,7 +38,7 @@ class arbiter {
 
     vector<string> moves;
 public:
-    arbiter(player& white_player, player& black_player, int total_seconds_per_player, int increment);
+    arbiter(player& white_player, player& black_player, chrono::milliseconds total_seconds_per_player, chrono::milliseconds increment);
     void start_players();
     void start_game();
 };
