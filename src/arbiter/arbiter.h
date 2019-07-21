@@ -5,10 +5,18 @@
 #include <string>
 #include <vector>
 #include <bits/unique_ptr.h>
+#include <thread>
+#include <mutex>
 #include "process.h"
 #include "player.h"
 
 using namespace std;
+
+struct mutexes {
+    timed_mutex ready;
+    timed_mutex time_to_play;
+    timed_mutex has_played;
+};
 
 class arbiter {
     int white_time;
@@ -18,12 +26,21 @@ class arbiter {
     player& white;
     player& black;
 
+    thread white_thread;
+    thread black_thread;
 
+    void player_loop(player& p, mutexes &m);
+
+    mutexes white_mutexes;
+    mutexes black_mutexes;
+
+    bool game_finished = false;
+
+    vector<string> moves;
 public:
     arbiter(player& white_player, player& black_player, int total_seconds_per_player, int increment);
     void start_players();
     void start_game();
-    void calculate_next_move(process*, vector<string> &);
 };
 
 #endif

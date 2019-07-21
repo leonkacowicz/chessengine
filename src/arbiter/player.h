@@ -10,12 +10,12 @@
 using namespace std;
 
 class player {
-    color c;
     ostream& in;
     istream& out;
 
 public:
-    player(color c, ostream& in, istream& out): c(c), in(in), out(out) {}
+    color player_color;
+    player(color c, ostream& in, istream& out): player_color(c), in(in), out(out) {}
 
     void start_player() {
         in << "uci" << endl;
@@ -53,7 +53,7 @@ public:
         string line;
         do {
             getline(out, line);
-            cout << "[DEBUG] [" << (c == 1 ? "BLACK" : "WHITE") << "] " << line << endl;
+            cout << "[DEBUG] [" << (player_color == 1 ? "BLACK" : "WHITE") << "] " << line << endl;
         } while (line.rfind("bestmove ", 0) != 0);
 
         stringstream ss(line.substr(9));

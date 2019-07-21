@@ -10,18 +10,17 @@ using namespace std;
 
 TEST(arbiter_test, arbiter_can_start_players) {
 
-    stringstream white_in, white_out("uciok\n"), black_in, black_out("uciok\n");
+    stringstream white_in, white_out, black_in, black_out("uciok\n");
+    white_out << "uciok" << endl;
+    white_out << "bestmove (none)" << endl;
     player white(color::WHITE, white_in, white_out);
     player black(color::BLACK, black_in, black_out);
 
-    arbiter arb(white, black, 10000, 0);
+    arbiter arb(white, black, 1000, 0);
 
-    auto arb_th = thread([&] {
-        arb.start_players();
-    });
-    arb_th.detach();
+    arb.start_players();
+    arb.start_game();
 
-    this_thread::sleep_for(std::chrono::milliseconds(1));
     string line;
     getline(white_in, line);
     EXPECT_STREQ(line.c_str(), "uci");
@@ -36,47 +35,54 @@ TEST(arbiter_test, arbiter_passes_moves_from_one_player_another) {
     player white(color::WHITE, white_in, white_out);
     player black(color::BLACK, black_in, black_out);
 
+    white_out << "uciok" << endl;
     white_out << "bestmove e2e4" << endl;
     white_out << "bestmove a2a4" << endl;
     white_out << "bestmove h2h4" << endl;
 
+    black_out << "uciok" << endl;
     black_out << "bestmove e7e5" << endl;
     black_out << "bestmove a7a5" << endl;
     black_out << "bestmove (none)" << endl;
 
     arbiter arb(white, black, 10000, 0);
 
+    arb.start_players();
     arb.start_game();
 
     string line;
+    getline(white_in, line);
+    EXPECT_STREQ(line.c_str(), "uci");
     getline(white_in, line);
     EXPECT_STREQ(line.c_str(), "ucinewgame");
     getline(white_in, line);
     EXPECT_STREQ(line.c_str(), "position startpos");
     getline(white_in, line);
-    EXPECT_STREQ(line.c_str(), "go wtime 10000 btime 10000 winc 0 binc 0");
+    EXPECT_STREQ(line.substr(0, 3).c_str(), "go ");
     getline(white_in, line);
     EXPECT_STREQ(line.c_str(), "position startpos moves e2e4 e7e5");
     getline(white_in, line);
-    EXPECT_STREQ(line.c_str(), "go wtime 10000 btime 10000 winc 0 binc 0");
+    EXPECT_STREQ(line.substr(0, 3).c_str(), "go ");
     getline(white_in, line);
     EXPECT_STREQ(line.c_str(), "position startpos moves e2e4 e7e5 a2a4 a7a5");
     getline(white_in, line);
-    EXPECT_STREQ(line.c_str(), "go wtime 10000 btime 10000 winc 0 binc 0");
+    EXPECT_STREQ(line.substr(0, 3).c_str(), "go ");
     
+    getline(black_in, line);
+    EXPECT_STREQ(line.c_str(), "uci");
     getline(black_in, line);
     EXPECT_STREQ(line.c_str(), "ucinewgame");
     getline(black_in, line);
     EXPECT_STREQ(line.c_str(), "position startpos moves e2e4");
     getline(black_in, line);
-    EXPECT_STREQ(line.c_str(), "go wtime 10000 btime 10000 winc 0 binc 0");
+    EXPECT_STREQ(line.substr(0, 3).c_str(), "go ");
     getline(black_in, line);
     EXPECT_STREQ(line.c_str(), "position startpos moves e2e4 e7e5 a2a4");
     getline(black_in, line);
-    EXPECT_STREQ(line.c_str(), "go wtime 10000 btime 10000 winc 0 binc 0");
+    EXPECT_STREQ(line.substr(0, 3).c_str(), "go ");
     getline(black_in, line);
     EXPECT_STREQ(line.c_str(), "position startpos moves e2e4 e7e5 a2a4 a7a5 h2h4");
     getline(black_in, line);
-    EXPECT_STREQ(line.c_str(), "go wtime 10000 btime 10000 winc 0 binc 0");
+    EXPECT_STREQ(line.substr(0, 3).c_str(), "go ");
     cout << line;
 }
