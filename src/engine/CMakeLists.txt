@@ -1,9 +1,4 @@
-set(engine_src
-        Board.h Board.cpp
-        bitboard.cpp bitboard.h
-        Square.cpp Square.h
-        Move.cpp Move.h
-        ../chess/color.cpp ../chess/color.h
-        Piece.h)
-add_library(engine STATIC ${engine_src})
+file(GLOB SRCS *.cpp *.h)
+add_library(engine STATIC ${SRCS})
+target_link_libraries(engine chess)
 target_include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
