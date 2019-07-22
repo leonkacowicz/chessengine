@@ -4,15 +4,13 @@
 #include <string>
 #include <iostream>
 
-using namespace std;
-
 class Square {
     unsigned char coords;
 
 public:
     Square() : coords(0) {}
     constexpr Square(const unsigned int x, const unsigned int y) : coords(((y & 7u) << 4u) | (x & 7u)) {}
-    Square(const string & position) : Square(position[0] - 'a', position[1] - '1') {}
+    Square(const std::string & position) : Square(position[0] - 'a', position[1] - '1') {}
     constexpr unsigned int getX() const {
         return coords & 7u;
     }
@@ -25,10 +23,10 @@ public:
         return coords == rhs.coords;
     }
 
-    string to_string() const {
+    std::string to_string() const {
         char file = static_cast<char>('a' + getX());
         char rank = static_cast<char>('1' + getY());
-        return string({file, rank});
+        return std::string({file, rank});
     }
 };
 

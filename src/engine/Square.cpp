@@ -1,6 +1,6 @@
 #include "Square.h"
 
-ostream& operator<<(ostream& os, const Square pos) {
+std::ostream& operator<<(std::ostream& os, const Square pos) {
     os << ('a' + pos.getX()) << ('1' + pos.getY());
     return os;
 }
