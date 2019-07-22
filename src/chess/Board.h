@@ -2,11 +2,11 @@
 #define CHESSENGINE_BOARD_H
 
 #include <vector>
-#include <bitboard.h>
-#include <Square.h>
+#include "bitboard.h"
+#include "Square.h"
 #include "Move.h"
-#include <Piece.h>
-#include "../chess/color.h"
+#include "Piece.h"
+#include "color.h"
 
 class Board {
     bitboard hasPieceOfColor[2];
