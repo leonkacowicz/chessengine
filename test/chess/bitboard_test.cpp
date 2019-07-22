@@ -49,3 +49,22 @@ TEST(bitboard_test, bitboard_square_conversion_inv) {
         }
     }
 }
+
+TEST(bitboard_test, costants_and_ops) {
+    for (int f = 0; f < 7; f++) {
+        EXPECT_EQ(file[f].shift_right(1), file[f + 1]);
+    }
+
+    for (int f = 7; f > 0; f--) {
+        EXPECT_EQ(file[f].shift_left(1), file[f - 1]);
+    }
+
+    for (int r = 0; r < 7; r++) {
+        EXPECT_EQ(rank[r].shift_up(1), rank[r + 1]);
+    }
+
+    for (int r = 7; r > 0; r--) {
+        EXPECT_EQ(rank[r].shift_down(1), rank[r - 1]);
+    }
+}
+
