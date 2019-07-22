@@ -2,7 +2,7 @@
 #define CHESSENGINE_MOVE_H
 
 
-#include "Square.h"
+#include <Square.h>
 
 class Move {
 private:
