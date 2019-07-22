@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <Square.h>
-#include <BitBoard.h>
+#include <bitboard.h>
 
 TEST(SquarePositionTest, SquarePositionsCorrectness) {
     for (int x = 0; x < 8; x++)
@@ -32,7 +32,7 @@ TEST(SquarePositionTest, SquarePositionsCorrectnessFromBitBoard) {
     for (int x = 0; x < 8; x++)
         for (int y = 0; y < 8; y++) {
             Square expected(x, y);
-            BitBoard bitBoard = BitBoard(expected);
+            bitboard bitBoard = bitboard(expected);
             Square calculated = bitBoard.asSquarePosition();
             ASSERT_EQ(expected, calculated);
         }

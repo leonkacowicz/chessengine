@@ -1,6 +1,6 @@
 set(engine_src
         Board.h Board.cpp
-        BitBoard.cpp BitBoard.h
+        bitboard.cpp bitboard.h
         Square.cpp Square.h
         Move.cpp Move.h
         ../chess/color.cpp ../chess/color.h

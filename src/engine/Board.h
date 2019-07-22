@@ -2,16 +2,16 @@
 #define CHESSENGINE_BOARD_H
 
 #include <vector>
-#include "BitBoard.h"
+#include "bitboard.h"
 #include "Square.h"
 #include "Move.h"
 #include <Piece.h>
 #include "../chess/color.h"
 
 class Board {
-    BitBoard hasPieceOfColor[2];
-    BitBoard hasPieceOfType[5];
-    BitBoard attacks[2];
+    bitboard hasPieceOfColor[2];
+    bitboard hasPieceOfType[5];
+    bitboard attacks[2];
     Square kingPosition[2];
     
     char enPassantAndCastles; // justMovedPawn2Squres [1-bit] + enPassantFile [4-bits] + whiteCanCastleKingSide
@@ -19,9 +19,9 @@ class Board {
     bool castleKingSideAllowedFor[2];
     bool sideToPlay;
 
-    void addRookPossibleMoves(BitBoard board, std::vector<Move> &moves);
-    void addKingPossibleMoves(BitBoard origin, vector<Move> &moves);
-    vector<Move> pseudo_legal_rook_moves(const BitBoard origin, color attackerColor) const noexcept;
+    void addRookPossibleMoves(bitboard board, std::vector<Move> &moves);
+    void addKingPossibleMoves(bitboard origin, vector<Move> &moves);
+    vector<Move> pseudo_legal_rook_moves(const bitboard origin, color attackerColor) const noexcept;
 public:
 
     Board() :
@@ -41,7 +41,7 @@ public:
     std::string toString() const;
     void printBoard() const;
 
-    void calculateRookAttacks(BitBoard origin);
+    void calculateRookAttacks(bitboard origin);
 
     void putPiece(Piece piece, color color, Square position);
 
@@ -52,11 +52,11 @@ public:
     void putQueen(color color, Square position);
     void putKing(color color, Square position);
 
-    void setPieceColor(color color, BitBoard bitBoard);
+    void setPieceColor(color color, bitboard bitBoard);
 
-    BitBoard getAttacksFrom(color color) const;
+    bitboard getAttacksFrom(color color) const;
 
-    void calculateKingAttacks(const BitBoard origin);
+    void calculateKingAttacks(const bitboard origin);
 
     std::vector<Move> getPossibleMovesFor(color color);
 

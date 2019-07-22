@@ -13,10 +13,10 @@ TEST(BoardTest, King_Attacks) {
     Board board;
     board.calculateAttacks();
 
-    BitBoard expected_white_attacks{"d1", "d2", "e2", "f2", "f1"};
+    bitboard expected_white_attacks{"d1", "d2", "e2", "f2", "f1"};
     ASSERT_EQ(expected_white_attacks, board.getAttacksFrom(WHITE));
 
-    BitBoard expected_black_attacks{"d8", "d7", "e7", "f7", "f8"};
+    bitboard expected_black_attacks{"d8", "d7", "e7", "f7", "f8"};
     ASSERT_EQ(expected_black_attacks, board.getAttacksFrom(BLACK));
 }
 
@@ -25,11 +25,11 @@ TEST(BoardTest, Rook_attacks) {
     Square c4("c4");
     board.putRook(WHITE, {"c4"});
     board.calculateAttacks();
-    BitBoard expected_white_attacks{"d1", "d2", "e2", "f2", "f1"};
-    expected_white_attacks |= (fileC | rank4) & ~BitBoard(c4);
+    bitboard expected_white_attacks{"d1", "d2", "e2", "f2", "f1"};
+    expected_white_attacks |= (file_c | rank_4) & ~bitboard(c4);
     ASSERT_EQ(expected_white_attacks, board.getAttacksFrom(WHITE));
 
-    BitBoard expected_black_attacks{"d8", "d7", "e7", "f7", "f8"};
+    bitboard expected_black_attacks{"d8", "d7", "e7", "f7", "f8"};
     ASSERT_EQ(expected_black_attacks, board.getAttacksFrom(BLACK));
 }
 
@@ -54,7 +54,7 @@ TEST(BoardTest, legal_moves_king_cannot_move_into_check) {
 }
 
 int main(int argc, char **argv) {
-    BitBoard::initializePositions();
+    bitboard::initializePositions();
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
