@@ -2,7 +2,7 @@
 #include <vector>
 #include <algorithm>
 #include <Board.h>
-#include <Square.h>
+#include <square.h>
 
 TEST(BoardTest, Board_with_only_kings_is_not_checkmate) {
     Board board;
@@ -22,7 +22,7 @@ TEST(BoardTest, King_Attacks) {
 
 TEST(BoardTest, Rook_attacks) {
     Board board;
-    Square c4("c4");
+    square c4("c4");
     board.putRook(WHITE, {"c4"});
     board.calculateAttacks();
     bitboard expected_white_attacks{"d1", "d2", "e2", "f2", "f1"};

@@ -3,7 +3,7 @@
 
 #include <vector>
 #include "bitboard.h"
-#include "Square.h"
+#include "square.h"
 #include "Move.h"
 #include "Piece.h"
 #include "color.h"
@@ -12,7 +12,7 @@ class Board {
     bitboard hasPieceOfColor[2];
     bitboard hasPieceOfType[5];
     bitboard attacks[2];
-    Square kingPosition[2];
+    square kingPosition[2];
     
     char enPassantAndCastles; // justMovedPawn2Squres [1-bit] + enPassantFile [4-bits] + whiteCanCastleKingSide
     bool justMovedPawn2Squares[2];
@@ -28,8 +28,8 @@ public:
         hasPieceOfColor{0, 0},
         hasPieceOfType{0, 0, 0, 0, 0}
     {
-        putKing(WHITE, Square("e1"));
-        putKing(BLACK, Square("e8"));
+        putKing(WHITE, square("e1"));
+        putKing(BLACK, square("e8"));
         calculateAttacks();
     }
 
@@ -43,14 +43,14 @@ public:
 
     void calculateRookAttacks(bitboard origin);
 
-    void putPiece(Piece piece, color color, Square position);
+    void putPiece(Piece piece, color color, square position);
 
-    void putPawn(color color, Square position);
-    void putKight(color color, Square position);
-    void putBishop(color color, Square position);
-    void putRook(color color, Square position);
-    void putQueen(color color, Square position);
-    void putKing(color color, Square position);
+    void putPawn(color color, square position);
+    void putKight(color color, square position);
+    void putBishop(color color, square position);
+    void putRook(color color, square position);
+    void putQueen(color color, square position);
+    void putKing(color color, square position);
 
     void setPieceColor(color color, bitboard bitBoard);
 

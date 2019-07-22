@@ -4,14 +4,14 @@
 #include <string>
 #include <iostream>
 
-class Square {
+class square {
     unsigned char coords;
 
 public:
-    Square() : coords(255) {}
-    constexpr Square(const unsigned int x, const unsigned int y) : coords(((y & 7u) << 4u) | (x & 7u)) {}
-    Square(const std::string& position) : Square(position[0] - 'a', position[1] - '1') {}
-    //Square(const char* position) : Square(position[0] - 'a', position[1] - '1') {}
+    square() : coords(255) {}
+    constexpr square(const unsigned int x, const unsigned int y) : coords(((y & 7u) << 4u) | (x & 7u)) {}
+    square(const std::string& position) : square(position[0] - 'a', position[1] - '1') {}
+    //square(const char* position) : square(position[0] - 'a', position[1] - '1') {}
     constexpr unsigned int get_file() const {
         return coords & 7u;
     }
@@ -20,7 +20,7 @@ public:
         return (unsigned)(coords >> 4u) & 7u;
     }
 
-    bool operator==(Square rhs) const {
+    bool operator==(square rhs) const {
         return coords == rhs.coords;
     }
 

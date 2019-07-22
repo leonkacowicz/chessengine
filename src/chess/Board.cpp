@@ -201,7 +201,7 @@ std::vector<Move> Board::pseudo_legal_rook_moves(const bitboard origin, color at
     }
 }
 
-void Board::putPiece(Piece piece, color color, Square position) {
+void Board::putPiece(Piece piece, color color, square position) {
     if (piece == PAWN) return putPawn(color, position);
     if (piece == BISHOP) return putBishop(color, position);
     if (piece == KNIGHT) return putKight(color, position);
@@ -210,7 +210,7 @@ void Board::putPiece(Piece piece, color color, Square position) {
     if (piece == KING) return putKing(color, position);
 }
 
-void Board::putPawn(color color, Square position) {
+void Board::putPawn(color color, square position) {
     auto bitBoard = bitboard(position);
     auto invBitBoard = ~bitBoard;
     setPieceColor(color, bitBoard);
@@ -221,7 +221,7 @@ void Board::putPawn(color color, Square position) {
     hasPieceOfType[QUEEN] &= invBitBoard;
 }
 
-void Board::putKight(color color, Square position){
+void Board::putKight(color color, square position){
     auto bitBoard = bitboard(position);
     auto invBitBoard = ~bitBoard;
     setPieceColor(color, bitBoard);
@@ -232,7 +232,7 @@ void Board::putKight(color color, Square position){
     hasPieceOfType[QUEEN] &= invBitBoard;
 }
 
-void Board::putBishop(color color, Square position){
+void Board::putBishop(color color, square position){
     auto bitBoard = bitboard(position);
     auto invBitBoard = ~bitBoard;
     setPieceColor(color, bitBoard);
@@ -243,7 +243,7 @@ void Board::putBishop(color color, Square position){
     hasPieceOfType[QUEEN] &= invBitBoard;
 }
 
-void Board::putRook(color color, Square position){
+void Board::putRook(color color, square position){
     auto bitBoard = bitboard(position);
     auto invBitBoard = ~bitBoard;
     setPieceColor(color, bitBoard);
@@ -254,7 +254,7 @@ void Board::putRook(color color, Square position){
     hasPieceOfType[QUEEN] &= invBitBoard;
 }
 
-void Board::putQueen(color color, Square position) {
+void Board::putQueen(color color, square position) {
     auto bitBoard = bitboard(position);
     auto invBitBoard = ~bitBoard;
     setPieceColor(color, bitBoard);
@@ -265,7 +265,7 @@ void Board::putQueen(color color, Square position) {
     hasPieceOfType[QUEEN] |= bitBoard;
 }
 
-void Board::putKing(color color, Square position) {
+void Board::putKing(color color, square position) {
     hasPieceOfColor[color] &= ~(bitboard(kingPosition[color]));
     kingPosition[color] = position;
     auto bitBoard = bitboard(position);

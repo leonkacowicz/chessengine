@@ -4,13 +4,13 @@
 #include <cstdint>
 #include <ostream>
 #include <initializer_list>
-#include "Square.h"
+#include "square.h"
 
 using U64 = unsigned long int;
 
 class bitboard {
 
-    static Square squarePositions[67];
+    static square squarePositions[67];
     U64 board;
 
 public:
@@ -21,9 +21,9 @@ public:
 
     bitboard(unsigned int x, unsigned int y) noexcept : board(1uL << (8 * y + x)) {};
 
-    bitboard(const Square square) noexcept : bitboard(square.get_file(), square.get_rank()) {}
+    bitboard(const square square) noexcept : bitboard(square.get_file(), square.get_rank()) {}
 
-    bitboard(const std::initializer_list<Square>& squares) noexcept {
+    bitboard(const std::initializer_list<square>& squares) noexcept {
         for (auto& pos : squares) {
             board |= 1uL << (8 * pos.get_rank() + pos.get_file());
         }
@@ -32,7 +32,7 @@ public:
     bitboard(const std::initializer_list<std::string>& positions) noexcept {
         board = 0;
         for (auto& pos : positions) {
-            board |= bitboard(Square(pos)).board;
+            board |= bitboard(square(pos)).board;
         }
     }
 
@@ -138,7 +138,7 @@ public:
         return (board & position.board) != 0;
     }
 
-    bool operator[](const Square square) const {
+    bool operator[](const square square) const {
         return (*this)[bitboard(square)];
     }
 
@@ -146,7 +146,7 @@ public:
         return board == 0;
     }
 
-    Square asSquarePosition() const {
+    square asSquarePosition() const {
         // https://www.chessprogramming.org/BitScan
         return squarePositions[(board & -board) % 67];
     }
@@ -155,7 +155,7 @@ public:
         // https://www.chessprogramming.org/BitScan
         for (int y = 0; y < 8; y++) for (int x = 0; x < 8; x++) {
             bitboard bitBoard(x, y);
-            squarePositions[(bitBoard.board & -bitBoard.board) % 67] = Square(x, y);
+            squarePositions[(bitBoard.board & -bitBoard.board) % 67] = square(x, y);
         }
     }
 };
