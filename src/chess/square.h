@@ -11,7 +11,7 @@ public:
     square() : coords(255) {}
     constexpr square(const unsigned int x, const unsigned int y) : coords(((y & 7u) << 4u) | (x & 7u)) {}
     square(const std::string& position) : square(position[0] - 'a', position[1] - '1') {}
-    //square(const char* position) : square(position[0] - 'a', position[1] - '1') {}
+    square(const char* position) : square(position[0] - 'a', position[1] - '1') {}
     constexpr unsigned int get_file() const {
         return coords & 7u;
     }

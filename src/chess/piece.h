@@ -5,7 +5,7 @@
 #ifndef CHESSENGINE_PIECE_H
 #define CHESSENGINE_PIECE_H
 
-enum Piece : int {
+enum piece : int {
     PAWN = 0, KNIGHT, BISHOP, ROOK, QUEEN, KING
 };
 

@@ -22,11 +22,10 @@ TEST(BoardTest, King_Attacks) {
 
 TEST(BoardTest, Rook_attacks) {
     Board board;
-    square c4("c4");
-    board.putRook(WHITE, {"c4"});
+    board.putPiece(ROOK, WHITE, "c4");
     board.calculateAttacks();
     bitboard expected_white_attacks{"d1", "d2", "e2", "f2", "f1"};
-    expected_white_attacks |= (file_c | rank_4) & ~bitboard(c4);
+    expected_white_attacks |= (file_c | rank_4) & ~bitboard("c4");
     ASSERT_EQ(expected_white_attacks, board.getAttacksFrom(WHITE));
 
     bitboard expected_black_attacks{"d8", "d7", "e7", "f7", "f8"};
@@ -39,7 +38,7 @@ TEST(BoardTest, legal_moves_king_cannot_move_into_check) {
 
     board.putKing(WHITE, {"g5"});
     board.putKing(BLACK, {"a1"});
-    board.putRook(BLACK, {"f1"});
+    board.putPiece(ROOK, BLACK, {"f1"});
     const std::vector<Move> moves = board.getPossibleMovesFor(WHITE);
 
 //    ASSERT_EQ(std::find(moves.begin(), moves.end(), Move({"g5"}, {"f6"})), moves.end());

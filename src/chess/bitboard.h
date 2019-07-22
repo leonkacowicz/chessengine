@@ -29,13 +29,6 @@ public:
         }
     }
 
-    bitboard(const std::initializer_list<std::string>& positions) noexcept {
-        board = 0;
-        for (auto& pos : positions) {
-            board |= bitboard(square(pos)).board;
-        }
-    }
-
     bitboard shift_left(const unsigned int arg) const {
         return {board >> arg};
     }

@@ -5,7 +5,7 @@
 #include "bitboard.h"
 #include "square.h"
 #include "Move.h"
-#include "Piece.h"
+#include "piece.h"
 #include "color.h"
 
 class Board {
@@ -43,14 +43,9 @@ public:
 
     void calculateRookAttacks(bitboard origin);
 
-    void putPiece(Piece piece, color color, square position);
+    void putPiece(piece p, color c, square s);
 
-    void putPawn(color color, square position);
-    void putKight(color color, square position);
-    void putBishop(color color, square position);
-    void putRook(color color, square position);
-    void putQueen(color color, square position);
-    void putKing(color color, square position);
+    void putKing(color c, square position);
 
     void setPieceColor(color color, bitboard bitBoard);
 
