@@ -139,7 +139,7 @@ public:
         return board == 0;
     }
 
-    square asSquarePosition() const {
+    square get_square() const {
         // https://www.chessprogramming.org/BitScan
         return squarePositions[(board & -board) % 67];
     }

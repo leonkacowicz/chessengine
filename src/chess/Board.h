@@ -9,51 +9,50 @@
 #include "color.h"
 
 class Board {
-    bitboard hasPieceOfColor[2];
-    bitboard hasPieceOfType[5];
+    bitboard piece_of_color[2];
+    bitboard piece_of_type[5];
     bitboard attacks[2];
-    square kingPosition[2];
+    square king_pos[2];
     
     char enPassantAndCastles; // justMovedPawn2Squres [1-bit] + enPassantFile [4-bits] + whiteCanCastleKingSide
     bool justMovedPawn2Squares[2];
     bool castleKingSideAllowedFor[2];
-    bool sideToPlay;
+    bool side_to_play;
 
-    void addRookPossibleMoves(bitboard board, std::vector<Move> &moves);
-    void addKingPossibleMoves(bitboard origin, std::vector<Move> &moves);
-    std::vector<Move> pseudo_legal_rook_moves(const bitboard origin, color attackerColor) const noexcept;
+    void addRookPossibleMoves(bitboard board, std::vector<Move> &moves) const;
+    void addKingPossibleMoves(bitboard origin, std::vector<Move> &moves) const;
+    std::vector<Move> pseudo_legal_rook_moves(bitboard origin, color attackerColor) const noexcept;
+    void calculate_rook_attacks(bitboard origin);
+    void calculate_king_attacks(bitboard origin);
+
+    template <piece p>
+    void add_possible_moves(bitboard origin, std::vector<Move>& moves) const;
+
 public:
 
     Board() :
-        hasPieceOfColor{0, 0},
-        hasPieceOfType{0, 0, 0, 0, 0}
+        piece_of_color{0, 0},
+        piece_of_type{0, 0, 0, 0, 0}
     {
-        putKing(WHITE, square("e1"));
-        putKing(BLACK, square("e8"));
-        calculateAttacks();
+        set_king_position(WHITE, square("e1"));
+        set_king_position(BLACK, square("e8"));
+        calculate_attacks();
     }
 
     Board(const std::string& fen);
 
-    bool isCheckmate() const;
-    void setInitialPosition();
-    void calculateAttacks();
-    std::string toString() const;
-    void printBoard() const;
+    bool is_checkmate() const;
+    bool is_stalemate() const;
+    void set_initial_position();
+    void calculate_attacks();
+    std::string to_string() const;
+    void print() const;
 
-    void calculateRookAttacks(bitboard origin);
+    void put_piece(piece p, color c, square s);
+    void set_king_position(color c, square position);
 
-    void putPiece(piece p, color c, square s);
-
-    void putKing(color c, square position);
-
-    void setPieceColor(color color, bitboard bitBoard);
-
-    bitboard getAttacksFrom(color color) const;
-
-    void calculateKingAttacks(const bitboard origin);
-
-    std::vector<Move> getPossibleMovesFor(color color);
+    bitboard get_attacks(color color) const;
+    std::vector<Move> get_legal_moves(color c) const;
 
 };
 

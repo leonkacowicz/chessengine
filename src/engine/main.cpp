@@ -8,8 +8,8 @@ using namespace std;
 int main()
 {
     Board board;
-    board.setInitialPosition();
-    board.printBoard();
+    board.set_initial_position();
+    board.print();
     cout << sizeof(Board);
     return 0;
 }

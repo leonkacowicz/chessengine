@@ -43,7 +43,7 @@ TEST(bitboard_test, bitboard_square_conversion_inv) {
     for (int f = 0; f < 8; f++) {
         for (int r = 0; r < 8; r++) {
             bitboard bb(f, r);
-            auto sq = bb.asSquarePosition();
+            auto sq = bb.get_square();
             ASSERT_EQ(sq.get_file(), f);
             ASSERT_EQ(sq.get_rank(), r);
         }

@@ -6,40 +6,40 @@
 
 TEST(BoardTest, Board_with_only_kings_is_not_checkmate) {
     Board board;
-    ASSERT_FALSE(board.isCheckmate());
+    ASSERT_FALSE(board.is_checkmate());
 }
 
 TEST(BoardTest, King_Attacks) {
     Board board;
-    board.calculateAttacks();
+    board.calculate_attacks();
 
     bitboard expected_white_attacks{"d1", "d2", "e2", "f2", "f1"};
-    ASSERT_EQ(expected_white_attacks, board.getAttacksFrom(WHITE));
+    ASSERT_EQ(expected_white_attacks, board.get_attacks(WHITE));
 
     bitboard expected_black_attacks{"d8", "d7", "e7", "f7", "f8"};
-    ASSERT_EQ(expected_black_attacks, board.getAttacksFrom(BLACK));
+    ASSERT_EQ(expected_black_attacks, board.get_attacks(BLACK));
 }
 
 TEST(BoardTest, Rook_attacks) {
     Board board;
-    board.putPiece(ROOK, WHITE, "c4");
-    board.calculateAttacks();
+    board.put_piece(ROOK, WHITE, "c4");
+    board.calculate_attacks();
     bitboard expected_white_attacks{"d1", "d2", "e2", "f2", "f1"};
     expected_white_attacks |= (file_c | rank_4) & ~bitboard("c4");
-    ASSERT_EQ(expected_white_attacks, board.getAttacksFrom(WHITE));
+    ASSERT_EQ(expected_white_attacks, board.get_attacks(WHITE));
 
     bitboard expected_black_attacks{"d8", "d7", "e7", "f7", "f8"};
-    ASSERT_EQ(expected_black_attacks, board.getAttacksFrom(BLACK));
+    ASSERT_EQ(expected_black_attacks, board.get_attacks(BLACK));
 }
 
 
 TEST(BoardTest, legal_moves_king_cannot_move_into_check) {
     Board board;
 
-    board.putKing(WHITE, {"g5"});
-    board.putKing(BLACK, {"a1"});
-    board.putPiece(ROOK, BLACK, {"f1"});
-    const std::vector<Move> moves = board.getPossibleMovesFor(WHITE);
+    board.set_king_position(WHITE, {"g5"});
+    board.set_king_position(BLACK, {"a1"});
+    board.put_piece(ROOK, BLACK, {"f1"});
+    const std::vector<Move> moves = board.get_legal_moves(WHITE);
 
 //    ASSERT_EQ(std::find(moves.begin(), moves.end(), Move({"g5"}, {"f6"})), moves.end());
 //    ASSERT_EQ(std::find(moves.begin(), moves.end(), Move({"g5"}, {"f5"})), moves.end());
