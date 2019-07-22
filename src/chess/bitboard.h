@@ -153,10 +153,11 @@ public:
 
     static void initializePositions() {
         // https://www.chessprogramming.org/BitScan
-        for (int y = 0; y < 8; y++) for (int x = 0; x < 8; x++) {
-            bitboard bitBoard(x, y);
-            squarePositions[(bitBoard.board & -bitBoard.board) % 67] = square(x, y);
-        }
+        for (int y = 0; y < 8; y++)
+            for (int x = 0; x < 8; x++) {
+                bitboard bitBoard(x, y);
+                squarePositions[(bitBoard.board & -bitBoard.board) % 67] = square(x, y);
+            }
     }
 };
 
@@ -176,5 +177,8 @@ static const bitboard rank_5(0x000000FF00000000);
 static const bitboard rank_6(0x0000FF0000000000);
 static const bitboard rank_7(0x00FF000000000000);
 static const bitboard rank_8(0xFF00000000000000);
+
+static const bitboard file[8] = {file_a, file_b, file_c, file_d, file_e, file_f, file_g, file_h};
+static const bitboard rank[8] = {rank_1, rank_2, rank_3, rank_4, rank_5, rank_6, rank_7, rank_8};
 
 #endif //CHESSENGINE_BITBOARD_H
