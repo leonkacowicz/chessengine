@@ -68,3 +68,34 @@ TEST(bitboard_test, costants_and_ops) {
     }
 }
 
+TEST(bitboard_test, test_shift_up_right) {
+    for (int r = 0; r < 7; r++) {
+        for (int f = 0; f < 7; f++) {
+            EXPECT_EQ(bitboard(f, r).shift_up_right(1), bitboard(f + 1, r + 1));
+        }
+    }
+}
+
+TEST(bitboard_test, test_shift_up_left) {
+    for (int r = 0; r < 7; r++) {
+        for (int f = 1; f < 8; f++) {
+            EXPECT_EQ(bitboard(f, r).shift_up_left(1), bitboard(f - 1, r + 1));
+        }
+    }
+}
+
+TEST(bitboard_test, test_shift_down_right) {
+    for (int r = 1; r < 8; r++) {
+        for (int f = 0; f < 7; f++) {
+            EXPECT_EQ(bitboard(f, r).shift_down_right(1), bitboard(f + 1, r - 1));
+        }
+    }
+}
+
+TEST(bitboard_test, test_shift_down_left) {
+    for (int r = 1; r < 8; r++) {
+        for (int f = 1; f < 8; f++) {
+            EXPECT_EQ(bitboard(f, r).shift_down_left(1), bitboard(f - 1, r - 1));
+        }
+    }
+}
