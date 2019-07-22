@@ -1,5 +1,4 @@
 file(GLOB SRCS *.cpp *.h)
-set(arbiter_src arbiter.cpp)
 add_library(arbiter STATIC ${SRCS})
 target_include_directories(arbiter PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(arbiter chess)
