@@ -40,7 +40,7 @@ TEST(BoardTest, legal_moves_king_cannot_move_into_check) {
     board.putKing(WHITE, {"g5"});
     board.putKing(BLACK, {"a1"});
     board.putRook(BLACK, {"f1"});
-    const vector<Move> moves = board.getPossibleMovesFor(WHITE);
+    const std::vector<Move> moves = board.getPossibleMovesFor(WHITE);
 
 //    ASSERT_EQ(std::find(moves.begin(), moves.end(), Move({"g5"}, {"f6"})), moves.end());
 //    ASSERT_EQ(std::find(moves.begin(), moves.end(), Move({"g5"}, {"f5"})), moves.end());

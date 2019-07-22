@@ -330,7 +330,10 @@ void Board::addKingPossibleMoves(bitboard origin, std::vector<Move>& moves) {
 
 }
 
-Board::Board(const string& fen) {
+Board::Board(const std::string& fen) {
+
+    using std::string;
+    using std::stringstream;
 
     stringstream ss(fen);
 
@@ -353,7 +356,5 @@ Board::Board(const string& fen) {
     getline(ss, full_move_counter, ' ');
 
     sideToPlay = side_to_move == "b";
-
-
 }
 

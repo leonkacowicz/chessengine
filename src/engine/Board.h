@@ -20,8 +20,8 @@ class Board {
     bool sideToPlay;
 
     void addRookPossibleMoves(bitboard board, std::vector<Move> &moves);
-    void addKingPossibleMoves(bitboard origin, vector<Move> &moves);
-    vector<Move> pseudo_legal_rook_moves(const bitboard origin, color attackerColor) const noexcept;
+    void addKingPossibleMoves(bitboard origin, std::vector<Move> &moves);
+    std::vector<Move> pseudo_legal_rook_moves(const bitboard origin, color attackerColor) const noexcept;
 public:
 
     Board() :
@@ -33,7 +33,7 @@ public:
         calculateAttacks();
     }
 
-    Board(const string& fen);
+    Board(const std::string& fen);
 
     bool isCheckmate() const;
     void setInitialPosition();

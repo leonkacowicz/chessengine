@@ -8,8 +8,6 @@
 
 using U64 = unsigned long int;
 
-using namespace std;
-
 class bitboard {
 
     static Square squarePositions[67];
@@ -25,13 +23,13 @@ public:
 
     bitboard(const Square square) noexcept : bitboard(square.getX(), square.getY()) {}
 
-    bitboard(const initializer_list<Square>& squares) noexcept {
+    bitboard(const std::initializer_list<Square>& squares) noexcept {
         for (auto& pos : squares) {
             board |= 1uL << (8 * pos.getY() + pos.getX());
         }
     }
 
-    bitboard(const initializer_list<string>& positions) noexcept {
+    bitboard(const std::initializer_list<std::string>& positions) noexcept {
         board = 0;
         for (auto& pos : positions) {
             board |= bitboard(Square(pos)).board;
