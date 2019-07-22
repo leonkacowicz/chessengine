@@ -8,14 +8,15 @@ class Square {
     unsigned char coords;
 
 public:
-    Square() : coords(0) {}
+    Square() : coords(255) {}
     constexpr Square(const unsigned int x, const unsigned int y) : coords(((y & 7u) << 4u) | (x & 7u)) {}
-    Square(const std::string & position) : Square(position[0] - 'a', position[1] - '1') {}
-    constexpr unsigned int getX() const {
+    Square(const std::string& position) : Square(position[0] - 'a', position[1] - '1') {}
+    //Square(const char* position) : Square(position[0] - 'a', position[1] - '1') {}
+    constexpr unsigned int get_file() const {
         return coords & 7u;
     }
 
-    constexpr unsigned int getY() const {
+    constexpr unsigned int get_rank() const {
         return (unsigned)(coords >> 4u) & 7u;
     }
 
@@ -24,8 +25,8 @@ public:
     }
 
     std::string to_string() const {
-        char file = static_cast<char>('a' + getX());
-        char rank = static_cast<char>('1' + getY());
+        char file = static_cast<char>('a' + get_file());
+        char rank = static_cast<char>('1' + get_rank());
         return std::string({file, rank});
     }
 };

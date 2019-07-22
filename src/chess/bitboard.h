@@ -21,11 +21,11 @@ public:
 
     bitboard(unsigned int x, unsigned int y) noexcept : board(1uL << (8 * y + x)) {};
 
-    bitboard(const Square square) noexcept : bitboard(square.getX(), square.getY()) {}
+    bitboard(const Square square) noexcept : bitboard(square.get_file(), square.get_rank()) {}
 
     bitboard(const std::initializer_list<Square>& squares) noexcept {
         for (auto& pos : squares) {
-            board |= 1uL << (8 * pos.getY() + pos.getX());
+            board |= 1uL << (8 * pos.get_rank() + pos.get_file());
         }
     }
 
@@ -148,7 +148,7 @@ public:
 
     Square asSquarePosition() const {
         // https://www.chessprogramming.org/BitScan
-        return bitboard::squarePositions[(board & -board) % 67];
+        return squarePositions[(board & -board) % 67];
     }
 
     static void initializePositions() {

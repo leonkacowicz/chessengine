@@ -9,8 +9,8 @@ TEST(SquarePositionTest, SquarePositionsCorrectness) {
             char rank = static_cast<char>('1' + y);
             const std::string square_str({file, rank});
             Square square(x, y);
-            ASSERT_EQ(x, square.getX());
-            ASSERT_EQ(y, square.getY());
+            ASSERT_EQ(x, square.get_file());
+            ASSERT_EQ(y, square.get_rank());
             ASSERT_EQ(square_str, square.to_string());
         }
 }
@@ -22,8 +22,8 @@ TEST(SquarePositionTest, SquarePositionsCorrectnessFromString) {
             char rank = static_cast<char>('1' + y);
             const std::string square_str({file, rank});
             Square square(square_str);
-            ASSERT_EQ(x, square.getX());
-            ASSERT_EQ(y, square.getY());
+            ASSERT_EQ(x, square.get_file());
+            ASSERT_EQ(y, square.get_rank());
             ASSERT_EQ(square_str, square.to_string());
         }
 }
