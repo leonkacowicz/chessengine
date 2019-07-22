@@ -52,9 +52,3 @@ TEST(BoardTest, legal_moves_king_cannot_move_into_check) {
 //    ASSERT_NE(std::find(moves.begin(), moves.end(), Move({"g5"}, {"h4"})), moves.end());
 //    ASSERT_NE(std::find(moves.begin(), moves.end(), Move({"g5"}, {"g4"})), moves.end());
 }
-
-int main(int argc, char **argv) {
-    bitboard::initializePositions();
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
