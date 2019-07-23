@@ -39,15 +39,15 @@ TEST(board_test, legal_moves_king_cannot_move_into_check) {
     board.set_king_position(WHITE, {"g5"});
     board.set_king_position(BLACK, {"a1"});
     board.put_piece(ROOK, BLACK, {"f1"});
-    const std::vector<Move> moves = board.get_legal_moves(WHITE);
+    const std::vector<move> moves = board.get_legal_moves(WHITE);
 
-//    ASSERT_EQ(std::find(moves.begin(), moves.end(), Move({"g5"}, {"f6"})), moves.end());
-//    ASSERT_EQ(std::find(moves.begin(), moves.end(), Move({"g5"}, {"f5"})), moves.end());
-//    ASSERT_EQ(std::find(moves.begin(), moves.end(), Move({"g5"}, {"f4"})), moves.end());
+//    ASSERT_EQ(std::find(moves.begin(), moves.end(), move({"g5"}, {"f6"})), moves.end());
+//    ASSERT_EQ(std::find(moves.begin(), moves.end(), move({"g5"}, {"f5"})), moves.end());
+//    ASSERT_EQ(std::find(moves.begin(), moves.end(), move({"g5"}, {"f4"})), moves.end());
 //
-//    ASSERT_NE(std::find(moves.begin(), moves.end(), Move({"g5"}, {"g6"})), moves.end());
-//    ASSERT_NE(std::find(moves.begin(), moves.end(), Move({"g5"}, {"h6"})), moves.end());
-//    ASSERT_NE(std::find(moves.begin(), moves.end(), Move({"g5"}, {"h5"})), moves.end());
-//    ASSERT_NE(std::find(moves.begin(), moves.end(), Move({"g5"}, {"h4"})), moves.end());
-//    ASSERT_NE(std::find(moves.begin(), moves.end(), Move({"g5"}, {"g4"})), moves.end());
+//    ASSERT_NE(std::find(moves.begin(), moves.end(), move({"g5"}, {"g6"})), moves.end());
+//    ASSERT_NE(std::find(moves.begin(), moves.end(), move({"g5"}, {"h6"})), moves.end());
+//    ASSERT_NE(std::find(moves.begin(), moves.end(), move({"g5"}, {"h5"})), moves.end());
+//    ASSERT_NE(std::find(moves.begin(), moves.end(), move({"g5"}, {"h4"})), moves.end());
+//    ASSERT_NE(std::find(moves.begin(), moves.end(), move({"g5"}, {"g4"})), moves.end());
 }

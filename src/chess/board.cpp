@@ -4,9 +4,12 @@
 #include <sstream>
 #include "color.h"
 #include "board.h"
-#include "Move.h"
+#include "move.h"
 
-using namespace std;
+using std::string;
+using std::stringstream;
+using std::cout;
+using std::endl;
 
 bool board::is_checkmate() const {
     return false;
@@ -17,32 +20,32 @@ bool board::is_stalemate() const {
 }
 
 template<>
-void board::add_possible_moves<PAWN>(bitboard origin, std::vector<Move>& moves) const {
+void board::add_possible_moves<PAWN>(bitboard origin, std::vector<move>& moves) const {
 
 }
 
 template<>
-void board::add_possible_moves<KNIGHT>(bitboard origin, std::vector<Move>& moves) const {
+void board::add_possible_moves<KNIGHT>(bitboard origin, std::vector<move>& moves) const {
 
 }
 
 template<>
-void board::add_possible_moves<BISHOP>(bitboard origin, std::vector<Move>& moves) const {
+void board::add_possible_moves<BISHOP>(bitboard origin, std::vector<move>& moves) const {
 
 }
 
 template<>
-void board::add_possible_moves<ROOK>(bitboard origin, std::vector<Move>& moves) const {
+void board::add_possible_moves<ROOK>(bitboard origin, std::vector<move>& moves) const {
 
 }
 
 template<>
-void board::add_possible_moves<QUEEN>(bitboard origin, std::vector<Move>& moves) const {
+void board::add_possible_moves<QUEEN>(bitboard origin, std::vector<move>& moves) const {
 
 }
 
 template<>
-void board::add_possible_moves<KING>(bitboard origin, std::vector<Move>& moves) const {
+void board::add_possible_moves<KING>(bitboard origin, std::vector<move>& moves) const {
 
 }
 
@@ -97,8 +100,8 @@ void board::calculate_attacks() {
     }
 }
 
-std::vector<Move> board::get_legal_moves(color c) const {
-    std::vector<Move> moves;
+std::vector<move> board::get_legal_moves(color c) const {
+    std::vector<move> moves;
 
     for (auto sq = bitboard(1); !sq.isEmpty(); sq <<= 1) {
         if (!piece_of_color[c][sq]) continue;
@@ -245,7 +248,7 @@ void board::put_piece(piece p, color c, square s) {
 
     if ((s == king_pos[WHITE] && (p != KING || c != WHITE))
         || (s == king_pos[BLACK] && (p != KING || c != BLACK))) {
-        __throw_runtime_error("Can't put other piece where king is.");
+        std::__throw_runtime_error("Can't put other piece where king is.");
     }
 
     if (p == KING) {
@@ -285,7 +288,7 @@ bitboard board::get_attacks(color color) const {
     return attacks[color];
 }
 
-void board::add_rook_moves(bitboard board, std::vector<Move>& moves) const {
+void board::add_rook_moves(bitboard board, std::vector<move>& moves) const {
     color attackerColor = piece_of_color[BLACK][board] ? BLACK : WHITE;
     color oppositeColor = opposite(attackerColor);
 
@@ -323,7 +326,7 @@ void board::add_rook_moves(bitboard board, std::vector<Move>& moves) const {
     }
 }
 
-void board::add_king_moves(bitboard origin, std::vector<Move>& moves) const {
+void board::add_king_moves(bitboard origin, std::vector<move>& moves) const {
     color c = piece_of_color[BLACK][origin] ? BLACK : WHITE;
     auto allowed = ~attacks[opposite(c)];
 
