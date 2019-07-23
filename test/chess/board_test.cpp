@@ -1,16 +1,16 @@
 #include <gtest/gtest.h>
 #include <vector>
 #include <algorithm>
-#include <Board.h>
+#include <board.h>
 #include <square.h>
 
-TEST(BoardTest, Board_with_only_kings_is_not_checkmate) {
-    Board board;
+TEST(board_test, Board_with_only_kings_is_not_checkmate) {
+    board board;
     ASSERT_FALSE(board.is_checkmate());
 }
 
-TEST(BoardTest, King_Attacks) {
-    Board board;
+TEST(board_test, King_Attacks) {
+    board board;
     board.calculate_attacks();
 
     bitboard expected_white_attacks{"d1", "d2", "e2", "f2", "f1"};
@@ -20,8 +20,8 @@ TEST(BoardTest, King_Attacks) {
     ASSERT_EQ(expected_black_attacks, board.get_attacks(BLACK));
 }
 
-TEST(BoardTest, Rook_attacks) {
-    Board board;
+TEST(board_test, Rook_attacks) {
+    board board;
     board.put_piece(ROOK, WHITE, "c4");
     board.calculate_attacks();
     bitboard expected_white_attacks{"d1", "d2", "e2", "f2", "f1"};
@@ -33,8 +33,8 @@ TEST(BoardTest, Rook_attacks) {
 }
 
 
-TEST(BoardTest, legal_moves_king_cannot_move_into_check) {
-    Board board;
+TEST(board_test, legal_moves_king_cannot_move_into_check) {
+    board board;
 
     board.set_king_position(WHITE, {"g5"});
     board.set_king_position(BLACK, {"a1"});

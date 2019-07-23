@@ -3,50 +3,50 @@
 #include <string>
 #include <sstream>
 #include "color.h"
-#include "Board.h"
+#include "board.h"
 #include "Move.h"
 
 using namespace std;
 
-bool Board::is_checkmate() const {
+bool board::is_checkmate() const {
     return false;
 }
 
-bool Board::is_stalemate() const {
+bool board::is_stalemate() const {
     return !is_checkmate() && get_legal_moves(side_to_play ? BLACK : WHITE).empty();
 }
 
 template<>
-void Board::add_possible_moves<PAWN>(bitboard origin, std::vector<Move>& moves) const {
+void board::add_possible_moves<PAWN>(bitboard origin, std::vector<Move>& moves) const {
 
 }
 
 template<>
-void Board::add_possible_moves<KNIGHT>(bitboard origin, std::vector<Move>& moves) const {
+void board::add_possible_moves<KNIGHT>(bitboard origin, std::vector<Move>& moves) const {
 
 }
 
 template<>
-void Board::add_possible_moves<BISHOP>(bitboard origin, std::vector<Move>& moves) const {
+void board::add_possible_moves<BISHOP>(bitboard origin, std::vector<Move>& moves) const {
 
 }
 
 template<>
-void Board::add_possible_moves<ROOK>(bitboard origin, std::vector<Move>& moves) const {
+void board::add_possible_moves<ROOK>(bitboard origin, std::vector<Move>& moves) const {
 
 }
 
 template<>
-void Board::add_possible_moves<QUEEN>(bitboard origin, std::vector<Move>& moves) const {
+void board::add_possible_moves<QUEEN>(bitboard origin, std::vector<Move>& moves) const {
 
 }
 
 template<>
-void Board::add_possible_moves<KING>(bitboard origin, std::vector<Move>& moves) const {
+void board::add_possible_moves<KING>(bitboard origin, std::vector<Move>& moves) const {
 
 }
 
-string Board::to_string() const {
+string board::to_string() const {
     auto ret = stringstream();
     for (int y = 7; y >= 0; y--) {
         ret << " " << (y + 1) << "  ";
@@ -71,11 +71,11 @@ string Board::to_string() const {
     return ret.str();
 }
 
-void Board::print() const {
+void board::print() const {
     cout << to_string();
 }
 
-void Board::set_initial_position() {
+void board::set_initial_position() {
     piece_of_type[ROOK] = 0x8100000000000081;
     piece_of_type[KNIGHT] = 0x4200000000000042;
     piece_of_type[BISHOP] = 0x2400000000000024;
@@ -85,7 +85,7 @@ void Board::set_initial_position() {
     piece_of_color[WHITE] = 0x000000000000FFFF;
 }
 
-void Board::calculate_attacks() {
+void board::calculate_attacks() {
     for (auto position = bitboard(1); !position.isEmpty(); position <<= 1) {
         if (position[king_pos[WHITE]] || position[king_pos[BLACK]])
             calculate_king_attacks(position);
@@ -97,7 +97,7 @@ void Board::calculate_attacks() {
     }
 }
 
-std::vector<Move> Board::get_legal_moves(color c) const {
+std::vector<Move> board::get_legal_moves(color c) const {
     std::vector<Move> moves;
 
     for (auto sq = bitboard(1); !sq.isEmpty(); sq <<= 1) {
@@ -113,7 +113,7 @@ std::vector<Move> Board::get_legal_moves(color c) const {
     return moves;
 }
 
-void Board::calculate_king_attacks(const bitboard origin) {
+void board::calculate_king_attacks(const bitboard origin) {
     color attackerColor = piece_of_color[BLACK][origin] ? BLACK : WHITE;
 
     if (!rank_8[origin]) {
@@ -147,11 +147,11 @@ void Board::calculate_king_attacks(const bitboard origin) {
     }
 }
 
-void Board::calculate_bishop_attacks(bitboard origin){
+void board::calculate_bishop_attacks(bitboard origin){
 
 }
 
-void Board::calculate_rook_attacks(bitboard origin) {
+void board::calculate_rook_attacks(bitboard origin) {
     // naive implementation
     color attackerColor = piece_of_color[BLACK][origin] ? BLACK : WHITE;
     color oppositeColor = opposite(attackerColor);
@@ -241,7 +241,7 @@ void Board::calculate_rook_attacks(bitboard origin) {
     }
 }
 
-void Board::put_piece(piece p, color c, square s) {
+void board::put_piece(piece p, color c, square s) {
 
     if ((s == king_pos[WHITE] && (p != KING || c != WHITE))
         || (s == king_pos[BLACK] && (p != KING || c != BLACK))) {
@@ -266,7 +266,7 @@ void Board::put_piece(piece p, color c, square s) {
 }
 
 
-void Board::set_king_position(color c, square position) {
+void board::set_king_position(color c, square position) {
 
     piece_of_color[c] &= ~(bitboard(king_pos[c]));
     king_pos[c] = position;
@@ -281,54 +281,91 @@ void Board::set_king_position(color c, square position) {
     piece_of_type[QUEEN] &= bbi;
 }
 
-bitboard Board::get_attacks(color color) const {
+bitboard board::get_attacks(color color) const {
     return attacks[color];
 }
 
-void Board::addRookPossibleMoves(bitboard origin, std::vector<Move>& moves) const {
-    color attackerColor = piece_of_color[BLACK][origin] ? BLACK : WHITE;
+void board::add_rook_moves(bitboard board, std::vector<Move>& moves) const {
+    color attackerColor = piece_of_color[BLACK][board] ? BLACK : WHITE;
     color oppositeColor = opposite(attackerColor);
 
-    bitboard square = origin;
+    bitboard square = board;
     while (!rank_8[square]) {
         square <<= 8;
         if (piece_of_color[attackerColor][square]) break;
-        moves.emplace_back(origin.get_square(), square.get_square());
+        moves.emplace_back(board.get_square(), square.get_square());
 
         if (piece_of_color[oppositeColor][square]) break;
     }
 
-    square = origin;
+    square = board;
     while (!rank_1[square]) {
         square >>= 8;
         if (piece_of_color[attackerColor][square]) break;
-        moves.emplace_back(origin.get_square(), square.get_square());
+        moves.emplace_back(board.get_square(), square.get_square());
         if (piece_of_color[oppositeColor][square]) break;
     }
 
-    square = origin;
+    square = board;
     while (!file_a[square]) {
         square <<= 1;
         if (piece_of_color[attackerColor][square]) break;
-        moves.emplace_back(origin.get_square(), square.get_square());
+        moves.emplace_back(board.get_square(), square.get_square());
         if (piece_of_color[oppositeColor][square]) break;
     }
 
-    square = origin;
+    square = board;
     while (!file_h[square]) {
         square >>= 1;
         if (piece_of_color[attackerColor][square]) break;
-        moves.emplace_back(origin.get_square(), square.get_square());
+        moves.emplace_back(board.get_square(), square.get_square());
         if (piece_of_color[oppositeColor][square]) break;
     }
 }
 
-void Board::addKingPossibleMoves(bitboard origin, std::vector<Move>& moves) const {
+void board::add_king_moves(bitboard origin, std::vector<Move>& moves) const {
+    color c = piece_of_color[BLACK][origin] ? BLACK : WHITE;
+    auto allowed = ~attacks[opposite(c)];
 
+    auto origin_square = origin.get_square();
+    if (!rank_8[origin]) {
+        auto up = origin.shift_up(1);
+        if (allowed[up]) moves.emplace_back(origin_square, up.get_square());
+        if (!file_a[origin]) {
+            auto upleft = origin.shift_up_left(1);
+            if (allowed[upleft]) moves.emplace_back(origin_square, upleft.get_square());
+        }
+        if (!file_h[origin]) {
+            auto upright = origin.shift_up_right(1);
+            if (allowed[upright]) moves.emplace_back(origin_square, upright.get_square());
+        }
+    }
 
+    if (!rank_1[origin]) {
+        auto down = origin.shift_down(1);
+        if (allowed[down]) moves.emplace_back(origin_square, down.get_square());
+
+        if (!file_a[origin]) {
+            auto downleft = origin.shift_down_left(1);
+            if (allowed[downleft]) moves.emplace_back(origin_square, downleft.get_square());
+        }
+
+        if (!file_h[origin]) {
+            auto downright = origin.shift_down_right(1);
+            if (allowed[downright]) moves.emplace_back(origin_square, downright.get_square());
+        }
+    }
+    if (!file_a[origin]) {
+        auto left = origin.shift_left(1);
+        if (allowed[left]) moves.emplace_back(origin_square, left.get_square());
+    }
+    if (!file_h[origin]) {
+        auto right = origin.shift_right(1);
+        if (allowed[right]) moves.emplace_back(origin_square, right.get_square());
+    }
 }
 
-Board::Board(const std::string& fen) {
+board::board(const std::string& fen) {
 
     using std::string;
     using std::stringstream;

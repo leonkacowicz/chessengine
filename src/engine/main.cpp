@@ -1,15 +1,15 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
-#include <Board.h>
+#include <board.h>
 
 using namespace std;
 
 int main()
 {
-    Board board;
-    board.set_initial_position();
-    board.print();
-    cout << sizeof(Board);
+    board b;
+    b.set_initial_position();
+    b.print();
+    cout << sizeof(b);
     return 0;
 }

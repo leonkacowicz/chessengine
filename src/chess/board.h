@@ -8,7 +8,7 @@
 #include "piece.h"
 #include "color.h"
 
-class Board {
+class board {
     bitboard piece_of_color[2];
     bitboard piece_of_type[5];
     bitboard attacks[2];
@@ -17,10 +17,10 @@ class Board {
 
     bool en_passant;
     bool can_castle_king_side[2];
-    bool side_to_play:1;
+    bool side_to_play;
 
-    void addRookPossibleMoves(bitboard board, std::vector<Move> &moves) const;
-    void addKingPossibleMoves(bitboard origin, std::vector<Move> &moves) const;
+    void add_rook_moves(bitboard board, std::vector<Move>& moves) const;
+    void add_king_moves(bitboard origin, std::vector<Move>& moves) const;
 
     void calculate_bishop_attacks(bitboard origin);
     void calculate_rook_attacks(bitboard origin);
@@ -31,16 +31,16 @@ class Board {
 
 public:
 
-    Board() :
+    board() :
         piece_of_color{0, 0},
         piece_of_type{0, 0, 0, 0, 0}
     {
-        set_king_position(WHITE, square("e1"));
-        set_king_position(BLACK, square("e8"));
+        set_king_position(WHITE, "e1");
+        set_king_position(BLACK, "e8");
         calculate_attacks();
     }
 
-    Board(const std::string& fen);
+    board(const std::string& fen);
 
     bool is_checkmate() const;
     bool is_stalemate() const;
@@ -56,6 +56,5 @@ public:
     std::vector<Move> get_legal_moves(color c) const;
 
 };
-
 
 #endif //CHESSENGINE_BOARD_H
