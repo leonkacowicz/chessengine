@@ -19,13 +19,18 @@ class board {
     bool can_castle_king_side[2];
     bool side_to_play;
 
-    void add_rook_moves(bitboard board, std::vector<move>& moves) const;
+    void add_rook_moves(bitboard origin, std::vector<move>& moves) const;
     void add_king_moves(bitboard origin, std::vector<move>& moves) const;
+    void add_bishop_moves(bitboard origin, std::vector<move>& moves) const;
+    void add_knight_moves(bitboard origin, std::vector<move>& moves) const;
+    void add_pawn_moves(bitboard origin, std::vector<move>& moves) const;
+    void add_castle_moves(std::vector<move>& moves) const;
 
     void calculate_bishop_attacks(bitboard origin);
     void calculate_rook_attacks(bitboard origin);
     void calculate_knight_attacks(bitboard origin);
     void calculate_king_attacks(bitboard origin);
+    void calculate_pawn_attacks(bitboard origin);
 
     template <piece p>
     void add_possible_moves(bitboard origin, std::vector<move>& moves) const;
