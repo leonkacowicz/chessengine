@@ -99,3 +99,13 @@ TEST(bitboard_test, test_shift_down_left) {
         }
     }
 }
+
+TEST(bitboard_test, bitboard_square_conv) {
+    for (int x = 0; x < 8; x++)
+        for (int y = 0; y < 8; y++) {
+            square expected(x, y);
+            bitboard bitBoard = bitboard(expected);
+            square calculated = bitBoard.get_square();
+            ASSERT_EQ(expected, calculated);
+        }
+}
