@@ -12,16 +12,17 @@ class Board {
     bitboard piece_of_color[2];
     bitboard piece_of_type[5];
     bitboard attacks[2];
+    bitboard pinned;
     square king_pos[2];
-    
-    char enPassantAndCastles; // justMovedPawn2Squres [1-bit] + enPassantFile [4-bits] + whiteCanCastleKingSide
-    bool justMovedPawn2Squares[2];
-    bool castleKingSideAllowedFor[2];
-    bool side_to_play;
+
+    bool en_passant;
+    bool can_castle_king_side[2];
+    bool side_to_play:1;
 
     void addRookPossibleMoves(bitboard board, std::vector<Move> &moves) const;
     void addKingPossibleMoves(bitboard origin, std::vector<Move> &moves) const;
-    std::vector<Move> pseudo_legal_rook_moves(bitboard origin, color attackerColor) const noexcept;
+
+    void calculate_bishop_attacks(bitboard origin);
     void calculate_rook_attacks(bitboard origin);
     void calculate_king_attacks(bitboard origin);
 

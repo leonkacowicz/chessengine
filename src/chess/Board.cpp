@@ -49,7 +49,7 @@ void Board::add_possible_moves<KING>(bitboard origin, std::vector<Move>& moves) 
 string Board::to_string() const {
     auto ret = stringstream();
     for (int y = 7; y >= 0; y--) {
-        ret << " " << (y+1) << "  ";
+        ret << " " << (y + 1) << "  ";
         for (int x = 0; x <= 7; x++) {
             bitboard position(x, y);
             char c = '.';
@@ -75,20 +75,18 @@ void Board::print() const {
     cout << to_string();
 }
 
-void Board::set_initial_position()
-{
-    piece_of_type[ROOK] =   0x8100000000000081;
+void Board::set_initial_position() {
+    piece_of_type[ROOK] = 0x8100000000000081;
     piece_of_type[KNIGHT] = 0x4200000000000042;
     piece_of_type[BISHOP] = 0x2400000000000024;
-    piece_of_type[QUEEN] =  0x1000000000000010;
-    piece_of_type[PAWN] =   0x00FF00000000FF00;
+    piece_of_type[QUEEN] = 0x1000000000000010;
+    piece_of_type[PAWN] = 0x00FF00000000FF00;
     piece_of_color[BLACK] = 0xFFFF000000000000;
     piece_of_color[WHITE] = 0x000000000000FFFF;
 }
 
 void Board::calculate_attacks() {
-    for (auto position = bitboard(1); !position.isEmpty(); position <<= 1)
-    {
+    for (auto position = bitboard(1); !position.isEmpty(); position <<= 1) {
         if (position[king_pos[WHITE]] || position[king_pos[BLACK]])
             calculate_king_attacks(position);
 
@@ -102,8 +100,7 @@ void Board::calculate_attacks() {
 std::vector<Move> Board::get_legal_moves(color c) const {
     std::vector<Move> moves;
 
-    for (auto sq = bitboard(1); !sq.isEmpty(); sq <<= 1)
-    {
+    for (auto sq = bitboard(1); !sq.isEmpty(); sq <<= 1) {
         if (!piece_of_color[c][sq]) continue;
         if (king_pos[c] == sq.get_square()) add_possible_moves<KING>(sq, moves);
         if (piece_of_type[PAWN][sq]) add_possible_moves<PAWN>(sq, moves);
@@ -120,49 +117,38 @@ void Board::calculate_king_attacks(const bitboard origin) {
     color attackerColor = piece_of_color[BLACK][origin] ? BLACK : WHITE;
 
     if (!rank_8[origin]) {
-        auto north = origin.shift_up(1);
-        if (!piece_of_color[attackerColor][north])
-            attacks[attackerColor] |= north;
+        attacks[attackerColor] |= origin.shift_up(1);
 
         if (!file_a[origin]) {
-            auto northwest = origin.shift_up_left(1);
-            if (!piece_of_color[attackerColor][northwest])
-                attacks[attackerColor] |= northwest;
+            attacks[attackerColor] |= origin.shift_up_left(1);
         }
 
         if (!file_h[origin]) {
-            auto northeast = origin.shift_up_right(1);
-            if(!piece_of_color[attackerColor][northeast])
-                attacks[attackerColor] |= northeast;
+            attacks[attackerColor] |= origin.shift_up_right(1);
         }
     }
     if (!rank_1[origin]) {
         auto south = origin.shift_down(1);
-        if (!piece_of_color[attackerColor][south])
-            attacks[attackerColor] |= south;
+        attacks[attackerColor] |= south;
 
         if (!file_a[origin]) {
-            auto southwest = origin.shift_down_left(1);
-            if (!piece_of_color[attackerColor][southwest])
-                attacks[attackerColor] |= southwest;
+            attacks[attackerColor] |= origin.shift_down_left(1);
         }
 
         if (!file_h[origin]) {
-            auto southeast = origin.shift_down_right(1);
-            if (!piece_of_color[attackerColor][southeast])
-                attacks[attackerColor] |= southeast;
+            attacks[attackerColor] |= origin.shift_down_right(1);
         }
     }
     if (!file_a[origin]) {
-        auto west = origin.shift_left(1);
-        if (!piece_of_color[attackerColor][west])
-            attacks[attackerColor] |= west;
+        attacks[attackerColor] |= origin.shift_left(1);
     }
     if (!file_h[origin]) {
-        auto east = origin.shift_right(1);
-        if (!piece_of_color[attackerColor][east])
-            attacks[attackerColor] |= east;
+        attacks[attackerColor] |= origin.shift_right(1);
     }
+}
+
+void Board::calculate_bishop_attacks(bitboard origin){
+
 }
 
 void Board::calculate_rook_attacks(bitboard origin) {
@@ -172,77 +158,93 @@ void Board::calculate_rook_attacks(bitboard origin) {
 
     bitboard square = origin;
     while (!rank_8[square]) {
-        square <<= 8;
-        if (piece_of_color[attackerColor][square]) break;
-        attacks[attackerColor] |= square;
-        if (piece_of_color[oppositeColor][square]) break;
-    }
-
-    square = origin;
-    while (!rank_1[square]) {
-        square >>= 8;
-        if (piece_of_color[attackerColor][square]) break;
-        attacks[attackerColor] |= square;
-        if (piece_of_color[oppositeColor][square]) break;
-    }
-
-    square = origin;
-    while (!file_a[square]) {
-        square >>= 1;
-        if (piece_of_color[attackerColor][square]) break;
-        attacks[attackerColor] |= square;
-        if (piece_of_color[oppositeColor][square]) break;
-    }
-
-    square = origin;
-    while (!file_h[square]) {
-        square <<= 1;
-        if (piece_of_color[attackerColor][square]) break;
-        attacks[attackerColor] |= square;
-        if (piece_of_color[oppositeColor][square]) break;
-    }
-}
-
-std::vector<Move> Board::pseudo_legal_rook_moves(const bitboard origin, color attackerColor) const noexcept {
-    std::vector<Move> ret;
-    color oppositeColor = opposite(attackerColor);
-    bitboard square = origin;
-    while (!rank_8[square]) {
         square = square.shift_up(1);
+        attacks[attackerColor] |= square;
         if (piece_of_color[attackerColor][square]) break;
-        ret.emplace_back(origin.get_square(), square.get_square());
-        if (piece_of_color[oppositeColor][square]) break;
+        if (piece_of_color[oppositeColor][square]) { // find out if piece is pinned
+            auto square2 = square;
+            if (!pinned[square])
+                while (!rank_8[square2]) {
+                    square2 = square2.shift_up(1);
+                    if (square2 == king_pos[oppositeColor]) {
+                        pinned |= square;
+                        break;
+                    } else if (piece_of_color[BLACK][square2] || piece_of_color[WHITE][square2]) {
+                        break;
+                    }
+                }
+            break;
+        }
     }
 
     square = origin;
     while (!rank_1[square]) {
         square = square.shift_down(1);
+        attacks[attackerColor] |= square;
         if (piece_of_color[attackerColor][square]) break;
-        ret.emplace_back(origin.get_square(), square.get_square());
-        if (piece_of_color[oppositeColor][square]) break;
+        if (piece_of_color[oppositeColor][square]) { // find out if piece is pinned
+            auto square2 = square;
+            if (!pinned[square])
+                while (!rank_1[square2]) {
+                    square2 = square2.shift_down(1);
+                    if (square2 == king_pos[oppositeColor]) {
+                        pinned |= square;
+                        break;
+                    } else if (piece_of_color[BLACK][square2] || piece_of_color[WHITE][square2]) {
+                        break;
+                    }
+                }
+            break;
+        }
     }
 
     square = origin;
     while (!file_a[square]) {
         square = square.shift_left(1);
+        attacks[attackerColor] |= square;
         if (piece_of_color[attackerColor][square]) break;
-        ret.emplace_back(origin.get_square(), square.get_square());
-        if (piece_of_color[oppositeColor][square]) break;
+        if (piece_of_color[oppositeColor][square]) { // find out if piece is pinned
+            auto square2 = square;
+            if (!pinned[square])
+                while (!file_a[square2]) {
+                    square2 = square2.shift_left(1);
+                    if (square2 == king_pos[oppositeColor]) {
+                        pinned |= square;
+                        break;
+                    } else if (piece_of_color[BLACK][square2] || piece_of_color[WHITE][square2]) {
+                        break;
+                    }
+                }
+            break;
+        }
     }
 
     square = origin;
     while (!file_h[square]) {
         square = square.shift_right(1);
+        attacks[attackerColor] |= square;
         if (piece_of_color[attackerColor][square]) break;
-        ret.emplace_back(origin.get_square(), square.get_square());
-        if (piece_of_color[oppositeColor][square]) break;
+        if (piece_of_color[oppositeColor][square]) { // find out if piece is pinned
+            auto square2 = square;
+            if (!pinned[square])
+                while (!file_h[square2]) {
+                    square2 = square2.shift_right(1);
+                    if (square2 == king_pos[oppositeColor]) {
+                        pinned |= square;
+                        break;
+                    } else if (piece_of_color[BLACK][square2] || piece_of_color[WHITE][square2]) {
+                        break;
+                    }
+                }
+            break;
+        }
     }
 }
 
 void Board::put_piece(piece p, color c, square s) {
 
     if ((s == king_pos[WHITE] && (p != KING || c != WHITE))
-        || (s == king_pos[BLACK] && (p != KING || c != BLACK)) ) {
+        || (s == king_pos[BLACK] && (p != KING || c != BLACK))) {
         __throw_runtime_error("Can't put other piece where king is.");
     }
 
@@ -283,7 +285,7 @@ bitboard Board::get_attacks(color color) const {
     return attacks[color];
 }
 
-void Board::addRookPossibleMoves(bitboard origin, std::vector<Move> & moves) const {
+void Board::addRookPossibleMoves(bitboard origin, std::vector<Move>& moves) const {
     color attackerColor = piece_of_color[BLACK][origin] ? BLACK : WHITE;
     color oppositeColor = opposite(attackerColor);
 

@@ -11,7 +11,7 @@ using U64 = unsigned long int;
 class bitboard {
 
     static square squarePositions[67];
-    U64 board;
+    U64 board = 0;
 
 public:
 
@@ -24,8 +24,8 @@ public:
     bitboard(const square square) noexcept : bitboard(square.get_file(), square.get_rank()) {}
 
     bitboard(const std::initializer_list<square>& squares) noexcept {
-        for (auto& pos : squares) {
-            board |= 1uL << (8 * pos.get_rank() + pos.get_file());
+        for (auto& sq : squares) {
+            board |= bitboard(sq).board;
         }
     }
 
