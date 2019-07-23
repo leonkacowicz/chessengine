@@ -159,11 +159,92 @@ void board::calculate_king_attacks(const bitboard origin) {
 }
 
 void board::calculate_bishop_attacks(bitboard origin){
+    color attacker = piece_of_color[BLACK][origin] ? BLACK : WHITE;
+    color opponent = opposite(attacker);
+    auto attacker_piece = piece_of_color[attacker];
+    auto opponent_piece = piece_of_color[opponent];
+    bitboard opponent_king = king_pos[opponent];
+    auto any_piece = attacker_piece | opponent_piece;
 
+    bitboard sq = origin;
+    while(!rank_8[sq] && !file_a[sq]) {
+        sq = sq.shift_up_left(1);
+        attacks[attacker] |= sq;
+        if (attacker_piece[sq]) break;
+        if (opponent_piece[sq]) {
+            if (!pinned[sq]) {
+                auto sq2 = sq;
+                while(!rank_8[sq2] && !file_a[sq2]) {
+                    sq2 = sq2.shift_up_left(1);
+                    if (sq2 == opponent_king) {
+                        pinned |= sq;
+                        break;
+                    } else if (any_piece[sq2]) break;
+                }
+            }
+            break;
+        }
+    }
+
+    while(!rank_8[sq] && !file_h[sq]) {
+        sq = sq.shift_up_right(1);
+        attacks[attacker] |= sq;
+        if (attacker_piece[sq]) break;
+        if (opponent_piece[sq]) {
+            if (!pinned[sq]) {
+                auto sq2 = sq;
+                while(!rank_8[sq2] && !file_h[sq2]) {
+                    sq2 = sq2.shift_up_right(1);
+                    if (sq2 == opponent_king) {
+                        pinned |= sq;
+                        break;
+                    } else if (any_piece[sq2]) break;
+                }
+            }
+            break;
+        }
+    }
+
+    while(!rank_1[sq] && !file_a[sq]) {
+        sq = sq.shift_down_left(1);
+        attacks[attacker] |= sq;
+        if (attacker_piece[sq]) break;
+        if (opponent_piece[sq]) {
+            if (!pinned[sq]) {
+                auto sq2 = sq;
+                while(!rank_1[sq2] && !file_a[sq2]) {
+                    sq2 = sq2.shift_down_left(1);
+                    if (sq2 == opponent_king) {
+                        pinned |= sq;
+                        break;
+                    } else if (any_piece[sq2]) break;
+                }
+            }
+            break;
+        }
+    }
+
+    while(!rank_1[sq] && !file_h[sq]) {
+        sq = sq.shift_down_right(1);
+        attacks[attacker] |= sq;
+        if (attacker_piece[sq]) break;
+        if (opponent_piece[sq]) {
+            if (!pinned[sq]) {
+                auto sq2 = sq;
+                while(!rank_1[sq2] && !file_h[sq2]) {
+                    sq2 = sq2.shift_down_right(1);
+                    if (sq2 == opponent_king) {
+                        pinned |= sq;
+                        break;
+                    } else if (any_piece[sq2]) break;
+                }
+            }
+            break;
+        }
+    }
 }
 
 void board::calculate_rook_attacks(bitboard origin) {
-    // naive implementation
     color attackerColor = piece_of_color[BLACK][origin] ? BLACK : WHITE;
     color oppositeColor = opposite(attackerColor);
 
