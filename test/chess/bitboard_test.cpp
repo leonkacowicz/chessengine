@@ -108,4 +108,6 @@ TEST(bitboard_test, bitboard_square_conv) {
             square calculated = bitBoard.get_square();
             ASSERT_EQ(expected, calculated);
         }
+
+    ASSERT_EQ(bitboard(square::none), 0);
 }

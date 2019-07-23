@@ -51,3 +51,7 @@ TEST(board_test, legal_moves_king_cannot_move_into_check) {
 //    ASSERT_NE(std::find(moves.begin(), moves.end(), move({"g5"}, {"h4"})), moves.end());
 //    ASSERT_NE(std::find(moves.begin(), moves.end(), move({"g5"}, {"g4"})), moves.end());
 }
+
+TEST(board_test, print_sizeof_board) {
+    std::cout << sizeof(board) << std::endl;
+}

@@ -8,20 +8,24 @@ class square {
     unsigned char coords;
 
 public:
-    square() : coords(255) {}
-    constexpr square(const unsigned int x, const unsigned int y) : coords(((y & 7u) << 4u) | (x & 7u)) {}
+    square() noexcept : coords(255) {}
+    constexpr square(const unsigned int x, const unsigned int y) noexcept : coords(((y & 7u) << 4u) | (x & 7u)) {}
     square(const std::string& position) : square(position[0] - 'a', position[1] - '1') {}
     square(const char* position) : square(position[0] - 'a', position[1] - '1') {}
     constexpr unsigned int get_file() const {
-        return coords & 7u;
+        return coords & 0xFu;
     }
 
     constexpr unsigned int get_rank() const {
-        return (unsigned)(coords >> 4u) & 7u;
+        return (unsigned)(coords >> 4u) & 0xFu;
     }
 
     bool operator==(square rhs) const {
         return coords == rhs.coords;
+    }
+
+    bool operator!=(square rhs) const {
+        return coords != rhs.coords;
     }
 
     std::string to_string() const {
@@ -29,8 +33,8 @@ public:
         char rank = static_cast<char>('1' + get_rank());
         return std::string({file, rank});
     }
+
+    static const square none;
 };
-
-
 
 #endif //CHESSENGINE_SQUARE_H

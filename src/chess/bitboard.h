@@ -21,7 +21,7 @@ public:
 
     bitboard(unsigned int x, unsigned int y) noexcept : board(1uL << (8 * y + x)) {};
 
-    bitboard(const square square) noexcept : bitboard(square.get_file(), square.get_rank()) {}
+    bitboard(const square sq) noexcept : bitboard(sq == square::none ? 0 : bitboard(sq.get_file(), sq.get_rank())) {}
 
     bitboard(const std::initializer_list<square>& squares) noexcept {
         for (auto& sq : squares) {

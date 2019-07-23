@@ -12,7 +12,17 @@ class board {
     bitboard piece_of_color[2];
     bitboard piece_of_type[5];
     bitboard attacks[2];
-    bitboard pinned;
+
+    struct {
+        square up;
+        square down;
+        square upleft;
+        square upright;
+        square left;
+        square right;
+        square downleft;
+        square downright;
+    } pinned[2];
     square king_pos[2];
 
     bool en_passant;
