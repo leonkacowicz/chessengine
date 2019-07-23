@@ -89,14 +89,22 @@ void board::set_initial_position() {
 }
 
 void board::calculate_attacks() {
+    attacks[0] = 0;
+    attacks[1] = 0;
     for (auto position = bitboard(1); !position.isEmpty(); position <<= 1) {
         if (position[king_pos[WHITE]] || position[king_pos[BLACK]])
             calculate_king_attacks(position);
 
         if (!piece_of_color[WHITE][position] && !piece_of_color[BLACK][position]) continue;
 
-        if (piece_of_type[ROOK][position])
+        if (piece_of_type[ROOK][position] || piece_of_type[QUEEN][position])
             calculate_rook_attacks(position);
+
+        if (piece_of_type[BISHOP][position] || piece_of_type[QUEEN][position])
+            calculate_bishop_attacks(position);
+
+        if (piece_of_type[KNIGHT][position])
+            calculate_knight_attacks(position);
     }
 }
 
@@ -244,6 +252,43 @@ void board::calculate_rook_attacks(bitboard origin) {
     }
 }
 
+void board::calculate_knight_attacks(bitboard origin) {
+    color c = piece_of_color[BLACK][origin] ? BLACK : WHITE;
+
+    if (!file_a[origin] && !rank_8[origin] && !rank_7[origin]) {
+        attacks[c] |= origin.shift_left(1).shift_up(2);
+    }
+
+    if (!file_a[origin] && !rank_1[origin] && !rank_2[origin]) {
+        attacks[c] |= origin.shift_left(1).shift_down(2);
+    }
+
+    if (!file_h[origin] && !rank_8[origin] && !rank_7[origin]) {
+        attacks[c] |= origin.shift_right(1).shift_up(2);
+    }
+
+    if (!file_h[origin] && !rank_1[origin] && !rank_2[origin]) {
+        attacks[c] |= origin.shift_right(1).shift_down(2);
+    }
+
+    if (!file_a[origin] && !file_b[origin] && !rank_8[origin]) {
+        attacks[c] |= origin.shift_left(2).shift_up(1);
+    }
+
+    if (!file_a[origin] && !file_b[origin] && !rank_1[origin]) {
+        attacks[c] |= origin.shift_left(2).shift_down(1);
+    }
+
+    if (!file_h[origin] && !file_g[origin] && !rank_8[origin]) {
+        attacks[c] |= origin.shift_right(2).shift_up(1);
+    }
+
+    if (!file_h[origin] && !file_g[origin] && !rank_1[origin]) {
+        attacks[c] |= origin.shift_right(2).shift_down(1);
+    }
+}
+
+
 void board::put_piece(piece p, color c, square s) {
 
     if ((s == king_pos[WHITE] && (p != KING || c != WHITE))
@@ -267,7 +312,6 @@ void board::put_piece(piece p, color c, square s) {
     piece_of_color[c] |= bb;
     piece_of_color[opposite(c)] &= bbi;
 }
-
 
 void board::set_king_position(color c, square position) {
 

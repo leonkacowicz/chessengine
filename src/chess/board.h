@@ -24,6 +24,7 @@ class board {
 
     void calculate_bishop_attacks(bitboard origin);
     void calculate_rook_attacks(bitboard origin);
+    void calculate_knight_attacks(bitboard origin);
     void calculate_king_attacks(bitboard origin);
 
     template <piece p>
