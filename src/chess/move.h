@@ -6,11 +6,11 @@
 
 class move {
 private:
+
+public:
     square origin;
     square destination;
     char promotion; // 0, n, r, b, q
-
-public:
     move(square origin, square destination) : origin(origin), destination(destination), promotion(0) {};
     move(square origin, square destination, char promotion) : origin(origin), destination(destination), promotion(promotion) {};
 

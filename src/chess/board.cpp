@@ -452,40 +452,52 @@ bitboard board::get_attacks(color color) const {
 void board::add_rook_moves(bitboard origin, std::vector<move>& moves) const {
     color attacker = piece_of_color[BLACK][origin] ? BLACK : WHITE;
     auto origin_sq = origin.get_square();
+    if (pinned[attacker].upleft == origin_sq ||
+        pinned[attacker].upright == origin_sq ||
+        pinned[attacker].downleft == origin_sq ||
+        pinned[attacker].downright == origin_sq)
+        return;
+
     auto attacker_piece = piece_of_color[attacker];
     auto opponent_piece = piece_of_color[opposite(attacker)];
 
+
     bitboard s = origin;
-    while (!rank_8[s]) {
-        s = s.shift_up(1);
-        if (attacker_piece[s]) break;
-        moves.emplace_back(origin_sq, s.get_square());
-        if (opponent_piece[s]) break;
+    if (pinned[attacker].left != origin_sq && pinned[attacker].right != origin_sq) {
+        while (!rank_8[s]) {
+            s = s.shift_up(1);
+            if (attacker_piece[s]) break;
+            moves.emplace_back(origin_sq, s.get_square());
+            if (opponent_piece[s]) break;
+        }
+
+        s = origin;
+        while (!rank_1[s]) {
+            s = s.shift_down(1);
+            if (attacker_piece[s]) break;
+            moves.emplace_back(origin_sq, s.get_square());
+            if (opponent_piece[s]) break;
+        }
     }
 
-    s = origin;
-    while (!rank_1[s]) {
-        s = s.shift_down(1);
-        if (attacker_piece[s]) break;
-        moves.emplace_back(origin_sq, s.get_square());
-        if (opponent_piece[s]) break;
+    if (pinned[attacker].up != origin_sq && pinned[attacker].down != origin_sq) {
+        s = origin;
+        while (!file_a[s]) {
+            s = s.shift_left(1);
+            if (attacker_piece[s]) break;
+            moves.emplace_back(origin_sq, s.get_square());
+            if (opponent_piece[s]) break;
+        }
+
+        s = origin;
+        while (!file_h[s]) {
+            s = s.shift_right(1);
+            if (attacker_piece[s]) break;
+            moves.emplace_back(origin_sq, s.get_square());
+            if (opponent_piece[s]) break;
+        }
     }
 
-    s = origin;
-    while (!file_a[s]) {
-        s = s.shift_left(1);
-        if (attacker_piece[s]) break;
-        moves.emplace_back(origin_sq, s.get_square());
-        if (opponent_piece[s]) break;
-    }
-
-    s = origin;
-    while (!file_h[s]) {
-        s = s.shift_right(1);
-        if (attacker_piece[s]) break;
-        moves.emplace_back(origin_sq, s.get_square());
-        if (opponent_piece[s]) break;
-    }
 }
 
 void board::add_bishop_moves(bitboard origin, std::vector<move>& moves) const {
@@ -509,6 +521,14 @@ void board::add_bishop_moves(bitboard origin, std::vector<move>& moves) const {
             moves.emplace_back(origin_sq, s.get_square());
             if (opponent_piece[s]) break;
         }
+        s = origin;
+        auto not_in_file_h_rank_1 = ~(file_h | rank_1);
+        while (not_in_file_h_rank_1[s]) {
+            s = s.shift_down_right(1);
+            if (attacker_piece[s]) break;
+            moves.emplace_back(origin_sq, s.get_square());
+            if (opponent_piece[s]) break;
+        }
     }
 
     if (pinned[attacker].upleft != origin_sq && pinned[attacker].downright != origin_sq) {
@@ -520,9 +540,6 @@ void board::add_bishop_moves(bitboard origin, std::vector<move>& moves) const {
             moves.emplace_back(origin_sq, s.get_square());
             if (opponent_piece[s]) break;
         }
-    }
-
-    if (pinned[attacker].upleft != origin_sq && pinned[attacker].downright != origin_sq) {
         s = origin;
         auto not_in_file_h_rank_8 = ~(file_h | rank_8);
         while (not_in_file_h_rank_8[s]) {
@@ -533,16 +550,6 @@ void board::add_bishop_moves(bitboard origin, std::vector<move>& moves) const {
         }
     }
 
-    if (pinned[attacker].upright != origin_sq && pinned[attacker].downleft != origin_sq) {
-        s = origin;
-        auto not_in_file_h_rank_1 = ~(file_h | rank_1);
-        while (not_in_file_h_rank_1[s]) {
-            s = s.shift_down_right(1);
-            if (attacker_piece[s]) break;
-            moves.emplace_back(origin_sq, s.get_square());
-            if (opponent_piece[s]) break;
-        }
-    }
 }
 
 void board::add_king_moves(bitboard origin, std::vector<move>& moves) const {
