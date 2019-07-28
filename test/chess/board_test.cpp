@@ -77,6 +77,45 @@ TEST(board_test, rook_pinned_by_rook_from_above) {
     ASSERT_NOT_CONTAINS(moves, move("e2", "h2"));
 }
 
+//TEST(board_test, rook_pinned_by_rook) {
+//    std::random_device rd;  //Will be used to obtain a seed for the random number engine
+//    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+//    std::uniform_int_distribution<> dis(1, 1000);
+//
+//    int k = 0;
+//    for (auto kw = bitboard(1); !kw.isEmpty(); kw <<= 1) {
+//        //std::cout << kw.get_square().to_string() << std::endl;
+//        for (auto kb = bitboard(1); !kb.isEmpty(); kb <<= 1) {
+//            if (kw == kb) continue;
+//            if (std::abs(kw.get_square().get_file() - kb.get_square().get_file()) <= 1 &&
+//                std::abs(kw.get_square().get_rank() - kb.get_square().get_rank()) <= 1) continue;
+//
+//            for (auto rw = bitboard(1); !rw.isEmpty(); rw <<= 1) {
+//                if (rw == kw) continue;
+//                if (rw == kb) continue;
+//                for (auto rb = bitboard(1); !rb.isEmpty(); rb <<= 1) {
+//                    if (rb == rw) continue;
+//                    if (rb == kw) continue;
+//                    if (rb == kb) continue;
+//
+//                    if (dis(gen) != 50) continue;
+//
+//                    k++;
+//                    board b;
+//                    b.set_king_position(WHITE, kw.get_square());
+//                    b.set_king_position(BLACK, kb.get_square());
+//                    b.put_piece(ROOK, WHITE, rw.get_square());
+//                    b.put_piece(ROOK, BLACK, rb.get_square());
+//
+//                    b.calculate_attacks();
+//
+//                }
+//            }
+//        }
+//    }
+//    std::cout << "Tested " << k << " cases.\n";
+//}
+
 TEST(board_test, print_sizeof_board) {
     std::cout << sizeof(board) << std::endl;
 }
