@@ -24,11 +24,9 @@ bitboard board::range_attacks(const bitboard origin, const std::function<bitboar
     return attacks;
 }
 
-void board::range_moves(const bitboard origin, const std::function<bitboard(bitboard)>& shift, const bitboard in_range, std::vector<move> moves) const {
+void board::range_moves(const bitboard origin, const std::function<bitboard(bitboard)>& shift, const bitboard in_range, std::vector<move>& moves) const {
     color c = piece_of_color[WHITE][origin] ? WHITE : BLACK;
     bitboard player_piece = piece_of_color[c];
-    bitboard opponent_piece = piece_of_color[opposite(c)];
-    bitboard any_piece = piece_of_color[WHITE] | piece_of_color[BLACK];
     bitboard sq = origin;
     while (in_range[sq]) {
         sq = shift(sq);
@@ -45,10 +43,11 @@ void board::range_moves(const bitboard origin, const std::function<bitboard(bitb
 
 bool board::under_check(color c) const {
 
+    bitboard king = king_pos[c];
+    if (king == 0) return false;
     // checks if attacked by rook or queen in horizontal or vertical directions
     bitboard opponent_piece = piece_of_color[opposite(c)];
     bitboard attacker = (piece_of_type[ROOK] | piece_of_type[QUEEN]) & opponent_piece;
-    bitboard king = king_pos[c];
     if ((range_attacks(king, [](bitboard b) { return b.shift_up(1); }, ~rank_8) & attacker) != 0) return true;
     if ((range_attacks(king, [](bitboard b) { return b.shift_down(1); }, ~rank_1) & attacker) != 0) return true;
     if ((range_attacks(king, [](bitboard b) { return b.shift_left(1); }, ~file_a) & attacker) != 0) return true;
@@ -116,6 +115,11 @@ void board::set_initial_position() {
     piece_of_type[PAWN] = 0x00FF00000000FF00;
     piece_of_color[BLACK] = 0xFFFF000000000000;
     piece_of_color[WHITE] = 0x000000000000FFFF;
+    can_castle_king_side[0] = true;
+    can_castle_king_side[1] = true;
+    can_castle_queen_side[0] = true;
+    can_castle_queen_side[1] = true;
+
 }
 
 std::vector<move> board::get_legal_moves(color c) const {
@@ -132,9 +136,9 @@ std::vector<move> board::get_legal_moves(color c) const {
             add_bishop_moves(sq, moves);
             add_rook_moves(sq, moves);
         }
-        if (can_castle_king_side[c] || can_castle_queen_side[c]) {
-            add_castle_moves(c, moves);
-        }
+    }
+    if (can_castle_king_side[c] || can_castle_queen_side[c]) {
+        add_castle_moves(c, moves);
     }
     return moves;
 }

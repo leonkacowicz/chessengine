@@ -5,28 +5,203 @@
 #include <square.h>
 #include "../test_common.h"
 
-TEST(board_test, Board_with_only_kings_is_not_checkmate) {
-    board board;
-    ASSERT_FALSE(board.is_checkmate());
+void list_moves(const std::vector<move>& moves) {
+    std::cout << "Moves found:" << std::endl;
+    for (auto& move: moves) {
+        std::cout << move.origin.to_string() << move.destination.to_string() << std::endl;
+    }
 }
 
-TEST(board_test, legal_moves_king_cannot_move_into_check) {
-    board board;
+TEST(legal_moves_king, king_first_rank) {
+    board b;
+    b.set_king_position(WHITE, "e1");
+    const std::vector<move>& moves = b.get_legal_moves(WHITE);
 
-    board.set_king_position(WHITE, {"g5"});
-    board.set_king_position(BLACK, {"a1"});
-    board.put_piece(ROOK, BLACK, {"f1"});
-    const std::vector<move> moves = board.get_legal_moves(WHITE);
+    list_moves(moves);
+    ASSERT_CONTAINS(moves, move("e1", "d1"));
+    ASSERT_CONTAINS(moves, move("e1", "d2"));
+    ASSERT_CONTAINS(moves, move("e1", "e2"));
+    ASSERT_CONTAINS(moves, move("e1", "f2"));
+    ASSERT_CONTAINS(moves, move("e1", "f1"));
+    ASSERT_EQ(moves.size(), 5);
+}
 
-//    ASSERT_EQ(std::find(moves.begin(), moves.end(), move({"g5"}, {"f6"})), moves.end());
-//    ASSERT_EQ(std::find(moves.begin(), moves.end(), move({"g5"}, {"f5"})), moves.end());
-//    ASSERT_EQ(std::find(moves.begin(), moves.end(), move({"g5"}, {"f4"})), moves.end());
-//
-//    ASSERT_NE(std::find(moves.begin(), moves.end(), move({"g5"}, {"g6"})), moves.end());
-//    ASSERT_NE(std::find(moves.begin(), moves.end(), move({"g5"}, {"h6"})), moves.end());
-//    ASSERT_NE(std::find(moves.begin(), moves.end(), move({"g5"}, {"h5"})), moves.end());
-//    ASSERT_NE(std::find(moves.begin(), moves.end(), move({"g5"}, {"h4"})), moves.end());
-//    ASSERT_NE(std::find(moves.begin(), moves.end(), move({"g5"}, {"g4"})), moves.end());
+TEST(legal_moves_king, king_last_rank) {
+    board b;
+    std::string pos("e8");
+    b.set_king_position(WHITE, pos);
+    const std::vector<move>& moves = b.get_legal_moves(WHITE);
+
+    list_moves(moves);
+    ASSERT_CONTAINS(moves, move(pos, "d8"));
+    ASSERT_CONTAINS(moves, move(pos, "d7"));
+    ASSERT_CONTAINS(moves, move(pos, "e7"));
+    ASSERT_CONTAINS(moves, move(pos, "f7"));
+    ASSERT_CONTAINS(moves, move(pos, "f8"));
+    ASSERT_EQ(moves.size(), 5);
+}
+
+TEST(legal_moves_king, king_h1) {
+    board b;
+    std::string pos("h1");
+    b.set_king_position(WHITE, pos);
+    const std::vector<move>& moves = b.get_legal_moves(WHITE);
+
+    list_moves(moves);
+    ASSERT_CONTAINS(moves, move(pos, "h2"));
+    ASSERT_CONTAINS(moves, move(pos, "g2"));
+    ASSERT_CONTAINS(moves, move(pos, "g1"));
+    ASSERT_EQ(moves.size(), 3);
+}
+
+TEST(legal_moves_king, king_a1) {
+    board b;
+    std::string pos("a1");
+    b.set_king_position(WHITE, pos);
+    const std::vector<move>& moves = b.get_legal_moves(WHITE);
+
+    list_moves(moves);
+    ASSERT_CONTAINS(moves, move(pos, "a2"));
+    ASSERT_CONTAINS(moves, move(pos, "b2"));
+    ASSERT_CONTAINS(moves, move(pos, "b1"));
+    ASSERT_EQ(moves.size(), 3);
+}
+
+TEST(legal_moves_king, king_a8) {
+    board b;
+    std::string pos("a8");
+    b.set_king_position(WHITE, pos);
+    const std::vector<move>& moves = b.get_legal_moves(WHITE);
+
+    list_moves(moves);
+    ASSERT_CONTAINS(moves, move(pos, "a7"));
+    ASSERT_CONTAINS(moves, move(pos, "b7"));
+    ASSERT_CONTAINS(moves, move(pos, "b8"));
+    ASSERT_EQ(moves.size(), 3);
+}
+
+TEST(legal_moves_king, king_h8) {
+    board b;
+    std::string pos("h8");
+    b.set_king_position(WHITE, pos);
+    const std::vector<move>& moves = b.get_legal_moves(WHITE);
+
+    list_moves(moves);
+    ASSERT_CONTAINS(moves, move(pos, "h7"));
+    ASSERT_CONTAINS(moves, move(pos, "g7"));
+    ASSERT_CONTAINS(moves, move(pos, "g8"));
+    ASSERT_EQ(moves.size(), 3);
+}
+
+TEST(legal_moves_king, king_e5) {
+    board b;
+    std::string pos("e5");
+    b.set_king_position(WHITE, pos);
+    const std::vector<move>& moves = b.get_legal_moves(WHITE);
+
+    list_moves(moves);
+    ASSERT_CONTAINS(moves, move(pos, "d4"));
+    ASSERT_CONTAINS(moves, move(pos, "d5"));
+    ASSERT_CONTAINS(moves, move(pos, "d6"));
+    ASSERT_CONTAINS(moves, move(pos, "e4"));
+    ASSERT_CONTAINS(moves, move(pos, "e6"));
+    ASSERT_CONTAINS(moves, move(pos, "f4"));
+    ASSERT_CONTAINS(moves, move(pos, "f5"));
+    ASSERT_CONTAINS(moves, move(pos, "f6"));
+    ASSERT_EQ(moves.size(), 8);
+}
+
+TEST(legal_moves_rook, rook_a1) {
+    board b;
+    std::string pos("a1");
+    b.put_piece(ROOK, WHITE, pos);
+    auto moves = b.get_legal_moves(WHITE);
+    list_moves(moves);
+    ASSERT_CONTAINS(moves, move(pos, "a2"));
+    ASSERT_CONTAINS(moves, move(pos, "a3"));
+    ASSERT_CONTAINS(moves, move(pos, "a4"));
+    ASSERT_CONTAINS(moves, move(pos, "a5"));
+    ASSERT_CONTAINS(moves, move(pos, "a6"));
+    ASSERT_CONTAINS(moves, move(pos, "a7"));
+    ASSERT_CONTAINS(moves, move(pos, "a8"));
+    ASSERT_CONTAINS(moves, move(pos, "b1"));
+    ASSERT_CONTAINS(moves, move(pos, "c1"));
+    ASSERT_CONTAINS(moves, move(pos, "d1"));
+    ASSERT_CONTAINS(moves, move(pos, "e1"));
+    ASSERT_CONTAINS(moves, move(pos, "f1"));
+    ASSERT_CONTAINS(moves, move(pos, "g1"));
+    ASSERT_CONTAINS(moves, move(pos, "h1"));
+    ASSERT_EQ(moves.size(), 14);
+}
+
+TEST(legal_moves_rook, rook_a8) {
+    board b;
+    std::string pos("a8");
+    b.put_piece(ROOK, WHITE, pos);
+    auto moves = b.get_legal_moves(WHITE);
+    list_moves(moves);
+    ASSERT_CONTAINS(moves, move(pos, "a2"));
+    ASSERT_CONTAINS(moves, move(pos, "a3"));
+    ASSERT_CONTAINS(moves, move(pos, "a4"));
+    ASSERT_CONTAINS(moves, move(pos, "a5"));
+    ASSERT_CONTAINS(moves, move(pos, "a6"));
+    ASSERT_CONTAINS(moves, move(pos, "a7"));
+    ASSERT_CONTAINS(moves, move(pos, "a1"));
+    ASSERT_CONTAINS(moves, move(pos, "b8"));
+    ASSERT_CONTAINS(moves, move(pos, "c8"));
+    ASSERT_CONTAINS(moves, move(pos, "d8"));
+    ASSERT_CONTAINS(moves, move(pos, "e8"));
+    ASSERT_CONTAINS(moves, move(pos, "f8"));
+    ASSERT_CONTAINS(moves, move(pos, "g8"));
+    ASSERT_CONTAINS(moves, move(pos, "h8"));
+    ASSERT_EQ(moves.size(), 14);
+}
+
+TEST(legal_moves_rook, rook_h8) {
+    board b;
+    std::string pos("h8");
+    b.put_piece(ROOK, WHITE, pos);
+    auto moves = b.get_legal_moves(WHITE);
+    list_moves(moves);
+    ASSERT_CONTAINS(moves, move(pos, "h2"));
+    ASSERT_CONTAINS(moves, move(pos, "h3"));
+    ASSERT_CONTAINS(moves, move(pos, "h4"));
+    ASSERT_CONTAINS(moves, move(pos, "h5"));
+    ASSERT_CONTAINS(moves, move(pos, "h6"));
+    ASSERT_CONTAINS(moves, move(pos, "h7"));
+    ASSERT_CONTAINS(moves, move(pos, "a8"));
+    ASSERT_CONTAINS(moves, move(pos, "b8"));
+    ASSERT_CONTAINS(moves, move(pos, "c8"));
+    ASSERT_CONTAINS(moves, move(pos, "d8"));
+    ASSERT_CONTAINS(moves, move(pos, "e8"));
+    ASSERT_CONTAINS(moves, move(pos, "f8"));
+    ASSERT_CONTAINS(moves, move(pos, "g8"));
+    ASSERT_CONTAINS(moves, move(pos, "h1"));
+    ASSERT_EQ(moves.size(), 14);
+}
+
+
+TEST(legal_moves_rook, rook_h1) {
+    board b;
+    std::string pos("h1");
+    b.put_piece(ROOK, WHITE, pos);
+    auto moves = b.get_legal_moves(WHITE);
+    list_moves(moves);
+    ASSERT_CONTAINS(moves, move(pos, "h2"));
+    ASSERT_CONTAINS(moves, move(pos, "h3"));
+    ASSERT_CONTAINS(moves, move(pos, "h4"));
+    ASSERT_CONTAINS(moves, move(pos, "h5"));
+    ASSERT_CONTAINS(moves, move(pos, "h6"));
+    ASSERT_CONTAINS(moves, move(pos, "h7"));
+    ASSERT_CONTAINS(moves, move(pos, "h8"));
+    ASSERT_CONTAINS(moves, move(pos, "a1"));
+    ASSERT_CONTAINS(moves, move(pos, "b1"));
+    ASSERT_CONTAINS(moves, move(pos, "c1"));
+    ASSERT_CONTAINS(moves, move(pos, "d1"));
+    ASSERT_CONTAINS(moves, move(pos, "e1"));
+    ASSERT_CONTAINS(moves, move(pos, "f1"));
+    ASSERT_CONTAINS(moves, move(pos, "g1"));
+    ASSERT_EQ(moves.size(), 14);
 }
 
 TEST(board_test, rook_pinned_by_rook_from_above) {

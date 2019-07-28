@@ -14,8 +14,8 @@ class board {
     bitboard piece_of_type[5] = {0, 0, 0, 0, 0};
     square king_pos[2] = { square::none, square::none };
     square en_passant;
-    bool can_castle_king_side[2];
-    bool can_castle_queen_side[2];
+    bool can_castle_king_side[2] = { false, false };
+    bool can_castle_queen_side[2] = { false, false };
     bool side_to_play;
 
     bitboard range_attacks(const bitboard origin, const std::function<bitboard(bitboard)>& shift, const bitboard in_range) const;
@@ -23,6 +23,7 @@ class board {
     bitboard king_attacks(const bitboard origin) const;
     bitboard pawn_attacks(const bitboard origin, const color attacker) const;
 
+    void range_moves(const bitboard origin, const std::function<bitboard(bitboard)>& shift, const bitboard in_range, std::vector<move>& moves) const;
     void add_rook_moves(bitboard origin, std::vector<move>& moves) const;
     void add_king_moves(bitboard origin, std::vector<move>& moves) const;
     void add_bishop_moves(bitboard origin, std::vector<move>& moves) const;
@@ -49,7 +50,6 @@ public:
 
     std::vector<move> get_legal_moves(color c) const;
 
-    void range_moves(const bitboard origin, const std::function<bitboard(bitboard)>& shift, const bitboard in_range, std::vector<move> moves) const;
 };
 
 #endif //CHESSENGINE_BOARD_H
