@@ -409,6 +409,44 @@ TEST(legal_moves, at_initial_position) {
     ASSERT_CONTAINS(moves, move("g8", "f6"));
     ASSERT_CONTAINS(moves, move("g8", "h6"));
 }
+
+TEST(board_test, under_check_specific_pos1) {
+    /*
+ 8   . . . . . . . .
+ 7   . . . . k p . p
+ 6   . . P . b . . .
+ 5   . n r . . p . .
+ 4   . . . . . . . .
+ 3   . . . . . B P .
+ 2   . . . R N K . P
+ 1   . . . . . . . .
+
+     a b c d e f g h
+     */
+
+    board b;
+    b.put_piece(ROOK, WHITE, "d2");
+    b.put_piece(KNIGHT, WHITE, "e2");
+    b.set_king_position(WHITE, "f2");
+    b.put_piece(PAWN, WHITE, "h2");
+
+    b.put_piece(PAWN, WHITE, "g3");
+    b.put_piece(BISHOP, WHITE, "f3");
+
+    b.put_piece(KNIGHT, BLACK, "b5");
+    b.put_piece(ROOK, BLACK, "c5");
+    b.put_piece(PAWN, BLACK, "f5");
+
+    b.put_piece(PAWN, WHITE, "c6");
+    b.put_piece(BISHOP, BLACK, "e6");
+
+    b.set_king_position(BLACK, "e7");
+    b.put_piece(PAWN, BLACK, "f7");
+    b.put_piece(PAWN, BLACK, "h7");
+
+    b.print();
+    ASSERT_FALSE(b.under_check(WHITE));
+}
 //TEST(board_test, rook_pinned_by_rook) {
 //    std::random_device rd;  //Will be used to obtain a seed for the random number engine
 //    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()

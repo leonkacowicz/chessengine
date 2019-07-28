@@ -50,11 +50,11 @@ bool board::under_check(color c) const {
     bitboard attacker = (piece_of_type[ROOK] | piece_of_type[QUEEN]) & opponent_piece;
     if ((range_attacks(king, [](bitboard b) { return b.shift_up(1); }, ~rank_8) & attacker) != 0) return true;
     if ((range_attacks(king, [](bitboard b) { return b.shift_down(1); }, ~rank_1) & attacker) != 0) return true;
-    if ((attacker & range_attacks(king, [](bitboard b) { return b.shift_left(1); }, ~file_a)) != 0) return true;
+    if ((range_attacks(king, [](bitboard b) { return b.shift_left(1); }, ~file_a) & attacker) != 0) return true;
     if ((range_attacks(king, [](bitboard b) { return b.shift_right(1); }, ~file_h) & attacker) != 0) return true;
 
     // checks if attacked by bishop or queen in diagonal directions
-    attacker = (piece_of_type[ROOK] | piece_of_type[QUEEN]) & opponent_piece;
+    attacker = (piece_of_type[BISHOP] | piece_of_type[QUEEN]) & opponent_piece;
     if ((range_attacks(king, [](bitboard b) { return b.shift_up_left(1); }, ~(rank_8 | file_a)) & attacker) != 0) return true;
     if ((range_attacks(king, [](bitboard b) { return b.shift_up_right(1); }, ~(rank_8 | file_h)) & attacker) != 0) return true;
     if ((range_attacks(king, [](bitboard b) { return b.shift_down_left(1); }, ~(rank_1 | file_a)) & attacker) != 0) return true;

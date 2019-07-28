@@ -83,6 +83,7 @@ void arbiter::start_game() {
             }
             if (!found) {
                 std::cout << "Move " << moves.back() << " not found in list of legal moves!!" << std::endl;
+                std::cout << "White under check? " << b.under_check(WHITE) << std::endl;
                 for (auto m : legal_moves) std::cout << m.to_long_move() << std::endl;
                 break;
             }
@@ -117,6 +118,7 @@ void arbiter::start_game() {
             }
             if (!found) {
                 std::cout << "Move " << moves.back() << " not found in list of legal moves!!" << std::endl;
+                std::cout << "Black under check? " << b.under_check(BLACK) << std::endl;
                 for (auto m : legal_moves) std::cout << m.to_long_move() << std::endl;
                 break;
             }
