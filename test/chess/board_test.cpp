@@ -447,6 +447,23 @@ TEST(board_test, under_check_specific_pos1) {
     b.print();
     ASSERT_FALSE(b.under_check(WHITE));
 }
+
+TEST(board_test, assert_its_checkmate) {
+    /*
+ 8   . . . . . . . k
+ 7   . . . n . . . .
+ 6   p . p . . p . Q
+ 5   P . . . . . . .
+ 4   . . B P . . . .
+ 3   . . P . . . . P
+ 2   . . . . p . P .
+ 1   . . . . . . K .
+
+     a b c d e f g h
+     */
+
+
+}
 //TEST(board_test, rook_pinned_by_rook) {
 //    std::random_device rd;  //Will be used to obtain a seed for the random number engine
 //    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()

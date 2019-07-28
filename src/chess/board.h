@@ -16,7 +16,6 @@ class board {
     square en_passant;
     bool can_castle_king_side[2] = { false, false };
     bool can_castle_queen_side[2] = { false, false };
-    color side_to_play = WHITE;
 
     bitboard range_attacks(const bitboard origin, const std::function<bitboard(bitboard)>& shift, const bitboard in_range) const;
     bitboard knight_attacks(const bitboard origin) const;
@@ -36,6 +35,7 @@ class board {
     piece piece_at(bitboard p) const;
     color color_at(bitboard p) const;
 public:
+    color side_to_play = WHITE;
 
     board() {}
 
