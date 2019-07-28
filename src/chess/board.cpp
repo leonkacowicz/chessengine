@@ -531,12 +531,24 @@ void board::make_move(const move m) {
         move_piece("e8", "c8");
         move_piece("a8", "d8");
     } else if (m.special == special_move::PROMOTION_QUEEN) {
+        auto bbi = ~(bitboard(m.origin));
+        piece_of_color[c] &= bbi;
+        piece_of_type[PAWN] &= bbi;
         put_piece(QUEEN, c, m.destination);
     } else if (m.special == special_move::PROMOTION_KNIGHT) {
+        auto bbi = ~(bitboard(m.origin));
+        piece_of_color[c] &= bbi;
+        piece_of_type[PAWN] &= bbi;
         put_piece(KNIGHT, c, m.destination);
     } else if (m.special == special_move::PROMOTION_ROOK) {
+        auto bbi = ~(bitboard(m.origin));
+        piece_of_color[c] &= bbi;
+        piece_of_type[PAWN] &= bbi;
         put_piece(ROOK, c, m.destination);
     } else if (m.special == special_move::PROMOTION_BISHOP) {
+        auto bbi = ~(bitboard(m.origin));
+        piece_of_color[c] &= bbi;
+        piece_of_type[PAWN] &= bbi;
         put_piece(BISHOP, c, m.destination);
     }
     side_to_play = opposite(side_to_play);
