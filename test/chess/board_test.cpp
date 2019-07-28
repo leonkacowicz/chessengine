@@ -462,7 +462,32 @@ TEST(board_test, assert_its_checkmate) {
      a b c d e f g h
      */
 
+    board b;
+    b.set_king_position(WHITE, "g1");
 
+    b.put_piece(PAWN, BLACK, "e2");
+    b.put_piece(PAWN, WHITE, "g2");
+
+    b.put_piece(PAWN, WHITE, "c3");
+    b.put_piece(PAWN, WHITE, "h3");
+
+    b.put_piece(BISHOP, WHITE, "c4");
+    b.put_piece(PAWN, WHITE, "d4");
+
+    b.put_piece(PAWN, WHITE, "a5");
+
+    b.put_piece(PAWN, BLACK, "a6");
+    b.put_piece(PAWN, BLACK, "c6");
+    b.put_piece(PAWN, BLACK, "f6");
+
+    b.put_piece(QUEEN, WHITE, "h6");
+    b.put_piece(KNIGHT, BLACK, "d7");
+    b.set_king_position(BLACK, "h8");
+
+    ASSERT_TRUE(b.under_check(BLACK));
+    const std::vector<move> &moves = b.get_legal_moves(BLACK);
+    list_moves(moves);
+    ASSERT_TRUE(moves.empty());
 }
 //TEST(board_test, rook_pinned_by_rook) {
 //    std::random_device rd;  //Will be used to obtain a seed for the random number engine

@@ -252,35 +252,24 @@ board::board(const std::string& fen) {
     side_to_play = side_to_move == "b" ? BLACK : WHITE;
 }
 
+board board::simulate(const square from, const square to) const {
+    board simulated = *this;
+    simulated.move_piece(from, to);
+    return simulated;
+}
+
 void board::add_pawn_moves(bitboard origin, std::vector<move>& moves) const {
-    const color attacker = piece_of_color[BLACK][origin] ? BLACK : WHITE;
-    const bitboard opponent_piece = piece_of_color[opposite(attacker)];
+    const color c = piece_of_color[BLACK][origin] ? BLACK : WHITE;
+    const bitboard opponent_piece = piece_of_color[opposite(c)];
     // add normal moves, captures, en passant, and promotions
-    const bitboard fwd = attacker == WHITE ? origin.shift_up(1) : origin.shift_down(1);
+    const bitboard fwd = c == WHITE ? origin.shift_up(1) : origin.shift_down(1);
     const bool promotion = (rank_1 | rank_8)[fwd];
     const square origin_sq = origin.get_square();
+    const bitboard empty = ~(piece_of_color[WHITE] | piece_of_color[BLACK]);
 
-    if ((~(piece_of_color[WHITE] | piece_of_color[BLACK]))[fwd]) {
+    if (empty[fwd]) {
         const square dest = fwd.get_square();
-        if (promotion) {
-            moves.emplace_back(origin_sq, dest, special_move::PROMOTION_QUEEN);
-            moves.emplace_back(origin_sq, dest, special_move::PROMOTION_ROOK);
-            moves.emplace_back(origin_sq, dest, special_move::PROMOTION_BISHOP);
-            moves.emplace_back(origin_sq, dest, special_move::PROMOTION_KNIGHT);
-        } else {
-            moves.emplace_back(origin_sq, dest);
-            if (attacker == WHITE && rank_2[origin]) {
-                moves.emplace_back(origin_sq, fwd.shift_up(1).get_square());
-            } else if (attacker == BLACK && rank_7[origin]) {
-                moves.emplace_back(origin_sq, fwd.shift_down(1).get_square());
-            }
-        }
-    }
-
-    if (!file_a[origin]) {
-        const bitboard cap = fwd.shift_left(1);
-        if (opponent_piece[cap] || cap == en_passant) {
-            const square dest = cap.get_square();
+        if (!simulate(origin_sq, dest).under_check(c)) {
             if (promotion) {
                 moves.emplace_back(origin_sq, dest, special_move::PROMOTION_QUEEN);
                 moves.emplace_back(origin_sq, dest, special_move::PROMOTION_ROOK);
@@ -288,6 +277,32 @@ void board::add_pawn_moves(bitboard origin, std::vector<move>& moves) const {
                 moves.emplace_back(origin_sq, dest, special_move::PROMOTION_KNIGHT);
             } else {
                 moves.emplace_back(origin_sq, dest);
+            }
+        }
+        if (c == WHITE && rank_2[origin]) {
+            const bitboard fwd2 = fwd.shift_up(1);
+            if (empty[fwd2])
+                moves.emplace_back(origin_sq, fwd2.get_square());
+        } else if (c == BLACK && rank_7[origin]) {
+            const bitboard fwd2 = fwd.shift_down(1);
+            if (empty[fwd2])
+                moves.emplace_back(origin_sq, fwd2.get_square());
+        }
+    }
+
+    if (!file_a[origin]) {
+        const bitboard cap = fwd.shift_left(1);
+        if (opponent_piece[cap] || cap == en_passant) {
+            const square dest = cap.get_square();
+            if (!simulate(origin_sq, dest).under_check(c)) {
+                if (promotion) {
+                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_QUEEN);
+                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_ROOK);
+                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_BISHOP);
+                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_KNIGHT);
+                } else {
+                    moves.emplace_back(origin_sq, dest);
+                }
             }
         }
     }
@@ -296,13 +311,15 @@ void board::add_pawn_moves(bitboard origin, std::vector<move>& moves) const {
         const bitboard cap = fwd.shift_right(1);
         if (opponent_piece[cap] || cap == en_passant) {
             const square dest = cap.get_square();
-            if (promotion) {
-                moves.emplace_back(origin_sq, dest, special_move::PROMOTION_QUEEN);
-                moves.emplace_back(origin_sq, dest, special_move::PROMOTION_ROOK);
-                moves.emplace_back(origin_sq, dest, special_move::PROMOTION_BISHOP);
-                moves.emplace_back(origin_sq, dest, special_move::PROMOTION_KNIGHT);
-            } else {
-                moves.emplace_back(origin_sq, dest);
+            if (!simulate(origin_sq, dest).under_check(c)) {
+                if (promotion) {
+                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_QUEEN);
+                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_ROOK);
+                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_BISHOP);
+                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_KNIGHT);
+                } else {
+                    moves.emplace_back(origin_sq, dest);
+                }
             }
         }
     }
