@@ -349,7 +349,7 @@ void board::add_castle_moves(color c, std::vector<move> &moves) const {
             if (!simulated.under_check(c)) {
                 simulated.set_king_position(c, king.shift_right(2).get_square());
                 if (!simulated.under_check(c)) {
-                    const square dest = square(6, 1);
+                    const square dest = square(6, (c == BLACK) * 7);
                     const special_move castle_king_side = c == WHITE ? CASTLE_KING_SIDE_WHITE : CASTLE_KING_SIDE_BLACK;
                     moves.emplace_back(king_pos[c], dest, castle_king_side);
                 }
@@ -362,7 +362,7 @@ void board::add_castle_moves(color c, std::vector<move> &moves) const {
             if (!simulated.under_check(c)) {
                 simulated.set_king_position(c, king.shift_left(2).get_square());
                 if (!simulated.under_check(c)) {
-                    const square dest = square(2, 1);
+                    const square dest = square(2, (c == BLACK) * 7);
                     special_move castle_queen_side = c == WHITE ? CASTLE_QUEEN_SIDE_WHITE : CASTLE_QUEEN_SIDE_BLACK;
                     moves.emplace_back(king_pos[c], dest, castle_queen_side);
                 }
