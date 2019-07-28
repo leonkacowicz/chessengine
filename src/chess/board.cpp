@@ -607,7 +607,9 @@ std::string board::move_in_pgn(const move m, const std::vector<move>& legal_move
                && other.origin.get_file() != m.origin.get_file();
     }) != end(legal_moves)) {
         ss << m.origin.get_file_char();
-    } else if (std::find_if(begin(legal_moves), end(legal_moves), [&] (const move& other) {
+    }
+
+    if (std::find_if(begin(legal_moves), end(legal_moves), [&] (const move& other) {
         return other.destination == m.destination
                && piece_of_type[p][other.origin]
                && other.origin.get_rank() != m.origin.get_rank();
@@ -618,6 +620,11 @@ std::string board::move_in_pgn(const move m, const std::vector<move>& legal_move
     if (is_capture) ss << "x";
 
     ss << m.destination.to_string();
+
+    if (m.special == PROMOTION_QUEEN) ss << "=Q";
+    if (m.special == PROMOTION_KNIGHT) ss << "=N";
+    if (m.special == PROMOTION_ROOK) ss << "=R";
+    if (m.special == PROMOTION_BISHOP) ss << "=B";
 
     board simulated = *this;
     simulated.make_move(m);
