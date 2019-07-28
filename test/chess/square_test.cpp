@@ -1,6 +1,10 @@
 #include <gtest/gtest.h>
 #include <square.h>
 
+TEST(square_test, size_of_class) {
+    std::cout << "\nSize of class: " << sizeof(square) << " bytes" << std::endl;
+}
+
 TEST(square_test, sanity_check_null_square_is_not_equal_to_any_other) {
     for (char file = 'a'; file <= 'h'; file++) {
         for (char rank = '1'; rank <= '8'; rank++) {

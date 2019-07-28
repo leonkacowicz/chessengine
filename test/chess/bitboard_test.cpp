@@ -2,6 +2,10 @@
 #include <square.h>
 #include <bitboard.h>
 
+TEST(bitboard_test, size_of_class) {
+    std::cout << "\nSize of class: " << sizeof(bitboard) << " bytes" << std::endl;
+}
+
 TEST(bitboard_test, bitboard_consistency) {
     for (int f = 0; f < 8; f++) {
         for (int r = 0; r < 8; r++) {

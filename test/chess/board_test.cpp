@@ -13,6 +13,10 @@ void list_moves(const std::vector<move>& moves) {
     }
 }
 
+TEST(board_test, size_of_class) {
+    std::cout << "\nSize of class: " << sizeof(board) << " bytes" << std::endl;
+}
+
 TEST(legal_moves_king, king_first_rank) {
     for (color c : {WHITE, BLACK}) {
         board b;
@@ -336,6 +340,14 @@ TEST(board_test, rook_pinned_by_rook_from_above) {
         ASSERT_CONTAINS(moves, move(king, "f2"));
         ASSERT_EQ(moves.size(), 9);
     }
+}
+
+TEST(not_under_check, knight_on_a3) {
+    board b;
+    b.set_initial_position();
+    b.print();
+    //b.make_move({"b1", "a3"});
+    ASSERT_FALSE(b.under_check(WHITE));
 }
 
 TEST(legal_moves, at_initial_position) {

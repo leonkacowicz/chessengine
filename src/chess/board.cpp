@@ -50,7 +50,7 @@ bool board::under_check(color c) const {
     bitboard attacker = (piece_of_type[ROOK] | piece_of_type[QUEEN]) & opponent_piece;
     if ((range_attacks(king, [](bitboard b) { return b.shift_up(1); }, ~rank_8) & attacker) != 0) return true;
     if ((range_attacks(king, [](bitboard b) { return b.shift_down(1); }, ~rank_1) & attacker) != 0) return true;
-    if ((range_attacks(king, [](bitboard b) { return b.shift_left(1); }, ~file_a) & attacker) != 0) return true;
+    if ((attacker & range_attacks(king, [](bitboard b) { return b.shift_left(1); }, ~file_a)) != 0) return true;
     if ((range_attacks(king, [](bitboard b) { return b.shift_right(1); }, ~file_h) & attacker) != 0) return true;
 
     // checks if attacked by bishop or queen in diagonal directions
@@ -104,36 +104,20 @@ string board::to_string() const {
 }
 
 void board::print() const {
-    std::cout << to_string();
+    std::cout << std::endl << to_string() << std::endl ;
 }
 
 void board::set_initial_position() {
-
-    put_piece(ROOK, WHITE, "a1");
-    put_piece(ROOK, WHITE, "h1");
-    put_piece(ROOK, BLACK, "a8");
-    put_piece(ROOK, BLACK, "h8");
-
-    put_piece(KNIGHT, WHITE, "b1");
-    put_piece(KNIGHT, WHITE, "g1");
-    put_piece(KNIGHT, BLACK, "b8");
-    put_piece(KNIGHT, BLACK, "g8");
-
-    put_piece(BISHOP, WHITE, "c1");
-    put_piece(BISHOP, WHITE, "f1");
-    put_piece(BISHOP, BLACK, "c8");
-    put_piece(BISHOP, BLACK, "f8");
-
-    put_piece(QUEEN, WHITE, "d1");
-    put_piece(QUEEN, BLACK, "d8");
-
-    set_king_position(WHITE, "e1");
-    set_king_position(WHITE, "e8");
-
-    for (int file = 0; file < 8; file++) {
-        put_piece(PAWN, WHITE, square(file, 1));
-        put_piece(PAWN, BLACK, square(file, 6));
-    }
+    const bitboard player_first_rank = rank_1 | rank_8;
+    piece_of_type[ROOK] = (file_a | file_h) & player_first_rank;
+    piece_of_type[KNIGHT] = (file_b | file_g) & player_first_rank;
+    piece_of_type[BISHOP] = (file_c | file_f) & player_first_rank;
+    piece_of_type[QUEEN] = file_d & player_first_rank;
+    piece_of_type[PAWN] = rank_2 | rank_7;
+    piece_of_color[BLACK] = rank_7 | rank_8;
+    piece_of_color[WHITE] = rank_1 | rank_2;
+    king_pos[WHITE] = "e1";
+    king_pos[BLACK] = "e8";
     can_castle_king_side[0] = true;
     can_castle_king_side[1] = true;
     can_castle_queen_side[0] = true;
@@ -342,8 +326,10 @@ void board::add_knight_moves(bitboard origin, std::vector<move>& moves) const {
     board simulated = *this;
     for (int i = 0; i < N; i++, simulated = *this) {
         if ((in_range[i] & piece_of_color[c]) != 0) continue;
-        simulated.set_king_position(c, in_range[i].get_square());
-        if (!simulated.under_check(c)) moves.emplace_back(origin_square, in_range[i].get_square());
+        simulated.move_piece(origin_square, in_range[i].get_square());
+        if (!simulated.under_check(c)) {
+            moves.emplace_back(origin_square, in_range[i].get_square());
+        }
     }
 }
 
