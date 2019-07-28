@@ -7,12 +7,12 @@ using namespace std;
 TEST(process_test, start_process_streams) {
     process p("cat");
 
-    string test_str("ksdfjaasdfjbasdkljfbadkljfb");
+    std::string test_str("ksdfjaasdfjbasdkljfbadkljfb");
 
     p << test_str;
     p.send_eof();
 
-    string received;
+    std::string received;
     p >> received;
     p.wait();
 

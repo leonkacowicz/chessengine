@@ -5,9 +5,10 @@
 #include <atomic>
 #include <thread>
 #include <mutex>
+#include <board.h>
 #include "arbiter.h"
 
-arbiter::arbiter(player& white_player, player& black_player, chrono::milliseconds initial_time, chrono::milliseconds increment) :
+arbiter::arbiter(player& white_player, player& black_player, std::chrono::milliseconds initial_time, std::chrono::milliseconds increment) :
         white(white_player), black(black_player),
         white_time(initial_time), black_time(initial_time),
         increment(increment)
@@ -25,10 +26,10 @@ void arbiter::start_players() {
     white_mutexes.time_to_play.lock();
     black_mutexes.time_to_play.lock();
 
-    white_thread = thread([&] { player_loop(white, white_mutexes); });
-    black_thread = thread([&] { player_loop(black, black_mutexes); });
+    white_thread = std::thread([&] { player_loop(white, white_mutexes); });
+    black_thread = std::thread([&] { player_loop(black, black_mutexes); });
 
-    cout << "[DEBUG] Engines started" << endl;
+    std::cout << "[DEBUG] Engines started" << std::endl;
 }
 
 void arbiter::start_game() {
@@ -43,14 +44,15 @@ void arbiter::start_game() {
     white_mutexes.has_played.lock();
     black_mutexes.has_played.lock();
 
-    auto last_time_point = chrono::system_clock::now();
+    board b;
+    auto last_time_point = std::chrono::system_clock::now();
 
     int i = 0;
     while(true) {
-        cout << ++i << endl;
+        std::cout << ++i << std::endl;
 
         white_mutexes.time_to_play.unlock();
-        if (white_mutexes.has_played.try_lock_for(chrono::milliseconds(white_time))) {
+        if (white_mutexes.has_played.try_lock_for(std::chrono::milliseconds(white_time))) {
             // all good
         } else {
             // lost on time
@@ -59,17 +61,30 @@ void arbiter::start_game() {
         if (moves.back() == "(none)") break;
 
         if (i > 1) {
-            auto last_move_time = chrono::system_clock::now();
-            auto move_duration = chrono::duration_cast<chrono::milliseconds>(last_move_time - last_time_point);
+            auto last_move_time = std::chrono::system_clock::now();
+            auto move_duration = std::chrono::duration_cast<std::chrono::milliseconds>(last_move_time - last_time_point);
             white_time -= move_duration;
             last_time_point = last_move_time;
-            cout << "White took " << move_duration.count() << " and now has " << white_time.count() << endl;
+            std::cout << "White took " << move_duration.count() << " and now has " << white_time.count() << std::endl;
         }
 
-        cout << "White moves " << moves.back() << endl;
+        std::cout << "White moves " << moves.back() << std::endl;
+//        const std::vector<move> legal_moves = b.get_legal_moves(WHITE);
+//        bool found = false;
+//        for (auto m : legal_moves) {
+//            if (m.to_long_move() == moves.back()) {
+//                b.make_move(m);
+//                found = true;
+//                break;
+//            }
+//        }
+//        if (!found) {
+//            std::cout << "Move " << moves.back() << " not found in list of legal moves!!";
+//            break;
+//        }
 
         black_mutexes.time_to_play.unlock();
-        if (black_mutexes.has_played.try_lock_for(chrono::milliseconds(black_time))) {
+        if (black_mutexes.has_played.try_lock_for(std::chrono::milliseconds(black_time))) {
             // all good
         } else {
             // black just lost on time
@@ -78,11 +93,11 @@ void arbiter::start_game() {
 
         if (moves.back() == "(none)") break;
         if (i > 1) {
-            auto last_move_time = chrono::system_clock::now();
-            auto move_duration = chrono::duration_cast<chrono::milliseconds>(last_move_time - last_time_point);
+            auto last_move_time = std::chrono::system_clock::now();
+            auto move_duration = std::chrono::duration_cast<std::chrono::milliseconds>(last_move_time - last_time_point);
             black_time -= move_duration;
             last_time_point = last_move_time;
-            cout << "Black took " << move_duration.count() << " and now has " << black_time.count() << endl;
+            std::cout << "Black took " << move_duration.count() << " and now has " << black_time.count() << std::endl;
         }
 
     }
@@ -94,30 +109,30 @@ void arbiter::start_game() {
 
     int k = 0;
     for (auto move = begin(moves); move != end(moves); move++) {
-        if (k % 2 == 0) cout << endl << k/2 + 1 << ". ";
-        cout << *move << " ";
+        if (k % 2 == 0) std::cout << std::endl << k/2 + 1 << ". ";
+        std::cout << *move << " ";
         k++;
     }
-    cout << endl;
+    std::cout << std::endl;
 }
 
 void arbiter::player_loop(player& p, mutexes &m) {
-    cout << "Starting player " << p.player_color << endl;
+    std::cout << "Starting player " << p.player_color << std::endl;
     m.ready.unlock();
     while (!game_finished) {
-        cout << "Waiting for player " << p.player_color << " turn" << endl;
+        std::cout << "Waiting for player " << p.player_color << " turn" << std::endl;
         m.time_to_play.lock();
         if (game_finished) {
-            cout << "Game finished while player " << p.player_color << " waited to play" << endl;
+            std::cout << "Game finished while player " << p.player_color << " waited to play" << std::endl;
             break;
         }
-        cout << "Time for player " << p.player_color << " to play" << endl;
+        std::cout << "Time for player " << p.player_color << " to play" << std::endl;
         p.set_position(moves);
         p.calculate_next_move(white_time, black_time, increment, increment);
-        string player_move = p.get_next_move();
+        std::string player_move = p.get_next_move();
         moves.push_back(player_move);
 
         m.has_played.unlock();
-        cout << "Player " << p.player_color << " released play lock and aquiring wait lock" << endl;
+        std::cout << "Player " << p.player_color << " released play lock and aquiring wait lock" << std::endl;
     }
 }

@@ -8,7 +8,7 @@
 
 using namespace std;
 
-process::process(const string & executable) : stdin(NULL), stdout(NULL) {
+process::process(const std::string & executable) : stdin(NULL), stdout(NULL) {
     const int PIPE_IN = 1;
     const int PIPE_OUT = 0;
 
@@ -16,11 +16,11 @@ process::process(const string & executable) : stdin(NULL), stdout(NULL) {
     int child_to_parent[2];
 
     if (pipe(child_to_parent) != 0) {
-        cerr << "Failed to create child_to_parent pipe." << endl;
+        cerr << "Failed to create child_to_parent pipe." << std::endl;
         __throw_runtime_error("Failed to create child_to_parent pipe.");
     }
     if (pipe(parent_to_child) != 0) {
-        cerr << "Failed to create parent_to_child pipe." << endl;
+        cerr << "Failed to create parent_to_child pipe." << std::endl;
         __throw_runtime_error("Failed to create parent_to_child pipe.");
     }
 
@@ -36,7 +36,7 @@ process::process(const string & executable) : stdin(NULL), stdout(NULL) {
 
         char * const argv[] = {(char *)executable.c_str(), (char *)0};
         if (execvp(argv[0], argv) == -1) {
-            cerr << "Failed to launch process" << endl;
+            cerr << "Failed to launch process" << std::endl;
             exit(1);
         }
         exit(0);

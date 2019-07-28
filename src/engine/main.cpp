@@ -10,6 +10,6 @@ int main()
     board b;
     b.set_initial_position();
     b.print();
-    cout << sizeof(b);
+    std::cout << sizeof(b);
     return 0;
 }

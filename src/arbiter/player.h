@@ -8,30 +8,28 @@
 #include <color.h>
 #include <chrono>
 
-using namespace std;
-
 class player {
-    ostream& in;
-    istream& out;
+    std::ostream& in;
+    std::istream& out;
 
 public:
     color player_color;
-    player(color c, ostream& in, istream& out): player_color(c), in(in), out(out) {}
+    player(color c, std::ostream& in, std::istream& out): player_color(c), in(in), out(out) {}
 
     void start_player() {
-        in << "uci" << endl;
-        string line;
+        in << "uci" << std::endl;
+        std::string line;
         do {
             getline(out, line);
-            cout << "[DEBUG] [WHITE] " << line << endl;
+            std::cout << "[DEBUG] [WHITE] " << line << std::endl;
         } while (line != "uciok");
     }
 
     void start_game() {
-        in << "ucinewgame" << endl;
+        in << "ucinewgame" << std::endl;
     }
 
-    void set_position(const vector<string>& moves) {
+    void set_position(const std::vector<std::string>& moves) {
         in << "position startpos";
         if (!moves.empty()) {
             in << " moves";
@@ -39,32 +37,32 @@ public:
                 in << " " << *move;
             }
         }
-        in << endl;
+        in << std::endl;
     }
 
-    void calculate_next_move(chrono::milliseconds white_time,
-                             chrono::milliseconds black_time,
-                             chrono::milliseconds white_increment,
-                             chrono::milliseconds black_increment) {
+    void calculate_next_move(std::chrono::milliseconds white_time,
+                             std::chrono::milliseconds black_time,
+                             std::chrono::milliseconds white_increment,
+                             std::chrono::milliseconds black_increment) {
         in << "go wtime " << white_time.count()
             << " btime " << black_time.count()
             << " winc " << white_increment.count()
             << " binc " << black_increment.count()
-            << endl;
+            << std::endl;
     }
 
-    string get_next_move() {
-        string line;
-        string info;
+    std::string get_next_move() {
+        std::string line;
+        std::string info;
         do {
             getline(out, line);
             if (line.substr(0, 5) == "info ") info = line;
-            else cout << "[DEBUG] [" << (player_color == 1 ? "BLACK" : "WHITE") << "] " << line << endl;
+            else std::cout << "[DEBUG] [" << (player_color == 1 ? "BLACK" : "WHITE") << "] " << line << std::endl;
         } while (line.rfind("bestmove ", 0) != 0);
-        cout << "[DEBUG] [" << (player_color == 1 ? "BLACK" : "WHITE") << "] " << info << endl;
+        std::cout << "[DEBUG] [" << (player_color == 1 ? "BLACK" : "WHITE") << "] " << info << std::endl;
 
-        stringstream ss(line.substr(9));
-        string bestmove;
+        std::stringstream ss(line.substr(9));
+        std::string bestmove;
         ss >> bestmove;
         return bestmove;
     }

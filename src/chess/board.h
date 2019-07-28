@@ -31,6 +31,10 @@ class board {
     void add_pawn_moves(bitboard origin, std::vector<move>& moves) const;
     void add_castle_moves(color c, std::vector<move> &moves) const;
 
+    void move_piece(square from, square to);
+
+    piece piece_at(bitboard p) const;
+    color color_at(bitboard p) const;
 public:
 
     board() {}
@@ -45,11 +49,11 @@ public:
     void print() const;
 
     void put_piece(piece p, color c, square s);
-    void move_piece(square from, square to);
     void set_king_position(color c, square position);
 
     std::vector<move> get_legal_moves(color c) const;
 
+    void make_move(const move m);
 };
 
 #endif //CHESSENGINE_BOARD_H

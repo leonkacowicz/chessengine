@@ -21,14 +21,14 @@ int main(int argc, char ** argv) {
     process black_proc(argv[2]);
     player white(WHITE, white_proc.stdin, white_proc.stdout);
     player black(BLACK, black_proc.stdin, black_proc.stdout);
-    arbiter arb(white, black, chrono::milliseconds(atoi(argv[3])), chrono::milliseconds(atoi(argv[4])));
+    arbiter arb(white, black, std::chrono::milliseconds(atoi(argv[3])), std::chrono::milliseconds(atoi(argv[4])));
 
     arb.start_players();
     arb.start_game();
 }
 
 void print_usage() {
-    cout << "Usage: chessarbiter /path/engine/white /path/engine/black "
-            << "starting_time_in_seconds increment_seconds_per_move" << endl;
+    std::cout << "Usage: chessarbiter /path/engine/white /path/engine/black "
+            << "starting_time_in_seconds increment_seconds_per_move" << std::endl;
 
 }

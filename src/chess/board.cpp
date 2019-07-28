@@ -79,7 +79,7 @@ bool board::is_stalemate() const {
 }
 
 string board::to_string() const {
-    auto ret = stringstream();
+    auto ret = std::stringstream();
     for (int y = 7; y >= 0; y--) {
         ret << " " << (y + 1) << "  ";
         for (int x = 0; x <= 7; x++) {
@@ -96,15 +96,15 @@ string board::to_string() const {
             }
             ret << ' ' << c;
         }
-        ret << endl;
+        ret << std::endl;
     }
-    ret << endl << "     a b c d e f g h" << endl;
+    ret << std::endl << "     a b c d e f g h" << std::endl;
 
     return ret.str();
 }
 
 void board::print() const {
-    cout << to_string();
+    std::cout << to_string();
 }
 
 void board::set_initial_position() {
@@ -168,7 +168,6 @@ void board::put_piece(piece p, color c, square s) {
 }
 
 void board::set_king_position(color c, square position) {
-
     piece_of_color[c] &= ~(bitboard(king_pos[c]));
     king_pos[c] = position;
     auto bb = bitboard(position);
@@ -227,24 +226,24 @@ board::board(const std::string& fen) {
     using std::string;
     using std::stringstream;
 
-    stringstream ss(fen);
+    std::stringstream ss(fen);
 
-    string piecePlacement;
+    std::string piecePlacement;
     getline(ss, piecePlacement, ' ');
 
-    string side_to_move;
+    std::string side_to_move;
     getline(ss, side_to_move, ' ');
 
-    string castling;
+    std::string castling;
     getline(ss, castling, ' ');
 
-    string en_passant;
+    std::string en_passant;
     getline(ss, en_passant, ' ');
 
-    string half_move_clock;
+    std::string half_move_clock;
     getline(ss, half_move_clock, ' ');
 
-    string full_move_counter;
+    std::string full_move_counter;
     getline(ss, full_move_counter, ' ');
 
     side_to_play = side_to_move == "b";
@@ -470,14 +469,66 @@ void board::move_piece(square from, square to) {
     }
 
     bitboard ns = ~(bitboard(from));
-    piece p = piece_of_type[PAWN][from] ? PAWN :
-            piece_of_type[KNIGHT][from] ? KNIGHT :
-            piece_of_type[BISHOP][from] ? BISHOP :
-            piece_of_type[ROOK][from] ? ROOK : QUEEN;
-
-    color c = piece_of_color[WHITE][from] ? WHITE : BLACK;
+    piece p = piece_at(from);
+    color c = color_at(from);
     piece_of_type[p] &= ns;
     piece_of_color[c] &= ns;
     put_piece(p, c, to);
+}
+
+void board::make_move(const move m) {
+    piece p = piece_at(m.origin);
+    color c = color_at(m.origin);
+    if (p == KING) {
+        set_king_position(c, m.destination);
+        return;
+    } else {
+        bitboard bbi = ~(bitboard(m.origin));
+        piece_of_color[c] &= bbi;
+        piece_of_type[p] &= bbi;
+
+        if (m.special == 0) {
+            put_piece(p, c, m.destination);
+            if (p == PAWN && m.destination == en_passant) {
+                bbi = ~(bitboard(square(m.destination.get_file(), m.origin.get_rank())));
+                piece_of_color[opposite(c)] &= bbi;
+                piece_of_type[PAWN] &= bbi;
+            }
+        } else if (m.special == special_move::CASTLE_KING_SIDE_WHITE) {
+            move_piece("e1", "g1");
+            move_piece("h1", "f1");
+        } else if (m.special == special_move::CASTLE_KING_SIDE_BLACK) {
+            move_piece("e8", "g8");
+            move_piece("h8", "f8");
+        } else if (m.special == special_move::CASTLE_QUEEN_SIDE_WHITE) {
+            move_piece("e1", "c1");
+            move_piece("a1", "d1");
+        } else if (m.special == special_move::CASTLE_QUEEN_SIDE_BLACK) {
+            move_piece("e8", "c8");
+            move_piece("a8", "d8");
+        } else if (m.special == special_move::PROMOTION_QUEEN) {
+            put_piece(QUEEN, c, m.destination);
+        } else if (m.special == special_move::PROMOTION_KNIGHT) {
+            put_piece(KNIGHT, c, m.destination);
+        } else if (m.special == special_move::PROMOTION_ROOK) {
+            put_piece(ROOK, c, m.destination);
+        } else if (m.special == special_move::PROMOTION_BISHOP) {
+            put_piece(BISHOP, c, m.destination);
+        }
+    }
+}
+
+piece board::piece_at(bitboard p) const {
+    if (p == king_pos[WHITE]) return KING;
+    if (p == king_pos[BLACK]) return KING;
+
+    return piece_of_type[PAWN][p] ? PAWN :
+        piece_of_type[KNIGHT][p] ? KNIGHT :
+        piece_of_type[BISHOP][p] ? BISHOP :
+        piece_of_type[ROOK][p] ? ROOK : QUEEN;
+}
+
+color board::color_at(bitboard p) const {
+    return piece_of_color[BLACK][p] ? BLACK : WHITE;
 }
 

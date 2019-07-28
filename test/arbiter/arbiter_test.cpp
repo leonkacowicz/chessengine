@@ -10,9 +10,9 @@ using namespace std;
 
 TEST(arbiter_test, arbiter_can_start_players) {
 
-    stringstream white_in, white_out, black_in, black_out("uciok\n");
-    white_out << "uciok" << endl;
-    white_out << "bestmove (none)" << endl;
+    std::stringstream white_in, white_out, black_in, black_out("uciok\n");
+    white_out << "uciok" << std::endl;
+    white_out << "bestmove (none)" << std::endl;
     player white(color::WHITE, white_in, white_out);
     player black(color::BLACK, black_in, black_out);
 
@@ -21,7 +21,7 @@ TEST(arbiter_test, arbiter_can_start_players) {
     arb.start_players();
     arb.start_game();
 
-    string line;
+    std::string line;
     getline(white_in, line);
     EXPECT_STREQ(line.c_str(), "uci");
 
@@ -31,26 +31,26 @@ TEST(arbiter_test, arbiter_can_start_players) {
 
 TEST(arbiter_test, arbiter_passes_moves_from_one_player_another) {
 
-    stringstream white_in, white_out, black_in, black_out;
+    std::stringstream white_in, white_out, black_in, black_out;
     player white(color::WHITE, white_in, white_out);
     player black(color::BLACK, black_in, black_out);
 
-    white_out << "uciok" << endl;
-    white_out << "bestmove e2e4" << endl;
-    white_out << "bestmove a2a4" << endl;
-    white_out << "bestmove h2h4" << endl;
+    white_out << "uciok" << std::endl;
+    white_out << "bestmove e2e4" << std::endl;
+    white_out << "bestmove a2a4" << std::endl;
+    white_out << "bestmove h2h4" << std::endl;
 
-    black_out << "uciok" << endl;
-    black_out << "bestmove e7e5" << endl;
-    black_out << "bestmove a7a5" << endl;
-    black_out << "bestmove (none)" << endl;
+    black_out << "uciok" << std::endl;
+    black_out << "bestmove e7e5" << std::endl;
+    black_out << "bestmove a7a5" << std::endl;
+    black_out << "bestmove (none)" << std::endl;
 
     arbiter arb(white, black, 10000ms, 0ms);
 
     arb.start_players();
     arb.start_game();
 
-    string line;
+    std::string line;
     getline(white_in, line);
     EXPECT_STREQ(line.c_str(), "uci");
     getline(white_in, line);
@@ -84,5 +84,5 @@ TEST(arbiter_test, arbiter_passes_moves_from_one_player_another) {
     EXPECT_STREQ(line.c_str(), "position startpos moves e2e4 e7e5 a2a4 a7a5 h2h4");
     getline(black_in, line);
     EXPECT_STREQ(line.substr(0, 3).c_str(), "go ");
-    cout << line;
+    std::cout << line;
 }
