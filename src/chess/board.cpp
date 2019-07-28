@@ -492,15 +492,11 @@ void board::make_move(const move m) {
     color c = color_at(m.origin);
     en_passant = square::none;
 
-    bitboard bbi = ~(bitboard(m.origin));
-    piece_of_color[c] &= bbi;
-    piece_of_type[p] &= bbi;
-
     if (m.special == 0) {
         move_piece(m.origin, m.destination);
         if (p == PAWN) {
             if (m.destination == en_passant) {
-                bbi = ~(bitboard(square(m.destination.get_file(), m.origin.get_rank())));
+                auto bbi = ~(bitboard(square(m.destination.get_file(), m.origin.get_rank())));
                 piece_of_color[opposite(c)] &= bbi;
                 piece_of_type[PAWN] &= bbi;
             }

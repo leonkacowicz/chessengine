@@ -46,13 +46,13 @@ void arbiter::start_game() {
 
     board b;
     b.set_initial_position();
-    b.print();
+
     auto last_time_point = std::chrono::system_clock::now();
 
     int i = 0;
     while(true) {
         std::cout << ++i << std::endl;
-
+        b.print();
         white_mutexes.time_to_play.unlock();
         if (white_mutexes.has_played.try_lock_for(std::chrono::milliseconds(white_time))) {
             // all good
@@ -87,7 +87,7 @@ void arbiter::start_game() {
                 break;
             }
         }
-
+        b.print();
         black_mutexes.time_to_play.unlock();
         if (black_mutexes.has_played.try_lock_for(std::chrono::milliseconds(black_time))) {
             // all good
