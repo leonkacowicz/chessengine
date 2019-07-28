@@ -46,6 +46,7 @@ void arbiter::start_game() {
 
     board b;
     b.set_initial_position();
+    b.print();
     auto last_time_point = std::chrono::system_clock::now();
 
     int i = 0;

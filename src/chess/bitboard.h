@@ -153,12 +153,16 @@ public:
     }
 
     static void initializePositions() {
-        // https://www.chessprogramming.org/BitScan
-        for (int y = 0; y < 8; y++)
-            for (int x = 0; x < 8; x++) {
-                bitboard bitBoard(x, y);
-                squarePositions[(bitBoard.board & -bitBoard.board) % 67] = square(x, y);
-            }
+//        // https://www.chessprogramming.org/BitScan
+//        for (int y = 0; y < 8; y++)
+//            for (int x = 0; x < 8; x++) {
+//                bitboard bitBoard(x, y);
+//                squarePositions[(bitBoard.board & -bitBoard.board) % 67] = square(x, y);
+//            }
+//
+//        for (int i = 0; i < 67; i++) {
+//            std::cout << "\"" << squarePositions[i].to_string() << "\", ";
+//        }
     }
 };
 
