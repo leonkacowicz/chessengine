@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include <functional>
 #include "color.h"
 #include "board.h"
 #include "move.h"
@@ -11,43 +12,71 @@ using std::stringstream;
 using std::cout;
 using std::endl;
 
+bitboard board::range_attacks(const bitboard origin, const std::function<bitboard(bitboard)>& shift, const bitboard in_range) const {
+    bitboard any_piece = piece_of_color[WHITE] | piece_of_color[BLACK];
+    bitboard sq = origin;
+    bitboard attacks = 0;
+    while (in_range[sq]) {
+        sq = shift(sq);
+        attacks |= sq;
+        if (any_piece[sq]) break;
+    }
+    return attacks;
+}
+
+void board::range_moves(const bitboard origin, const std::function<bitboard(bitboard)>& shift, const bitboard in_range, std::vector<move> moves) const {
+    color c = piece_of_color[WHITE][origin] ? WHITE : BLACK;
+    bitboard player_piece = piece_of_color[c];
+    bitboard opponent_piece = piece_of_color[opposite(c)];
+    bitboard any_piece = piece_of_color[WHITE] | piece_of_color[BLACK];
+    bitboard sq = origin;
+    while (in_range[sq]) {
+        sq = shift(sq);
+        if (player_piece[sq]) return; // blocked by own piece
+        if (sq == king_pos[opposite(c)]) return; // found opponent king
+        // simulate move
+        board newboard = *this;
+        newboard.move_piece(origin.get_square(), sq.get_square());
+        if (!newboard.under_check(c)) {
+            moves.emplace_back(origin.get_square(), sq.get_square());
+        }
+    }
+}
+
+bool board::under_check(color c) const {
+
+    // checks if attacked by rook or queen in horizontal or vertical directions
+    bitboard opponent_piece = piece_of_color[opposite(c)];
+    bitboard attacker = (piece_of_type[ROOK] | piece_of_type[QUEEN]) & opponent_piece;
+    bitboard king = king_pos[c];
+    if ((range_attacks(king, [](bitboard b) { return b.shift_up(1); }, ~rank_8) & attacker) != 0) return true;
+    if ((range_attacks(king, [](bitboard b) { return b.shift_down(1); }, ~rank_1) & attacker) != 0) return true;
+    if ((range_attacks(king, [](bitboard b) { return b.shift_left(1); }, ~file_a) & attacker) != 0) return true;
+    if ((range_attacks(king, [](bitboard b) { return b.shift_right(1); }, ~file_h) & attacker) != 0) return true;
+
+    // checks if attacked by bishop or queen in diagonal directions
+    attacker = (piece_of_type[ROOK] | piece_of_type[QUEEN]) & opponent_piece;
+    if ((range_attacks(king, [](bitboard b) { return b.shift_up_left(1); }, ~(rank_8 | file_a)) & attacker) != 0) return true;
+    if ((range_attacks(king, [](bitboard b) { return b.shift_up_right(1); }, ~(rank_8 | file_h)) & attacker) != 0) return true;
+    if ((range_attacks(king, [](bitboard b) { return b.shift_down_left(1); }, ~(rank_1 | file_a)) & attacker) != 0) return true;
+    if ((range_attacks(king, [](bitboard b) { return b.shift_down_right(1); }, ~(rank_1 | file_h)) & attacker) != 0) return true;
+
+    // check if attacked by knight
+    if ((knight_attacks(king) & piece_of_type[KNIGHT] & opponent_piece) != 0) return true;
+
+    // check if attacked by king
+    if ((king_attacks(king)[king_pos[opposite(c)]])) return true;
+
+    // calls pawn_attacks pretending king is pawn, and if it were a pawn, then if it attacks a pawn, it means that it is also attacked by that pawn
+    return pawn_attacks(king, c)[piece_of_type[PAWN] & opponent_piece];
+}
+
 bool board::is_checkmate() const {
     return false;
 }
 
 bool board::is_stalemate() const {
     return !is_checkmate() && get_legal_moves(side_to_play ? BLACK : WHITE).empty();
-}
-
-template<>
-void board::add_possible_moves<PAWN>(bitboard origin, std::vector<move>& moves) const {
-    add_pawn_moves(origin, moves);
-}
-
-template<>
-void board::add_possible_moves<KNIGHT>(bitboard origin, std::vector<move>& moves) const {
-    add_knight_moves(origin, moves);
-}
-
-template<>
-void board::add_possible_moves<BISHOP>(bitboard origin, std::vector<move>& moves) const {
-    add_bishop_moves(origin, moves);
-}
-
-template<>
-void board::add_possible_moves<ROOK>(bitboard origin, std::vector<move>& moves) const {
-    add_rook_moves(origin, moves);
-}
-
-template<>
-void board::add_possible_moves<QUEEN>(bitboard origin, std::vector<move>& moves) const {
-    add_possible_moves<BISHOP>(origin, moves);
-    add_possible_moves<ROOK>(origin, moves);
-}
-
-template<>
-void board::add_possible_moves<KING>(bitboard origin, std::vector<move>& moves) const {
-    add_king_moves(origin, moves);
 }
 
 string board::to_string() const {
@@ -89,321 +118,25 @@ void board::set_initial_position() {
     piece_of_color[WHITE] = 0x000000000000FFFF;
 }
 
-void board::calculate_attacks() {
-    attacks[0] = 0;
-    attacks[1] = 0;
-    for (auto position = bitboard(1); !position.isEmpty(); position <<= 1) {
-        if (position[king_pos[WHITE]] || position[king_pos[BLACK]])
-            calculate_king_attacks(position);
-
-        if (!piece_of_color[WHITE][position] && !piece_of_color[BLACK][position]) continue;
-
-        if (piece_of_type[ROOK][position] || piece_of_type[QUEEN][position])
-            calculate_rook_attacks(position);
-
-        if (piece_of_type[BISHOP][position] || piece_of_type[QUEEN][position])
-            calculate_bishop_attacks(position);
-
-        if (piece_of_type[KNIGHT][position])
-            calculate_knight_attacks(position);
-
-        if (piece_of_type[PAWN][position])
-            calculate_pawn_attacks(position);
-    }
-}
-
 std::vector<move> board::get_legal_moves(color c) const {
     std::vector<move> moves;
 
     for (auto sq = bitboard(1); !sq.isEmpty(); sq <<= 1) {
         if (!piece_of_color[c][sq]) continue;
-        if (king_pos[c] == sq.get_square()) add_possible_moves<KING>(sq, moves);
-        if (piece_of_type[PAWN][sq]) add_possible_moves<PAWN>(sq, moves);
-        if (piece_of_type[KNIGHT][sq]) add_possible_moves<KNIGHT>(sq, moves);
-        if (piece_of_type[BISHOP][sq]) add_possible_moves<BISHOP>(sq, moves);
-        if (piece_of_type[ROOK][sq]) add_possible_moves<ROOK>(sq, moves);
-        if (piece_of_type[QUEEN][sq]) add_possible_moves<QUEEN>(sq, moves);
+        if (king_pos[c] == sq.get_square()) add_king_moves(sq, moves);
+        if (piece_of_type[PAWN][sq]) add_pawn_moves(sq, moves);
+        if (piece_of_type[KNIGHT][sq]) add_knight_moves(sq, moves);
+        if (piece_of_type[BISHOP][sq]) add_bishop_moves(sq, moves);
+        if (piece_of_type[ROOK][sq]) add_rook_moves(sq, moves);
+        if (piece_of_type[QUEEN][sq]) {
+            add_bishop_moves(sq, moves);
+            add_rook_moves(sq, moves);
+        }
+        if (can_castle_king_side[c] || can_castle_queen_side[c]) {
+            add_castle_moves(c, moves);
+        }
     }
-
     return moves;
-}
-
-void board::calculate_king_attacks(const bitboard origin) {
-    color attackerColor = piece_of_color[BLACK][origin] ? BLACK : WHITE;
-
-    if (!rank_8[origin]) {
-        attacks[attackerColor] |= origin.shift_up(1);
-
-        if (!file_a[origin]) {
-            attacks[attackerColor] |= origin.shift_up_left(1);
-        }
-
-        if (!file_h[origin]) {
-            attacks[attackerColor] |= origin.shift_up_right(1);
-        }
-    }
-    if (!rank_1[origin]) {
-        auto south = origin.shift_down(1);
-        attacks[attackerColor] |= south;
-
-        if (!file_a[origin]) {
-            attacks[attackerColor] |= origin.shift_down_left(1);
-        }
-
-        if (!file_h[origin]) {
-            attacks[attackerColor] |= origin.shift_down_right(1);
-        }
-    }
-    if (!file_a[origin]) {
-        attacks[attackerColor] |= origin.shift_left(1);
-    }
-    if (!file_h[origin]) {
-        attacks[attackerColor] |= origin.shift_right(1);
-    }
-}
-
-void board::calculate_bishop_attacks(bitboard origin){
-    color attacker = piece_of_color[BLACK][origin] ? BLACK : WHITE;
-    color opponent = opposite(attacker);
-    auto attacker_piece = piece_of_color[attacker];
-    auto opponent_piece = piece_of_color[opponent];
-    bitboard opponent_king = king_pos[opponent];
-    auto any_piece = attacker_piece | opponent_piece;
-
-    bitboard sq = origin;
-    auto inside_range = ~(rank_8 | file_a);
-    while(inside_range[sq]) {
-        sq = sq.shift_up_left(1);
-        attacks[attacker] |= sq;
-        if (attacker_piece[sq]) break;
-        if (opponent_piece[sq]) {
-            if (pinned[opponent].downright == square::none) {
-                auto sq2 = sq;
-                while(inside_range[sq2]) {
-                    sq2 = sq2.shift_up_left(1);
-                    if (sq2 == opponent_king) {
-                        pinned[opponent].downright = sq.get_square();
-                        break;
-                    } else if (any_piece[sq2]) break;
-                }
-            }
-            break;
-        }
-    }
-
-    sq = origin;
-    inside_range = ~(rank_8 | file_h);
-    while(inside_range[sq]) {
-        sq = sq.shift_up_right(1);
-        attacks[attacker] |= sq;
-        if (attacker_piece[sq]) break;
-        if (opponent_piece[sq]) {
-            if (pinned[opponent].downleft == square::none) {
-                auto sq2 = sq;
-                while(inside_range[sq2]) {
-                    sq2 = sq2.shift_up_right(1);
-                    if (sq2 == opponent_king) {
-                        pinned[opponent].downleft = sq.get_square();
-                        break;
-                    } else if (any_piece[sq2]) break;
-                }
-            }
-            break;
-        }
-    }
-
-    sq = origin;
-    inside_range = ~(rank_1 | file_a);
-    while(inside_range[sq]) {
-        sq = sq.shift_down_left(1);
-        attacks[attacker] |= sq;
-        if (attacker_piece[sq]) break;
-        if (opponent_piece[sq]) {
-            if (pinned[opponent].upright == square::none) {
-                auto sq2 = sq;
-                while(inside_range[sq2]) {
-                    sq2 = sq2.shift_down_left(1);
-                    if (sq2 == opponent_king) {
-                        pinned[opponent].upright = sq.get_square();
-                        break;
-                    } else if (any_piece[sq2]) break;
-                }
-            }
-            break;
-        }
-    }
-
-    sq = origin;
-    inside_range = ~(rank_1 | file_h);
-    while(inside_range[sq]) {
-        sq = sq.shift_down_right(1);
-        attacks[attacker] |= sq;
-        if (attacker_piece[sq]) break;
-        if (opponent_piece[sq]) {
-            if (pinned[opponent].upleft == square::none) {
-                auto sq2 = sq;
-                while(inside_range[sq2]) {
-                    sq2 = sq2.shift_down_right(1);
-                    if (sq2 == opponent_king) {
-                        pinned[opponent].upleft = sq.get_square();
-                        break;
-                    } else if (any_piece[sq2]) break;
-                }
-            }
-            break;
-        }
-    }
-}
-
-void board::calculate_rook_attacks(bitboard origin) {
-    color attacker = piece_of_color[BLACK][origin] ? BLACK : WHITE;
-    color opponent = opposite(attacker);
-    auto attacker_piece = piece_of_color[attacker];
-    auto opponent_piece = piece_of_color[opponent];
-    bitboard opponent_king = king_pos[opponent];
-    auto any_piece = attacker_piece | opponent_piece;
-
-    bitboard sq = origin;
-    auto inside_range = ~rank_8;
-    while (inside_range[sq]) {
-        sq = sq.shift_up(1);
-        attacks[attacker] |= sq;
-        if (attacker_piece[sq]) break;
-        if (opponent_piece[sq]) { // find out if piece is pinned
-            auto sq2 = sq;
-            if (pinned[opponent].down == square::none)
-                while (inside_range[sq2]) {
-                    sq2 = sq2.shift_up(1);
-                    if (sq2 == opponent_king) {
-                        pinned[opponent].down = sq.get_square();
-                        break;
-                    } else if (any_piece[sq2]) {
-                        break;
-                    }
-                }
-            break;
-        }
-    }
-
-    sq = origin;
-    inside_range = ~rank_1;
-    while (inside_range[sq]) {
-        sq = sq.shift_down(1);
-        attacks[attacker] |= sq;
-        if (attacker_piece[sq]) break;
-        if (opponent_piece[sq]) { // find out if piece is pinned
-            auto square2 = sq;
-            if (pinned[opponent].up == square::none)
-                while (inside_range[square2]) {
-                    square2 = square2.shift_down(1);
-                    if (square2 == king_pos[opponent]) {
-                        pinned[opponent].up = sq.get_square();
-                        break;
-                    } else if (piece_of_color[BLACK][square2] || piece_of_color[WHITE][square2]) {
-                        break;
-                    }
-                }
-            break;
-        }
-    }
-
-    sq = origin;
-    inside_range = ~file_a;
-    while (inside_range[sq]) {
-        sq = sq.shift_left(1);
-        attacks[attacker] |= sq;
-        if (piece_of_color[attacker][sq]) break;
-        if (piece_of_color[opponent][sq]) { // find out if piece is pinned
-            auto square2 = sq;
-            if (pinned[opponent].right == square::none)
-                while (inside_range[square2]) {
-                    square2 = square2.shift_left(1);
-                    if (square2 == king_pos[opponent]) {
-                        pinned[opponent].right = sq.get_square();
-                        break;
-                    } else if (piece_of_color[BLACK][square2] || piece_of_color[WHITE][square2]) {
-                        break;
-                    }
-                }
-            break;
-        }
-    }
-
-    sq = origin;
-    inside_range = ~file_h;
-    while (inside_range[sq]) {
-        sq = sq.shift_right(1);
-        attacks[attacker] |= sq;
-        if (piece_of_color[attacker][sq]) break;
-        if (piece_of_color[opponent][sq]) { // find out if piece is pinned
-            auto sq2 = sq;
-            if (pinned[opponent].left == square::none)
-                while (inside_range[sq2]) {
-                    sq2 = sq2.shift_right(1);
-                    if (sq2 == king_pos[opponent]) {
-                        pinned[opponent].left = sq.get_square();
-                        break;
-                    } else if (any_piece[sq2]) {
-                        break;
-                    }
-                }
-            break;
-        }
-    }
-}
-
-void board::calculate_knight_attacks(bitboard origin) {
-    color c = piece_of_color[BLACK][origin] ? BLACK : WHITE;
-
-    if (!file_a[origin] && !rank_8[origin] && !rank_7[origin]) {
-        attacks[c] |= origin.shift_left(1).shift_up(2);
-    }
-
-    if (!file_a[origin] && !rank_1[origin] && !rank_2[origin]) {
-        attacks[c] |= origin.shift_left(1).shift_down(2);
-    }
-
-    if (!file_h[origin] && !rank_8[origin] && !rank_7[origin]) {
-        attacks[c] |= origin.shift_right(1).shift_up(2);
-    }
-
-    if (!file_h[origin] && !rank_1[origin] && !rank_2[origin]) {
-        attacks[c] |= origin.shift_right(1).shift_down(2);
-    }
-
-    if (!file_a[origin] && !file_b[origin] && !rank_8[origin]) {
-        attacks[c] |= origin.shift_left(2).shift_up(1);
-    }
-
-    if (!file_a[origin] && !file_b[origin] && !rank_1[origin]) {
-        attacks[c] |= origin.shift_left(2).shift_down(1);
-    }
-
-    if (!file_h[origin] && !file_g[origin] && !rank_8[origin]) {
-        attacks[c] |= origin.shift_right(2).shift_up(1);
-    }
-
-    if (!file_h[origin] && !file_g[origin] && !rank_1[origin]) {
-        attacks[c] |= origin.shift_right(2).shift_down(1);
-    }
-}
-
-void board::calculate_pawn_attacks(bitboard origin) {
-    color attacker = piece_of_color[BLACK][origin] ? BLACK : WHITE;
-
-    if (!file_a[origin]) {
-        if (attacker == WHITE)
-            attacks[attacker] |= origin.shift_up_left(1);
-        else
-            attacks[attacker] |= origin.shift_down_left(1);
-    }
-
-    if (!file_h[origin]) {
-        if (attacker == WHITE)
-            attacks[attacker] |= origin.shift_up_right(1);
-        else
-            attacks[attacker] |= origin.shift_down_right(1);
-    }
 }
 
 void board::put_piece(piece p, color c, square s) {
@@ -445,152 +178,43 @@ void board::set_king_position(color c, square position) {
     piece_of_type[QUEEN] &= bbi;
 }
 
-bitboard board::get_attacks(color color) const {
-    return attacks[color];
-}
-
 void board::add_rook_moves(bitboard origin, std::vector<move>& moves) const {
-    color attacker = piece_of_color[BLACK][origin] ? BLACK : WHITE;
-    auto origin_sq = origin.get_square();
-    if (pinned[attacker].upleft == origin_sq ||
-        pinned[attacker].upright == origin_sq ||
-        pinned[attacker].downleft == origin_sq ||
-        pinned[attacker].downright == origin_sq)
-        return;
-
-    auto attacker_piece = piece_of_color[attacker];
-    auto opponent_piece = piece_of_color[opposite(attacker)];
-
-
-    bitboard s = origin;
-    if (pinned[attacker].left != origin_sq && pinned[attacker].right != origin_sq) {
-        while (!rank_8[s]) {
-            s = s.shift_up(1);
-            if (attacker_piece[s]) break;
-            moves.emplace_back(origin_sq, s.get_square());
-            if (opponent_piece[s]) break;
-        }
-
-        s = origin;
-        while (!rank_1[s]) {
-            s = s.shift_down(1);
-            if (attacker_piece[s]) break;
-            moves.emplace_back(origin_sq, s.get_square());
-            if (opponent_piece[s]) break;
-        }
-    }
-
-    if (pinned[attacker].up != origin_sq && pinned[attacker].down != origin_sq) {
-        s = origin;
-        while (!file_a[s]) {
-            s = s.shift_left(1);
-            if (attacker_piece[s]) break;
-            moves.emplace_back(origin_sq, s.get_square());
-            if (opponent_piece[s]) break;
-        }
-
-        s = origin;
-        while (!file_h[s]) {
-            s = s.shift_right(1);
-            if (attacker_piece[s]) break;
-            moves.emplace_back(origin_sq, s.get_square());
-            if (opponent_piece[s]) break;
-        }
-    }
-
+    range_moves(origin, [] (bitboard b) { return b.shift_up(1); }, ~rank_8, moves);
+    range_moves(origin, [] (bitboard b) { return b.shift_down(1); }, ~rank_1, moves);
+    range_moves(origin, [] (bitboard b) { return b.shift_left(1); }, ~file_a, moves);
+    range_moves(origin, [] (bitboard b) { return b.shift_right(1); }, ~file_h, moves);
 }
 
 void board::add_bishop_moves(bitboard origin, std::vector<move>& moves) const {
-    color attacker = piece_of_color[BLACK][origin] ? BLACK : WHITE;
-    auto origin_sq = origin.get_square();
-    if (pinned[attacker].up == origin_sq) return; // piece can't move at all
-    if (pinned[attacker].down == origin_sq) return; // piece can't move at all
-    if (pinned[attacker].left == origin_sq) return; // piece can't move at all
-    if (pinned[attacker].right == origin_sq) return; // piece can't move at all
-
-    auto attacker_piece = piece_of_color[attacker];
-    auto opponent_piece = piece_of_color[opposite(attacker)];
-
-    bitboard s = origin;
-
-    if (pinned[attacker].upright != origin_sq && pinned[attacker].downleft != origin_sq) {
-        auto not_in_file_a_rank_8 = ~(file_a | rank_8);
-        while (not_in_file_a_rank_8[s]) {
-            s = s.shift_up_left(1);
-            if (attacker_piece[s]) break;
-            moves.emplace_back(origin_sq, s.get_square());
-            if (opponent_piece[s]) break;
-        }
-        s = origin;
-        auto not_in_file_h_rank_1 = ~(file_h | rank_1);
-        while (not_in_file_h_rank_1[s]) {
-            s = s.shift_down_right(1);
-            if (attacker_piece[s]) break;
-            moves.emplace_back(origin_sq, s.get_square());
-            if (opponent_piece[s]) break;
-        }
-    }
-
-    if (pinned[attacker].upleft != origin_sq && pinned[attacker].downright != origin_sq) {
-        s = origin;
-        auto not_in_file_a_rank_1 = ~(file_a | rank_1);
-        while (not_in_file_a_rank_1[s]) {
-            s = s.shift_down_left(1);
-            if (attacker_piece[s]) break;
-            moves.emplace_back(origin_sq, s.get_square());
-            if (opponent_piece[s]) break;
-        }
-        s = origin;
-        auto not_in_file_h_rank_8 = ~(file_h | rank_8);
-        while (not_in_file_h_rank_8[s]) {
-            s = s.shift_up_right(1);
-            if (attacker_piece[s]) break;
-            moves.emplace_back(origin_sq, s.get_square());
-            if (opponent_piece[s]) break;
-        }
-    }
-
+    range_moves(origin, [] (bitboard b) { return b.shift_up_left(1); }, ~(file_a | rank_8), moves);
+    range_moves(origin, [] (bitboard b) { return b.shift_down_right(1); }, ~(file_h | rank_1), moves);
+    range_moves(origin, [] (bitboard b) { return b.shift_down_left(1); }, ~(file_a | rank_1), moves);
+    range_moves(origin, [] (bitboard b) { return b.shift_up_right(1); }, ~(file_h | rank_8), moves);
 }
 
 void board::add_king_moves(bitboard origin, std::vector<move>& moves) const {
     color c = piece_of_color[BLACK][origin] ? BLACK : WHITE;
-    auto allowed = ~attacks[opposite(c)];
-
     auto origin_square = origin.get_square();
+    bitboard in_range[8];
+    int N = 0;
+
     if (!rank_8[origin]) {
-        auto up = origin.shift_up(1);
-        if (allowed[up]) moves.emplace_back(origin_square, up.get_square());
-        if (!file_a[origin]) {
-            auto upleft = origin.shift_up_left(1);
-            if (allowed[upleft]) moves.emplace_back(origin_square, upleft.get_square());
-        }
-        if (!file_h[origin]) {
-            auto upright = origin.shift_up_right(1);
-            if (allowed[upright]) moves.emplace_back(origin_square, upright.get_square());
-        }
+        in_range[N++] = origin.shift_up(1);
+        if (!file_a[origin]) in_range[N++] = origin.shift_up_left(1);
+        if (!file_h[origin]) in_range[N++] = origin.shift_up_right(1);
     }
-
     if (!rank_1[origin]) {
-        auto down = origin.shift_down(1);
-        if (allowed[down]) moves.emplace_back(origin_square, down.get_square());
-
-        if (!file_a[origin]) {
-            auto downleft = origin.shift_down_left(1);
-            if (allowed[downleft]) moves.emplace_back(origin_square, downleft.get_square());
-        }
-
-        if (!file_h[origin]) {
-            auto downright = origin.shift_down_right(1);
-            if (allowed[downright]) moves.emplace_back(origin_square, downright.get_square());
-        }
+        in_range[N++] = origin.shift_down(1);
+        if (!file_a[origin]) in_range[N++] = origin.shift_down_left(1);
+        if (!file_h[origin]) in_range[N++] = origin.shift_down_right(1);
     }
-    if (!file_a[origin]) {
-        auto left = origin.shift_left(1);
-        if (allowed[left]) moves.emplace_back(origin_square, left.get_square());
-    }
-    if (!file_h[origin]) {
-        auto right = origin.shift_right(1);
-        if (allowed[right]) moves.emplace_back(origin_square, right.get_square());
+    if (!file_a[origin]) in_range[N++] = origin.shift_left(1);
+    if (!file_h[origin]) in_range[N++] = origin.shift_right(1);
+
+    board simulated = *this;
+    for (int i = 0; i < N; i++, simulated = *this) {
+        simulated.set_king_position(c, in_range[i].get_square());
+        if (!simulated.under_check(c)) moves.emplace_back(origin_square, in_range[i].get_square());
     }
 }
 
@@ -623,15 +247,233 @@ board::board(const std::string& fen) {
 }
 
 void board::add_pawn_moves(bitboard origin, std::vector<move>& moves) const {
-    color attacker = piece_of_color[BLACK][origin] ? BLACK : WHITE;
-
+    const color attacker = piece_of_color[BLACK][origin] ? BLACK : WHITE;
+    const bitboard opponent_piece = piece_of_color[opposite(attacker)];
     // add normal moves, captures, en passant, and promotions
+    const bitboard fwd = attacker == WHITE ? origin.shift_up(1) : origin.shift_down(1);
+    const bool promotion = (rank_1 | rank_8)[fwd];
+    const square origin_sq = origin.get_square();
+
+    if ((~(piece_of_color[WHITE] | piece_of_color[BLACK]))[fwd]) {
+        const square dest = fwd.get_square();
+        if (promotion) {
+            moves.emplace_back(origin_sq, dest, special_move::PROMOTION_QUEEN);
+            moves.emplace_back(origin_sq, dest, special_move::PROMOTION_ROOK);
+            moves.emplace_back(origin_sq, dest, special_move::PROMOTION_BISHOP);
+            moves.emplace_back(origin_sq, dest, special_move::PROMOTION_KNIGHT);
+        } else {
+            moves.emplace_back(origin_sq, dest);
+        }
+    }
+
+    if (!file_a[origin]) {
+        const bitboard cap = fwd.shift_left(1);
+        if (opponent_piece[cap] || cap == en_passant) {
+            const square dest = cap.get_square();
+            if (promotion) {
+                moves.emplace_back(origin_sq, dest, special_move::PROMOTION_QUEEN);
+                moves.emplace_back(origin_sq, dest, special_move::PROMOTION_ROOK);
+                moves.emplace_back(origin_sq, dest, special_move::PROMOTION_BISHOP);
+                moves.emplace_back(origin_sq, dest, special_move::PROMOTION_KNIGHT);
+            } else {
+                moves.emplace_back(origin_sq, dest);
+            }
+        }
+    }
+
+    if (!file_h[origin]) {
+        const bitboard cap = fwd.shift_right(1);
+        if (opponent_piece[cap] || cap == en_passant) {
+            const square dest = cap.get_square();
+            if (promotion) {
+                moves.emplace_back(origin_sq, dest, special_move::PROMOTION_QUEEN);
+                moves.emplace_back(origin_sq, dest, special_move::PROMOTION_ROOK);
+                moves.emplace_back(origin_sq, dest, special_move::PROMOTION_BISHOP);
+                moves.emplace_back(origin_sq, dest, special_move::PROMOTION_KNIGHT);
+            } else {
+                moves.emplace_back(origin_sq, dest);
+            }
+        }
+    }
 }
 
 void board::add_knight_moves(bitboard origin, std::vector<move>& moves) const {
-    // to-do
+    color c = piece_of_color[BLACK][origin] ? BLACK : WHITE;
+    auto origin_square = origin.get_square();
+    bitboard in_range[8];
+    int N = 0;
+
+    if (!file_a[origin] && !rank_8[origin] && !rank_7[origin]) in_range[N++] = origin.shift_left(1).shift_up(2);
+    if (!file_a[origin] && !rank_8[origin] && !file_b[origin]) in_range[N++] = origin.shift_left(2).shift_up(1);
+    if (!file_a[origin] && !rank_1[origin] && !rank_2[origin]) in_range[N++] = origin.shift_left(1).shift_down(2);
+    if (!file_a[origin] && !rank_1[origin] && !file_b[origin]) in_range[N++] = origin.shift_left(2).shift_down(1);
+    if (!file_h[origin] && !rank_8[origin] && !rank_7[origin]) in_range[N++] = origin.shift_right(1).shift_up(2);
+    if (!file_h[origin] && !rank_8[origin] && !file_g[origin]) in_range[N++] = origin.shift_right(2).shift_up(1);
+    if (!file_h[origin] && !rank_1[origin] && !rank_2[origin]) in_range[N++] = origin.shift_right(1).shift_down(2);
+    if (!file_h[origin] && !rank_1[origin] && !file_g[origin]) in_range[N++] = origin.shift_right(2).shift_down(1);
+
+    board simulated = *this;
+    for (int i = 0; i < N; i++, simulated = *this) {
+        simulated.set_king_position(c, in_range[i].get_square());
+        if (!simulated.under_check(c)) moves.emplace_back(origin_square, in_range[i].get_square());
+    }
 }
 
-void board::add_castle_moves(std::vector<move>& moves) const {
-    // to-do
+/**
+ * Does not support Chess960 yet!!!
+ * @param c
+ * @param moves
+ */
+void board::add_castle_moves(color c, std::vector<move> &moves) const {
+    const bitboard anypiece = piece_of_color[WHITE] | piece_of_color[BLACK];
+    if (under_check(c)) return;
+    const bitboard king = bitboard(king_pos[c]);
+    board simulated = *this;
+    if (can_castle_king_side[c]) {
+        if (!(anypiece[king.shift_right(1)] || anypiece[king.shift_right(2)])) {
+            simulated.set_king_position(c, king.shift_right(1).get_square());
+            if (!simulated.under_check(c)) {
+                simulated.set_king_position(c, king.shift_right(2).get_square());
+                if (!simulated.under_check(c)) {
+                    const square dest = square(6, 1);
+                    const special_move castle_king_side = c == WHITE ? CASTLE_KING_SIDE_WHITE : CASTLE_KING_SIDE_BLACK;
+                    moves.emplace_back(king_pos[c], dest, castle_king_side);
+                }
+            }
+        }
+    }
+    if (can_castle_queen_side[c]) {
+        if (!(anypiece[king.shift_left(1)] || anypiece[king.shift_left(2)])) {
+            simulated.set_king_position(c, king.shift_left(1).get_square());
+            if (!simulated.under_check(c)) {
+                simulated.set_king_position(c, king.shift_left(2).get_square());
+                if (!simulated.under_check(c)) {
+                    const square dest = square(2, 1);
+                    special_move castle_queen_side = c == WHITE ? CASTLE_QUEEN_SIDE_WHITE : CASTLE_QUEEN_SIDE_BLACK;
+                    moves.emplace_back(king_pos[c], dest, castle_queen_side);
+                }
+            }
+        }
+    }
 }
+
+bitboard board::knight_attacks(const bitboard origin) const {
+
+    bitboard attacks;
+
+    if (!file_a[origin] && !rank_8[origin] && !rank_7[origin]) {
+        attacks |= origin.shift_left(1).shift_up(2);
+    }
+
+    if (!file_a[origin] && !rank_1[origin] && !rank_2[origin]) {
+        attacks |= origin.shift_left(1).shift_down(2);
+    }
+
+    if (!file_h[origin] && !rank_8[origin] && !rank_7[origin]) {
+        attacks |= origin.shift_right(1).shift_up(2);
+    }
+
+    if (!file_h[origin] && !rank_1[origin] && !rank_2[origin]) {
+        attacks |= origin.shift_right(1).shift_down(2);
+    }
+
+    if (!file_a[origin] && !file_b[origin] && !rank_8[origin]) {
+        attacks |= origin.shift_left(2).shift_up(1);
+    }
+
+    if (!file_a[origin] && !file_b[origin] && !rank_1[origin]) {
+        attacks |= origin.shift_left(2).shift_down(1);
+    }
+
+    if (!file_h[origin] && !file_g[origin] && !rank_8[origin]) {
+        attacks |= origin.shift_right(2).shift_up(1);
+    }
+
+    if (!file_h[origin] && !file_g[origin] && !rank_1[origin]) {
+        attacks |= origin.shift_right(2).shift_down(1);
+    }
+
+    return attacks;
+}
+
+bitboard board::king_attacks(const bitboard origin) const {
+    bitboard attacks;
+    if (!rank_8[origin]) {
+        attacks |= origin.shift_up(1);
+
+        if (!file_a[origin]) {
+            attacks |= origin.shift_up_left(1);
+        }
+
+        if (!file_h[origin]) {
+            attacks |= origin.shift_up_right(1);
+        }
+    }
+    if (!rank_1[origin]) {
+        auto south = origin.shift_down(1);
+        attacks |= south;
+
+        if (!file_a[origin]) {
+            attacks |= origin.shift_down_left(1);
+        }
+
+        if (!file_h[origin]) {
+            attacks |= origin.shift_down_right(1);
+        }
+    }
+    if (!file_a[origin]) {
+        attacks |= origin.shift_left(1);
+    }
+    if (!file_h[origin]) {
+        attacks |= origin.shift_right(1);
+    }
+    
+    return attacks;
+}
+
+/**
+ * Assumes pawn cannot be in promotion rank. Does not account for en passant.
+ */
+bitboard board::pawn_attacks(const bitboard origin, const color attacker) const {
+    bitboard attacks;
+    if (attacker == WHITE) {
+        if (!file_a[origin]) {
+            attacks |= origin.shift_up_left(1);
+        }
+        if (!file_h[origin]) {
+            attacks |= origin.shift_up_right(1);
+        }
+    } else {
+        if (!file_a[origin]) {
+            attacks |= origin.shift_down_left(1);
+        }
+        if (!file_h[origin]) {
+            attacks |= origin.shift_down_right(1);
+        }
+    }
+    return attacks;
+}
+
+void board::move_piece(square from, square to) {
+    if (king_pos[WHITE] == from) {
+        set_king_position(WHITE, to);
+        return;
+    }
+
+    if (king_pos[BLACK] == from) {
+        set_king_position(BLACK, to);
+        return;
+    }
+
+    bitboard ns = ~(bitboard(from));
+    piece p = piece_of_type[PAWN][from] ? PAWN :
+            piece_of_type[KNIGHT][from] ? KNIGHT :
+            piece_of_type[BISHOP][from] ? BISHOP :
+            piece_of_type[ROOK][from] ? ROOK : QUEEN;
+
+    color c = piece_of_color[WHITE][from] ? WHITE : BLACK;
+    piece_of_type[p] &= ns;
+    piece_of_color[c] &= ns;
+    put_piece(p, c, to);
+}
+

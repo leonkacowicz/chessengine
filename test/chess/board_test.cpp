@@ -10,30 +10,6 @@ TEST(board_test, Board_with_only_kings_is_not_checkmate) {
     ASSERT_FALSE(board.is_checkmate());
 }
 
-TEST(board_test, King_Attacks) {
-    board board;
-    board.calculate_attacks();
-
-    bitboard expected_white_attacks{"d1", "d2", "e2", "f2", "f1"};
-    ASSERT_EQ(expected_white_attacks, board.get_attacks(WHITE));
-
-    bitboard expected_black_attacks{"d8", "d7", "e7", "f7", "f8"};
-    ASSERT_EQ(expected_black_attacks, board.get_attacks(BLACK));
-}
-
-TEST(board_test, Rook_attacks) {
-    board board;
-    board.put_piece(ROOK, WHITE, "c4");
-    board.calculate_attacks();
-    bitboard expected_white_attacks{"d1", "d2", "e2", "f2", "f1"};
-    expected_white_attacks |= (file_c | rank_4) & ~bitboard("c4");
-    ASSERT_EQ(expected_white_attacks, board.get_attacks(WHITE));
-
-    bitboard expected_black_attacks{"d8", "d7", "e7", "f7", "f8"};
-    ASSERT_EQ(expected_black_attacks, board.get_attacks(BLACK));
-}
-
-
 TEST(board_test, legal_moves_king_cannot_move_into_check) {
     board board;
 
@@ -59,8 +35,6 @@ TEST(board_test, rook_pinned_by_rook_from_above) {
     b.set_king_position(BLACK, "e8");
     b.put_piece(ROOK, WHITE, "e2");
     b.put_piece(ROOK, BLACK, "e7");
-
-    b.calculate_attacks();
 
     const std::vector<move>& moves = b.get_legal_moves(WHITE);
 
