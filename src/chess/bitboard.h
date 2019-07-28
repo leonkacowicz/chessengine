@@ -69,6 +69,14 @@ public:
         return board == rhs.board;
     }
 
+    bool operator!=(const U64 rhs) const {
+        return board != rhs;
+    }
+
+    bool operator!=(const bitboard rhs) const {
+        return board != rhs.board;
+    }
+
     bitboard operator<<(const int rhs) const {
         return {board << rhs};
     }
