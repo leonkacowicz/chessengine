@@ -30,7 +30,7 @@ public:
         return destination == rhs.destination && origin == rhs.origin && special == rhs.special;
     }
 
-    std::string to_long_move() {
+    std::string to_long_move() const {
         std::stringstream ss;
         ss << origin.to_string() << destination.to_string();
         if (special == PROMOTION_QUEEN) ss << 'q';

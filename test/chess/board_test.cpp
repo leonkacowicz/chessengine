@@ -8,7 +8,8 @@
 void list_moves(const std::vector<move>& moves) {
     std::cout << "Moves found:" << std::endl;
     for (auto& move: moves) {
-        std::cout << move.origin.to_string() << move.destination.to_string() << std::endl;
+        std::cout << move.to_long_move() << std::endl;
+//        std::cout << move.origin.to_string() << move.destination.to_string() << std::endl;
     }
 }
 
@@ -271,6 +272,37 @@ TEST(legal_moves_king, king_wont_move_into_check) {
     }
 }
 
+TEST(legal_moves_knight, knight_at_b8) {
+    for (color c : {WHITE, BLACK}) {
+        board b;
+        auto pos = "b8";
+        b.put_piece(KNIGHT, c, pos);
+
+        auto moves = b.get_legal_moves(c);
+        list_moves(moves);
+        ASSERT_CONTAINS(moves, move(pos, "a6"));
+        ASSERT_CONTAINS(moves, move(pos, "c6"));
+        ASSERT_CONTAINS(moves, move(pos, "d7"));
+        ASSERT_EQ(moves.size(), 3);
+    }
+}
+
+TEST(legal_moves_knight, knight_at_b8_with_d7_obstructed) {
+    for (color c : {WHITE, BLACK}) {
+        board b;
+        auto pos = "b8";
+        b.put_piece(KNIGHT, c, pos);
+        b.put_piece(PAWN, c, "d7");
+
+        auto moves = b.get_legal_moves(c);
+        list_moves(moves);
+        ASSERT_CONTAINS(moves, move(pos, "a6"));
+        ASSERT_CONTAINS(moves, move(pos, "c6"));
+        ASSERT_NOT_CONTAINS(moves, move(pos, "d7"));
+        ASSERT_EQ(moves.size(), 4 + 2 * (c == WHITE));
+    }
+}
+
 TEST(board_test, rook_pinned_by_rook_from_above) {
     for (color c : {WHITE, BLACK}) {
         board b;
@@ -306,6 +338,65 @@ TEST(board_test, rook_pinned_by_rook_from_above) {
     }
 }
 
+TEST(legal_moves, at_initial_position) {
+
+    board b;
+    b.set_initial_position();
+
+    auto moves = b.get_legal_moves(WHITE);
+
+    list_moves(moves);
+    ASSERT_CONTAINS(moves, move("a2", "a3"));
+    ASSERT_CONTAINS(moves, move("b2", "b3"));
+    ASSERT_CONTAINS(moves, move("c2", "c3"));
+    ASSERT_CONTAINS(moves, move("d2", "d3"));
+    ASSERT_CONTAINS(moves, move("e2", "e3"));
+    ASSERT_CONTAINS(moves, move("f2", "f3"));
+    ASSERT_CONTAINS(moves, move("g2", "g3"));
+    ASSERT_CONTAINS(moves, move("h2", "h3"));
+
+    ASSERT_CONTAINS(moves, move("a2", "a4"));
+    ASSERT_CONTAINS(moves, move("b2", "b4"));
+    ASSERT_CONTAINS(moves, move("c2", "c4"));
+    ASSERT_CONTAINS(moves, move("d2", "d4"));
+    ASSERT_CONTAINS(moves, move("e2", "e4"));
+    ASSERT_CONTAINS(moves, move("f2", "f4"));
+    ASSERT_CONTAINS(moves, move("g2", "g4"));
+    ASSERT_CONTAINS(moves, move("h2", "h4"));
+
+    ASSERT_CONTAINS(moves, move("b1", "a3"));
+    ASSERT_CONTAINS(moves, move("b1", "c3"));
+    ASSERT_CONTAINS(moves, move("g1", "f3"));
+    ASSERT_CONTAINS(moves, move("g1", "h3"));
+
+    b.make_move(move("e2", "e4"));
+
+    moves = b.get_legal_moves(BLACK);
+
+    list_moves(moves);
+    ASSERT_CONTAINS(moves, move("a7", "a6"));
+    ASSERT_CONTAINS(moves, move("b7", "b6"));
+    ASSERT_CONTAINS(moves, move("c7", "c6"));
+    ASSERT_CONTAINS(moves, move("d7", "d6"));
+    ASSERT_CONTAINS(moves, move("e7", "e6"));
+    ASSERT_CONTAINS(moves, move("f7", "f6"));
+    ASSERT_CONTAINS(moves, move("g7", "g6"));
+    ASSERT_CONTAINS(moves, move("h7", "h6"));
+
+    ASSERT_CONTAINS(moves, move("a7", "a5"));
+    ASSERT_CONTAINS(moves, move("b7", "b5"));
+    ASSERT_CONTAINS(moves, move("c7", "c5"));
+    ASSERT_CONTAINS(moves, move("d7", "d5"));
+    ASSERT_CONTAINS(moves, move("e7", "e5"));
+    ASSERT_CONTAINS(moves, move("f7", "f5"));
+    ASSERT_CONTAINS(moves, move("g7", "g5"));
+    ASSERT_CONTAINS(moves, move("h7", "h5"));
+
+    ASSERT_CONTAINS(moves, move("b8", "a6"));
+    ASSERT_CONTAINS(moves, move("b8", "c6"));
+    ASSERT_CONTAINS(moves, move("g8", "f6"));
+    ASSERT_CONTAINS(moves, move("g8", "h6"));
+}
 //TEST(board_test, rook_pinned_by_rook) {
 //    std::random_device rd;  //Will be used to obtain a seed for the random number engine
 //    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()

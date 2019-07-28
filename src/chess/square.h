@@ -13,11 +13,11 @@ public:
     square(const std::string& position) : square(position[0] - 'a', position[1] - '1') {}
     square(const char* position) : square(position[0] - 'a', position[1] - '1') {}
     constexpr unsigned int get_file() const {
-        return coords & 0xFu;
+        return coords & 0x7u;
     }
 
     constexpr unsigned int get_rank() const {
-        return (unsigned)(coords >> 4u) & 0xFu;
+        return (unsigned)(coords >> 4u) & 0x7u;
     }
 
     bool operator==(square rhs) const {

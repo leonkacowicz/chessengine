@@ -108,18 +108,37 @@ void board::print() const {
 }
 
 void board::set_initial_position() {
-    piece_of_type[ROOK] = 0x8100000000000081;
-    piece_of_type[KNIGHT] = 0x4200000000000042;
-    piece_of_type[BISHOP] = 0x2400000000000024;
-    piece_of_type[QUEEN] = 0x1000000000000010;
-    piece_of_type[PAWN] = 0x00FF00000000FF00;
-    piece_of_color[BLACK] = 0xFFFF000000000000;
-    piece_of_color[WHITE] = 0x000000000000FFFF;
+
+    put_piece(ROOK, WHITE, "a1");
+    put_piece(ROOK, WHITE, "h1");
+    put_piece(ROOK, BLACK, "a8");
+    put_piece(ROOK, BLACK, "h8");
+
+    put_piece(KNIGHT, WHITE, "b1");
+    put_piece(KNIGHT, WHITE, "g1");
+    put_piece(KNIGHT, BLACK, "b8");
+    put_piece(KNIGHT, BLACK, "g8");
+
+    put_piece(BISHOP, WHITE, "c1");
+    put_piece(BISHOP, WHITE, "f1");
+    put_piece(BISHOP, BLACK, "c8");
+    put_piece(BISHOP, BLACK, "f8");
+
+    put_piece(QUEEN, WHITE, "d1");
+    put_piece(QUEEN, BLACK, "d8");
+
+    set_king_position(WHITE, "e1");
+    set_king_position(WHITE, "e8");
+
+    for (int file = 0; file < 8; file++) {
+        put_piece(PAWN, WHITE, square(file, 1));
+        put_piece(PAWN, BLACK, square(file, 6));
+    }
     can_castle_king_side[0] = true;
     can_castle_king_side[1] = true;
     can_castle_queen_side[0] = true;
     can_castle_queen_side[1] = true;
-
+    side_to_play = WHITE;
 }
 
 std::vector<move> board::get_legal_moves(color c) const {
@@ -246,7 +265,7 @@ board::board(const std::string& fen) {
     std::string full_move_counter;
     getline(ss, full_move_counter, ' ');
 
-    side_to_play = side_to_move == "b";
+    side_to_play = side_to_move == "b" ? BLACK : WHITE;
 }
 
 void board::add_pawn_moves(bitboard origin, std::vector<move>& moves) const {
@@ -266,6 +285,11 @@ void board::add_pawn_moves(bitboard origin, std::vector<move>& moves) const {
             moves.emplace_back(origin_sq, dest, special_move::PROMOTION_KNIGHT);
         } else {
             moves.emplace_back(origin_sq, dest);
+            if (attacker == WHITE && rank_2[origin]) {
+                moves.emplace_back(origin_sq, fwd.shift_up(1).get_square());
+            } else if (attacker == BLACK && rank_7[origin]) {
+                moves.emplace_back(origin_sq, fwd.shift_down(1).get_square());
+            }
         }
     }
 
@@ -317,6 +341,7 @@ void board::add_knight_moves(bitboard origin, std::vector<move>& moves) const {
 
     board simulated = *this;
     for (int i = 0; i < N; i++, simulated = *this) {
+        if ((in_range[i] & piece_of_color[c]) != 0) continue;
         simulated.set_king_position(c, in_range[i].get_square());
         if (!simulated.under_check(c)) moves.emplace_back(origin_square, in_range[i].get_square());
     }
@@ -479,43 +504,60 @@ void board::move_piece(square from, square to) {
 void board::make_move(const move m) {
     piece p = piece_at(m.origin);
     color c = color_at(m.origin);
-    if (p == KING) {
-        set_king_position(c, m.destination);
-        return;
-    } else {
-        bitboard bbi = ~(bitboard(m.origin));
-        piece_of_color[c] &= bbi;
-        piece_of_type[p] &= bbi;
+    en_passant = square::none;
 
-        if (m.special == 0) {
-            put_piece(p, c, m.destination);
-            if (p == PAWN && m.destination == en_passant) {
+    bitboard bbi = ~(bitboard(m.origin));
+    piece_of_color[c] &= bbi;
+    piece_of_type[p] &= bbi;
+
+    if (m.special == 0) {
+        move_piece(m.origin, m.destination);
+        if (p == PAWN) {
+            if (m.destination == en_passant) {
                 bbi = ~(bitboard(square(m.destination.get_file(), m.origin.get_rank())));
                 piece_of_color[opposite(c)] &= bbi;
                 piece_of_type[PAWN] &= bbi;
             }
-        } else if (m.special == special_move::CASTLE_KING_SIDE_WHITE) {
-            move_piece("e1", "g1");
-            move_piece("h1", "f1");
-        } else if (m.special == special_move::CASTLE_KING_SIDE_BLACK) {
-            move_piece("e8", "g8");
-            move_piece("h8", "f8");
-        } else if (m.special == special_move::CASTLE_QUEEN_SIDE_WHITE) {
-            move_piece("e1", "c1");
-            move_piece("a1", "d1");
-        } else if (m.special == special_move::CASTLE_QUEEN_SIDE_BLACK) {
-            move_piece("e8", "c8");
-            move_piece("a8", "d8");
-        } else if (m.special == special_move::PROMOTION_QUEEN) {
-            put_piece(QUEEN, c, m.destination);
-        } else if (m.special == special_move::PROMOTION_KNIGHT) {
-            put_piece(KNIGHT, c, m.destination);
-        } else if (m.special == special_move::PROMOTION_ROOK) {
-            put_piece(ROOK, c, m.destination);
-        } else if (m.special == special_move::PROMOTION_BISHOP) {
-            put_piece(BISHOP, c, m.destination);
+            if (m.destination.get_rank() - m.origin.get_rank() == 2) {
+                en_passant = square(m.origin.get_file(), m.origin.get_rank() + 1);
+            } else if (m.origin.get_rank() - m.destination.get_rank() == 2) {
+                en_passant = square(m.origin.get_file(), m.origin.get_rank() - 1);
+            }
         }
+        if (p == KING) {
+            can_castle_king_side[c] = false;
+            can_castle_queen_side[c] = false;
+        }
+    } else if (m.special == special_move::CASTLE_KING_SIDE_WHITE) {
+        can_castle_king_side[c] = false;
+        can_castle_queen_side[c] = false;
+        move_piece("e1", "g1");
+        move_piece("h1", "f1");
+    } else if (m.special == special_move::CASTLE_KING_SIDE_BLACK) {
+        can_castle_king_side[c] = false;
+        can_castle_queen_side[c] = false;
+        move_piece("e8", "g8");
+        move_piece("h8", "f8");
+    } else if (m.special == special_move::CASTLE_QUEEN_SIDE_WHITE) {
+        can_castle_king_side[c] = false;
+        can_castle_queen_side[c] = false;
+        move_piece("e1", "c1");
+        move_piece("a1", "d1");
+    } else if (m.special == special_move::CASTLE_QUEEN_SIDE_BLACK) {
+        can_castle_king_side[c] = false;
+        can_castle_queen_side[c] = false;
+        move_piece("e8", "c8");
+        move_piece("a8", "d8");
+    } else if (m.special == special_move::PROMOTION_QUEEN) {
+        put_piece(QUEEN, c, m.destination);
+    } else if (m.special == special_move::PROMOTION_KNIGHT) {
+        put_piece(KNIGHT, c, m.destination);
+    } else if (m.special == special_move::PROMOTION_ROOK) {
+        put_piece(ROOK, c, m.destination);
+    } else if (m.special == special_move::PROMOTION_BISHOP) {
+        put_piece(BISHOP, c, m.destination);
     }
+    side_to_play = opposite(side_to_play);
 }
 
 piece board::piece_at(bitboard p) const {

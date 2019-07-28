@@ -45,6 +45,7 @@ void arbiter::start_game() {
     black_mutexes.has_played.lock();
 
     board b;
+    b.set_initial_position();
     auto last_time_point = std::chrono::system_clock::now();
 
     int i = 0;
@@ -69,19 +70,22 @@ void arbiter::start_game() {
         }
 
         std::cout << "White moves " << moves.back() << std::endl;
-//        const std::vector<move> legal_moves = b.get_legal_moves(WHITE);
-//        bool found = false;
-//        for (auto m : legal_moves) {
-//            if (m.to_long_move() == moves.back()) {
-//                b.make_move(m);
-//                found = true;
-//                break;
-//            }
-//        }
-//        if (!found) {
-//            std::cout << "Move " << moves.back() << " not found in list of legal moves!!";
-//            break;
-//        }
+        {
+            const std::vector<move> legal_moves = b.get_legal_moves(WHITE);
+            bool found = false;
+            for (auto m : legal_moves) {
+                if (m.to_long_move() == moves.back()) {
+                    b.make_move(m);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                std::cout << "Move " << moves.back() << " not found in list of legal moves!!" << std::endl;
+                for (auto m : legal_moves) std::cout << m.to_long_move() << std::endl;
+                break;
+            }
+        }
 
         black_mutexes.time_to_play.unlock();
         if (black_mutexes.has_played.try_lock_for(std::chrono::milliseconds(black_time))) {
@@ -98,6 +102,23 @@ void arbiter::start_game() {
             black_time -= move_duration;
             last_time_point = last_move_time;
             std::cout << "Black took " << move_duration.count() << " and now has " << black_time.count() << std::endl;
+        }
+        std::cout << "Black moves " << moves.back() << std::endl;
+        {
+            const std::vector<move> legal_moves = b.get_legal_moves(BLACK);
+            bool found = false;
+            for (auto m : legal_moves) {
+                if (m.to_long_move() == moves.back()) {
+                    b.make_move(m);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                std::cout << "Move " << moves.back() << " not found in list of legal moves!!" << std::endl;
+                for (auto m : legal_moves) std::cout << m.to_long_move() << std::endl;
+                break;
+            }
         }
 
     }

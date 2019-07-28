@@ -21,7 +21,8 @@ public:
         std::string line;
         do {
             getline(out, line);
-            std::cout << "[DEBUG] [WHITE] " << line << std::endl;
+            if (!line.empty())
+                std::cout << "[DEBUG] [WHITE] " << line << std::endl;
         } while (line != "uciok");
     }
 
