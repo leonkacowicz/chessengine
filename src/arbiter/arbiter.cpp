@@ -52,7 +52,6 @@ void arbiter::start_game() {
     board b;
     b.set_initial_position();
 
-    auto time_before_move = std::chrono::system_clock::now();
     int i = 0;
     while(true) {
         std::cout << ++i << std::endl;
@@ -62,6 +61,7 @@ void arbiter::start_game() {
         color side_color  = b.side_to_play;
         std::string side(b.side_to_play == WHITE ? "White" : "Black");
 
+        auto time_before_move = std::chrono::system_clock::now();
         current.time_to_play.unlock();
         if (current.has_played.try_lock_for(std::chrono::milliseconds(current_time))) {
             // all good
@@ -74,9 +74,13 @@ void arbiter::start_game() {
         if (i > 2) {
             auto move_duration = std::chrono::duration_cast<std::chrono::milliseconds>(time_after_move - time_before_move);
             current_time -= move_duration;
-            std::cout << side << " took " << move_duration.count() << " and now has " << current_time.count() << std::endl;
+            std::cout << side << " took " << move_duration.count()
+                << "ms. White time: " << std::chrono::duration_cast<std::chrono::seconds>(white_time).count() / 60
+                << ":" << std::chrono::duration_cast<std::chrono::seconds>(white_time).count() % 60
+                << "; Black time: " << std::chrono::duration_cast<std::chrono::seconds>(black_time).count() / 60
+                << ":" << std::chrono::duration_cast<std::chrono::seconds>(black_time).count() % 60
+                << std::endl;
         }
-        time_before_move = time_after_move;
 
         std::cout << side << " moves " << moves.back() << std::endl;
         {
@@ -116,7 +120,7 @@ void arbiter::player_loop(player& p, mutexes &m) {
         //std::cout << "Waiting for player " << p.player_color << " turn" << std::endl;
         m.time_to_play.lock();
         if (game_finished) {
-            std::cout << "Game finished while player " << p.player_color << " waited to play" << std::endl;
+            //std::cout << "Game finished while player " << p.player_color << " waited to play" << std::endl;
             break;
         }
         //std::cout << "Time for player " << p.player_color << " to play" << std::endl;
