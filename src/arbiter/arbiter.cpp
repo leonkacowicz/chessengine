@@ -49,6 +49,7 @@ void arbiter::start_game() {
     white_mutexes.has_played.lock();
     black_mutexes.has_played.lock();
 
+    std::vector<std::string> pgn_moves;
     board b;
     b.set_initial_position();
 
@@ -74,6 +75,7 @@ void arbiter::start_game() {
         if (i > 2) {
             auto move_duration = std::chrono::duration_cast<std::chrono::milliseconds>(time_after_move - time_before_move);
             current_time -= move_duration;
+            current_time += increment;
             std::cout << side << " took " << move_duration.count()
                 << "ms. White time: " << std::chrono::duration_cast<std::chrono::seconds>(white_time).count() / 60
                 << ":" << std::chrono::duration_cast<std::chrono::seconds>(white_time).count() % 60
@@ -82,11 +84,12 @@ void arbiter::start_game() {
                 << std::endl;
         }
 
-        std::cout << side << " moves " << moves.back() << std::endl;
+
         {
             const std::vector<move> legal_moves = b.get_legal_moves(side_color);
             auto move_found = std::find_if(legal_moves.begin(), legal_moves.end(), equals(moves.back()));
             if (move_found != legal_moves.end()) {
+                pgn_moves.push_back(b.move_in_pgn(*move_found, legal_moves));
                 b.make_move(*move_found);
             } else {
                 std::cout << "Move " << moves.back() << " not found in list of legal moves!!" << std::endl;
@@ -97,6 +100,7 @@ void arbiter::start_game() {
                 break;
             }
         }
+        std::cout << side << " moves " << moves.back() << " / " << pgn_moves.back() << std::endl;
     }
     game_finished = true;
     white_mutexes.time_to_play.unlock();
@@ -105,7 +109,7 @@ void arbiter::start_game() {
     black_thread.join();
 
     int k = 0;
-    for (auto move = begin(moves); move != end(moves); move++) {
+    for (auto move = begin(pgn_moves); move != end(pgn_moves); move++) {
         if (k % 2 == 0) std::cout << std::endl << k/2 + 1 << ". ";
         std::cout << *move << " ";
         k++;

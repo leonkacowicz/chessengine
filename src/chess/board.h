@@ -56,6 +56,8 @@ public:
     void make_move(const move m);
 
     board simulate(const square from, const square to) const;
+
+    std::string move_in_pgn(const move m, const std::vector<move>& legal_moves) const;
 };
 
 #endif //CHESSENGINE_BOARD_H

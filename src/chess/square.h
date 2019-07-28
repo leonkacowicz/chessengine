@@ -28,10 +28,16 @@ public:
         return coords != rhs.coords;
     }
 
+    constexpr char get_file_char() const {
+        return static_cast<char>('a' + get_file());
+    }
+
+    constexpr char get_rank_char() const {
+        return static_cast<char>('1' + get_rank());
+    }
+
     std::string to_string() const {
-        char file = static_cast<char>('a' + get_file());
-        char rank = static_cast<char>('1' + get_rank());
-        return std::string({file, rank});
+        return std::string({get_file_char(), get_rank_char()});
     }
 
     static const square none;

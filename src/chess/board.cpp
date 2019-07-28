@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 #include <functional>
+#include <algorithm>
 #include "color.h"
 #include "board.h"
 #include "move.h"
@@ -583,5 +584,52 @@ piece board::piece_at(bitboard p) const {
 
 color board::color_at(bitboard p) const {
     return piece_of_color[BLACK][p] ? BLACK : WHITE;
+}
+
+std::string board::move_in_pgn(const move m, const std::vector<move>& legal_moves) const {
+
+    color c = color_at(m.origin);
+    piece p = piece_at(m.origin);
+    stringstream ss;
+    ss << (p == KING ? "K" : p == QUEEN ? "Q" : p == ROOK ? "R" : p == BISHOP ? "B" : p == KNIGHT ? "N" : "");
+
+    if (p == KING) {
+        if (m.special == CASTLE_KING_SIDE_WHITE || m.special == CASTLE_KING_SIDE_BLACK) return "O-O";
+        if (m.special == CASTLE_QUEEN_SIDE_WHITE || m.special == CASTLE_QUEEN_SIDE_BLACK) return "O-O-O";
+        return "K" + m.destination.to_string();
+    }
+
+    bool is_capture = piece_of_color[opposite(c)][m.destination] || (p == PAWN && m.origin.get_file() != m.destination.get_file());
+
+    if ((p == PAWN && is_capture) || std::find_if(begin(legal_moves), end(legal_moves), [&] (const move& other) {
+        return other.destination == m.destination
+               && piece_of_type[p][other.origin]
+               && other.origin.get_file() != m.origin.get_file();
+    }) != end(legal_moves)) {
+        ss << m.origin.get_file_char();
+    } else if (std::find_if(begin(legal_moves), end(legal_moves), [&] (const move& other) {
+        return other.destination == m.destination
+               && piece_of_type[p][other.origin]
+               && other.origin.get_rank() != m.origin.get_rank();
+    }) != end(legal_moves)) {
+        ss << m.origin.get_rank_char();
+    }
+
+    if (is_capture) ss << "x";
+
+    ss << m.destination.to_string();
+
+    board simulated = *this;
+    simulated.make_move(m);
+    if (simulated.under_check(opposite(c))) {
+        if (simulated.get_legal_moves(opposite(c)).empty()) {
+            ss << "#";
+        } else {
+            ss << "+";
+        }
+    }
+    string s;
+    ss >> s;
+    return s;
 }
 

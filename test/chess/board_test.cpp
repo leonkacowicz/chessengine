@@ -489,6 +489,23 @@ TEST(board_test, assert_its_checkmate) {
     list_moves(moves);
     ASSERT_TRUE(moves.empty());
 }
+
+TEST(board_test, board_accepts_move) {
+    /*
+ 8   . . . . . . . .
+ 7   . . . . . k p .
+ 6   . . p . . . . p
+ 5   . p . p . . . P
+ 4   . . n r . . N .
+ 3   P . . . . P . .
+ 2   . . . . R K . .
+ 1   . . . . . . . .
+
+     a b c d e f g h
+     */
+
+    // should be legal for white to move g4e5
+}
 //TEST(board_test, rook_pinned_by_rook) {
 //    std::random_device rd;  //Will be used to obtain a seed for the random number engine
 //    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
