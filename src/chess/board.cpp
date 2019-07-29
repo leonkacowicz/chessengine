@@ -539,7 +539,6 @@ bool board::resets_half_move_counter(const move m) {
 void board::make_move(const move m) {
     piece p = piece_at(m.origin);
     color c = color_at(m.origin);
-    en_passant = square::none;
 
     if (m.special == 0) {
         move_piece(m.origin, m.destination);
@@ -600,6 +599,7 @@ void board::make_move(const move m) {
         piece_of_type[PAWN] &= bbi;
         put_piece(BISHOP, c, m.destination);
     }
+    en_passant = square::none;
     side_to_play = opposite(side_to_play);
 }
 
