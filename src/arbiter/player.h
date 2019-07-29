@@ -56,11 +56,11 @@ public:
         std::string line;
         std::string info;
 
-        while (!out.eof()) {
+        while (out.good()) {
             std::getline(out, line);
 
-            if (line.substr(0, 5) == "info ") info = line;
-            else if (!line.empty()) std::cout << "[DEBUG] [" << (player_color == 1 ? "BLACK" : "WHITE") << "] " << line << std::endl;
+            /*if (line.substr(0, 5) == "info ") info = line;
+            else */if (!line.empty()) std::cout << "[DEBUG] [" << (player_color == 1 ? "BLACK" : "WHITE") << "] " << line << std::endl;
 
             if (line.substr(0, 9) == "bestmove ") {
                 std::cout << "[DEBUG] [" << (player_color == 1 ? "BLACK" : "WHITE") << "] " << info << std::endl;
@@ -73,6 +73,7 @@ public:
         }
         std::cout << "[DEBUG] [" << (player_color == 1 ? "BLACK" : "WHITE") << "] " << info << std::endl;
         std::cout << "[DEBUG] [" << (player_color == 1 ? "BLACK" : "WHITE") << "] " << line << std::endl;
+        std::cout << "[DEBUG] [" << (player_color == 1 ? "BLACK" : "WHITE") << "] =================EOF================" << std::endl;
         return "(none)";
     }
 

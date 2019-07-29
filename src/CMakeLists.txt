@@ -10,5 +10,11 @@ add_executable(chessarbiter arbiter/arbiter_main.cpp)
 target_link_libraries(chessarbiter arbiter)
 
 target_compile_options(chessarbiter PUBLIC "-pthread")
+
+#target_compile_options(chessarbiter PUBLIC "-g")
+#target_compile_options(chessarbiter PUBLIC "-rdynamic")
+#target_compile_options(chessengine PUBLIC "-g")
+#target_compile_options(chessengine PUBLIC "-rdynamic")
+
 target_link_libraries(chessarbiter Threads::Threads)
 target_link_libraries(chessarbiter "${CMAKE_THREAD_LIBS_INIT}")

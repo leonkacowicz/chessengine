@@ -48,6 +48,7 @@ int main()
         } else if (word == "go") {
             engine e(b);
             if (b.get_legal_moves(b.side_to_play).empty()) {
+                std::cerr << "no legal move found to be searched" << std::endl;
                 std::cout << "bestmove (none)" << std::endl;
             } else {
                 auto selected_move = e.get_move();

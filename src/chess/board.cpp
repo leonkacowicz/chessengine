@@ -34,9 +34,7 @@ void board::range_moves(const bitboard origin, const std::function<bitboard(bitb
         if (player_piece[sq]) return; // blocked by own piece
         if (sq == king_pos[opposite(c)]) return; // found opponent king
         // simulate move
-        board newboard = *this;
-        newboard.move_piece(origin.get_square(), sq.get_square());
-        if (!newboard.under_check(c)) {
+        if (!simulate(origin.get_square(), sq.get_square()).under_check(c)) {
             moves.emplace_back(origin.get_square(), sq.get_square());
         }
         if (piece_of_color[opposite(c)][sq]) break; // captured opponent piece: stop there
@@ -92,7 +90,8 @@ string board::to_string() const {
                 else if (piece_of_type[KNIGHT][position]) ret << " ♘";
                 else if (piece_of_type[QUEEN][position]) ret << " ♕";
                 else if (piece_of_type[PAWN][position]) ret << " ♙";
-                else ret << " ♔";
+                else if (position[king_pos[WHITE]]) ret << " ♔";
+                else ret << " X";
             }
             else if (piece_of_color[BLACK][position]) {
                 if (piece_of_type[BISHOP][position]) ret << " ♝";
@@ -100,7 +99,8 @@ string board::to_string() const {
                 else if (piece_of_type[KNIGHT][position]) ret << " ♞";
                 else if (piece_of_type[QUEEN][position]) ret << " ♛";
                 else if (piece_of_type[PAWN][position]) ret << " ♟";
-                else ret << " ♚";
+                else if (position[king_pos[BLACK]]) ret << " ♚";
+                else ret << " x";
             } else {
                 ret << " .";
             }
@@ -173,9 +173,9 @@ void board::put_piece(piece p, color c, square s) {
     piece_of_type[BISHOP] &= bbi;
     piece_of_type[ROOK] &= bbi;
     piece_of_type[QUEEN] &= bbi;
+    piece_of_color[opposite(c)] &= bbi;
     piece_of_type[p] |= bb;
     piece_of_color[c] |= bb;
-    piece_of_color[opposite(c)] &= bbi;
 }
 
 void board::set_king_position(color c, square position) {
@@ -225,11 +225,10 @@ void board::add_king_moves(bitboard origin, std::vector<move>& moves) const {
     if (!file_a[origin]) in_range[N++] = origin.shift_left(1);
     if (!file_h[origin]) in_range[N++] = origin.shift_right(1);
 
-    board simulated = *this;
-    for (int i = 0; i < N; i++, simulated = *this) {
+    for (int i = 0; i < N; i++) {
         if (!piece_of_color[c][in_range[i]]) {
-            simulated.set_king_position(c, in_range[i].get_square());
-            if (!simulated.under_check(c)) moves.emplace_back(origin_square, in_range[i].get_square());
+            if (!simulate(origin_square, in_range[i].get_square()).under_check(c))
+                moves.emplace_back(origin_square, in_range[i].get_square());
         }
     }
 }
@@ -511,6 +510,13 @@ void board::move_piece(square from, square to) {
     color c = color_at(from);
     piece_of_type[p] &= ns;
     piece_of_color[c] &= ns;
+
+    if ((to == king_pos[WHITE] && (p != KING || c != WHITE))
+        || (to == king_pos[BLACK] && (p != KING || c != BLACK))) {
+        std::cerr << "ERROR trying to put piece of type " << p << " on square " << to.to_string() << std::endl;
+        std::cerr << (side_to_play == WHITE ? "WHITE to play" : "BLACK to play") << std::endl;
+        std::cerr << std::endl << to_string() << std::endl;
+    }
     put_piece(p, c, to);
 }
 
