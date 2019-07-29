@@ -65,6 +65,19 @@ void arbiter::start_game() {
         color side_color  = b.side_to_play;
         std::string side(b.side_to_play == WHITE ? "White" : "Black");
 
+        const std::vector<move> legal_moves = b.get_legal_moves(side_color);
+        if (legal_moves.empty()) {
+            bool check = b.under_check(side_color);
+            std::cout << side << " under check? " << check << std::endl;
+            if (check) {
+                std::cout << "CHECKMATE" << std::endl;
+                player_won[opposite(b.side_to_play)] = true;
+            } else {
+                std::cout << "STALEMATE" << std::endl;
+            }
+            break;
+        }
+
         auto time_before_move = std::chrono::system_clock::now();
         current.time_to_play.unlock();
         if (current.has_played.try_lock_for(std::chrono::milliseconds(current_time))) {
@@ -88,50 +101,36 @@ void arbiter::start_game() {
                 << "s" << std::endl;
         }
 
-
-        {
-            const std::vector<move> legal_moves = b.get_legal_moves(side_color);
-            auto move_found = std::find_if(legal_moves.begin(), legal_moves.end(), equals(moves.back()));
-            if (move_found != legal_moves.end()) {
-                if (b.resets_half_move_counter(*move_found)) half_move_clock = 0;
-                else half_move_clock++;
-                pgn_moves.push_back(b.move_in_pgn(*move_found, legal_moves));
-                b.make_move(*move_found);
-
-                if (half_move_clock >= 50) {
-                    std::cout << "DRAW BY 50-move RULE" << std::endl;
-                    break;
-                } else {
-                    int repetition_count = 0;
-                    for (int k = 0; k < half_move_clock; k++) if (last_positions[k] == b)
-                        repetition_count++;
-
-                    if (repetition_count >= 3) {
-                        std::cout << "DRAW BY 3-FOLD-REPETITION" << std::endl;
-                        break;
-                    }
-                    last_positions[half_move_clock] = b;
-                }
-            } else {
-                std::cout << "Move " << moves.back() << " not found in list of legal moves!!" << std::endl;
-                if (legal_moves.empty()) {
-                    bool check = b.under_check(side_color);
-                    std::cout << side << " under check? " << check << std::endl;
-                    if (check) {
-                        std::cout << "CHECKMATE" << std::endl;
-                        player_won[opposite(b.side_to_play)] = true;
-                    } else {
-                        std::cout << "STALEMATE" << std::endl;
-                    }
-                } else {
-                    // player resigned
-                    std::cout << "RESIGNED" << std::endl;
-                    player_won[opposite(b.side_to_play)] = true;
-                    for (auto m : legal_moves) std::cout << m.to_long_move() << std::endl;
-                }
+        auto move_found = std::find_if(legal_moves.begin(), legal_moves.end(), equals(moves.back()));
+        if (move_found != legal_moves.end()) {
+            if (b.resets_half_move_counter(*move_found)) half_move_clock = 0;
+            else half_move_clock++;
+            pgn_moves.push_back(b.move_in_pgn(*move_found, legal_moves));
+            b.make_move(*move_found);
+            if (half_move_clock >= 50) {
+                std::cout << "DRAW BY 50-move RULE" << std::endl;
                 break;
+            } else {
+                int repetition_count = 0;
+                for (int k = 0; k < half_move_clock; k++) if (last_positions[k] == b)
+                    repetition_count++;
+
+                if (repetition_count >= 3) {
+                    std::cout << "DRAW BY 3-FOLD-REPETITION" << std::endl;
+                    break;
+                }
+                last_positions[half_move_clock] = b;
             }
+
+        } else {
+            std::cout << "Move " << moves.back() << " not found in list of legal moves!!" << std::endl;
+            // player resigned
+            std::cout << "RESIGNED/ILLEGAL MOVE" << std::endl;
+            player_won[opposite(b.side_to_play)] = true;
+            for (auto m : legal_moves) std::cout << m.to_long_move() << std::endl;
+            break;
         }
+
         std::cout << side << " moves " << moves.back() << " / " << pgn_moves.back() << std::endl;
     }
     game_finished = true;
