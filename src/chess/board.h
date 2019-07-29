@@ -58,6 +58,8 @@ public:
     board simulate(const square from, const square to) const;
 
     std::string move_in_pgn(const move m, const std::vector<move>& legal_moves) const;
+
+    bool resets_half_move_counter(const move m);
 };
 
 #endif //CHESSENGINE_BOARD_H

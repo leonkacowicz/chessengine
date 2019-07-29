@@ -505,6 +505,22 @@ void board::move_piece(square from, square to) {
     put_piece(p, c, to);
 }
 
+/*
+ * According to LiChess behavior, losing castling rights, and change enpassant status does not reset the counter
+ */
+bool board::resets_half_move_counter(const move m) {
+    return  (piece_of_type[PAWN][m.origin]) // moving a pawn
+            || piece_of_color[BLACK][m.destination] // captures piece
+            || piece_of_color[WHITE][m.destination] // captures piece
+            //|| m.special != 0
+            // || en_passant != square::none // will change en passant status
+            // || (((file_a | file_e) & rank_1)[m.origin] && can_castle_queen_side[WHITE]) // will lose castling right
+            // || (((file_h | file_e) & rank_1)[m.origin] && can_castle_king_side[WHITE]) // will lose castling right
+            // || (((file_a | file_e) & rank_8)[m.origin] && can_castle_queen_side[BLACK]) // will lose castling right
+            // || (((file_h | file_e) & rank_8)[m.origin] && can_castle_king_side[BLACK]) // will lose castling right
+            ;
+}
+
 void board::make_move(const move m) {
     piece p = piece_at(m.origin);
     color c = color_at(m.origin);

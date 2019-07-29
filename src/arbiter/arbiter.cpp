@@ -54,6 +54,8 @@ void arbiter::start_game() {
     b.set_initial_position();
 
     int i = 0;
+    bool player_won[2] = {false, false};
+    int half_move_clock = 0;
     while(true) {
         std::cout << ++i << std::endl;
         b.print();
@@ -67,6 +69,7 @@ void arbiter::start_game() {
         if (current.has_played.try_lock_for(std::chrono::milliseconds(current_time))) {
             // all good
         } else {
+            player_won[opposite(b.side_to_play)] = true;
             std::cout << side << " lost on time\n";
             break;
         }
@@ -89,14 +92,31 @@ void arbiter::start_game() {
             const std::vector<move> legal_moves = b.get_legal_moves(side_color);
             auto move_found = std::find_if(legal_moves.begin(), legal_moves.end(), equals(moves.back()));
             if (move_found != legal_moves.end()) {
+                if (b.resets_half_move_counter(*move_found)) half_move_clock = 0;
+                else half_move_clock++;
+                if (half_move_clock >= 50) {
+                    std::cout << "DRAW BY 50-move RULE" << std::endl;
+                    break;
+                }
                 pgn_moves.push_back(b.move_in_pgn(*move_found, legal_moves));
                 b.make_move(*move_found);
             } else {
                 std::cout << "Move " << moves.back() << " not found in list of legal moves!!" << std::endl;
-                bool check = b.under_check(side_color);
-                std::cout << side << " under check? " << check << std::endl;
-                if (check && legal_moves.empty()) std::cout << "CHECKMATE" << std::endl;
-                for (auto m : legal_moves) std::cout << m.to_long_move() << std::endl;
+                if (legal_moves.empty()) {
+                    bool check = b.under_check(side_color);
+                    std::cout << side << " under check? " << check << std::endl;
+                    if (check) {
+                        std::cout << "CHECKMATE" << std::endl;
+                        player_won[opposite(b.side_to_play)] = true;
+                    } else {
+                        std::cout << "STALEMATE" << std::endl;
+                    }
+                } else {
+                    // player resigned
+                    std::cout << "RESIGNED" << std::endl;
+                    player_won[opposite(b.side_to_play)] = true;
+                    for (auto m : legal_moves) std::cout << m.to_long_move() << std::endl;
+                }
                 break;
             }
         }
@@ -114,6 +134,9 @@ void arbiter::start_game() {
         std::cout << *move << " ";
         k++;
     }
+    if (player_won[WHITE]) std::cout << "\n1-0";
+    else if (player_won[BLACK]) std::cout << "\n0-1";
+    else std::cout << "\n1/2-1/2";
     std::cout << std::endl;
 }
 
