@@ -46,16 +46,15 @@ int main()
             }
             continue;
         } else if (word == "go") {
-            //std::cerr << "Calculating..." << std::endl;
             engine e(b);
-//            for (auto m : b.get_legal_moves(b.side_to_play)) {
-//                std::cerr << m.to_long_move() << std::endl;
-//            }
-            auto selected_move = e.get_move();
-            std::cout << "bestmove " << selected_move.to_long_move() << std::endl;
+            if (b.get_legal_moves(b.side_to_play).empty()) {
+                std::cout << "bestmove (none)" << std::endl;
+            } else {
+                auto selected_move = e.get_move();
+                std::cout << "bestmove " << selected_move.to_long_move() << std::endl;
+            }
         } else if (word == "print") {
             b.print();
-            //std::cerr << (b.side_to_play == WHITE ? "White " : "Black ") << " to play" << std::endl;
         }
     }
     return 0;

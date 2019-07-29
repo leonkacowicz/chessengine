@@ -55,17 +55,25 @@ public:
     std::string get_next_move() {
         std::string line;
         std::string info;
-        do {
-            getline(out, line);
-            if (line.substr(0, 5) == "info ") info = line;
-            else std::cout << "[DEBUG] [" << (player_color == 1 ? "BLACK" : "WHITE") << "] " << line << std::endl;
-        } while (line.rfind("bestmove ", 0) != 0);
-        std::cout << "[DEBUG] [" << (player_color == 1 ? "BLACK" : "WHITE") << "] " << info << std::endl;
 
-        std::stringstream ss(line.substr(9));
-        std::string bestmove;
-        ss >> bestmove;
-        return bestmove;
+        while (!out.eof()) {
+            std::getline(out, line);
+
+            if (line.substr(0, 5) == "info ") info = line;
+            else if (!line.empty()) std::cout << "[DEBUG] [" << (player_color == 1 ? "BLACK" : "WHITE") << "] " << line << std::endl;
+
+            if (line.substr(0, 9) == "bestmove ") {
+                std::cout << "[DEBUG] [" << (player_color == 1 ? "BLACK" : "WHITE") << "] " << info << std::endl;
+                std::cout << "[DEBUG] [" << (player_color == 1 ? "BLACK" : "WHITE") << "] Move: " << line << std::endl;
+                std::stringstream ss(line.substr(9));
+                std::string bestmove;
+                ss >> bestmove;
+                return bestmove;
+            }
+        }
+        std::cout << "[DEBUG] [" << (player_color == 1 ? "BLACK" : "WHITE") << "] " << info << std::endl;
+        std::cout << "[DEBUG] [" << (player_color == 1 ? "BLACK" : "WHITE") << "] " << line << std::endl;
+        return "(none)";
     }
 
 };
