@@ -80,27 +80,33 @@ bool board::is_stalemate() const {
 }
 
 string board::to_string() const {
-    auto ret = std::stringstream();
+    stringstream ret;
     for (int y = 7; y >= 0; y--) {
         ret << " " << (y + 1) << "  ";
         for (int x = 0; x <= 7; x++) {
             bitboard position(x, y);
-            char c = '.';
-            if (piece_of_color[WHITE][position] || piece_of_color[BLACK][position]) {
-                if (piece_of_type[BISHOP][position]) c = 'B';
-                else if (piece_of_type[ROOK][position]) c = 'R';
-                else if (piece_of_type[KNIGHT][position]) c = 'N';
-                else if (piece_of_type[QUEEN][position]) c = 'Q';
-                else if (piece_of_type[PAWN][position]) c = 'P';
-                else c = 'K';
-                if (piece_of_color[BLACK][position]) c += 'a' - 'A';
+            if (piece_of_color[WHITE][position]) {
+                if (piece_of_type[BISHOP][position]) ret << " ♗";
+                else if (piece_of_type[ROOK][position]) ret << " ♖";
+                else if (piece_of_type[KNIGHT][position]) ret << " ♘";
+                else if (piece_of_type[QUEEN][position]) ret << " ♕";
+                else if (piece_of_type[PAWN][position]) ret << " ♙";
+                else ret << " ♔";
             }
-            ret << ' ' << c;
+            else if (piece_of_color[BLACK][position]) {
+                if (piece_of_type[BISHOP][position]) ret << " ♝";
+                else if (piece_of_type[ROOK][position]) ret << " ♜";
+                else if (piece_of_type[KNIGHT][position]) ret << " ♞";
+                else if (piece_of_type[QUEEN][position]) ret << " ♛";
+                else if (piece_of_type[PAWN][position]) ret << " ♟";
+                else ret << " ♚";
+            } else {
+                ret << " .";
+            }
         }
         ret << std::endl;
     }
     ret << std::endl << "     a b c d e f g h" << std::endl;
-
     return ret.str();
 }
 
@@ -654,5 +660,27 @@ std::string board::move_in_pgn(const move m, const std::vector<move>& legal_move
     string s;
     ss >> s;
     return s;
+}
+
+/**
+ * This is for 3-fold-repetition purposes
+ */
+bool board::operator==(const board &other) const {
+    return side_to_play == other.side_to_play
+        && en_passant == other.en_passant
+        && piece_of_color[WHITE] == other.piece_of_color[WHITE]
+        && piece_of_color[BLACK] == other.piece_of_color[BLACK]
+        && piece_of_type[PAWN] == other.piece_of_type[PAWN]
+        && piece_of_type[BISHOP] == other.piece_of_type[BISHOP]
+        && piece_of_type[ROOK] == other.piece_of_type[ROOK]
+        && piece_of_type[KNIGHT] == other.piece_of_type[KNIGHT]
+        && piece_of_type[QUEEN] == other.piece_of_type[QUEEN]
+        && king_pos[WHITE] == other.king_pos[WHITE]
+        && king_pos[BLACK] == other.king_pos[BLACK]
+        && can_castle_king_side[BLACK] == other.can_castle_king_side[BLACK]
+        && can_castle_queen_side[BLACK] == other.can_castle_queen_side[BLACK]
+        && can_castle_king_side[WHITE] == other.can_castle_king_side[WHITE]
+        && can_castle_queen_side[WHITE] == other.can_castle_queen_side[WHITE]
+    ;
 }
 

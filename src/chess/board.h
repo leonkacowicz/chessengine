@@ -60,6 +60,8 @@ public:
     std::string move_in_pgn(const move m, const std::vector<move>& legal_moves) const;
 
     bool resets_half_move_counter(const move m);
+
+    bool operator==(const board& other) const;
 };
 
 #endif //CHESSENGINE_BOARD_H

@@ -56,6 +56,7 @@ void arbiter::start_game() {
     int i = 0;
     bool player_won[2] = {false, false};
     int half_move_clock = 0;
+    board last_positions[50];
     while(true) {
         std::cout << ++i << std::endl;
         b.print();
@@ -81,10 +82,10 @@ void arbiter::start_game() {
             current_time += increment;
             std::cout << side << " took " << move_duration.count()
                 << "ms. White time: " << std::chrono::duration_cast<std::chrono::seconds>(white_time).count() / 60
-                << ":" << std::chrono::duration_cast<std::chrono::seconds>(white_time).count() % 60
-                << "; Black time: " << std::chrono::duration_cast<std::chrono::seconds>(black_time).count() / 60
-                << ":" << std::chrono::duration_cast<std::chrono::seconds>(black_time).count() % 60
-                << std::endl;
+                << "m " << std::chrono::duration_cast<std::chrono::seconds>(white_time).count() % 60
+                << "s; Black time: " << std::chrono::duration_cast<std::chrono::seconds>(black_time).count() / 60
+                << "m" << std::chrono::duration_cast<std::chrono::seconds>(black_time).count() % 60
+                << "s" << std::endl;
         }
 
 
@@ -94,12 +95,23 @@ void arbiter::start_game() {
             if (move_found != legal_moves.end()) {
                 if (b.resets_half_move_counter(*move_found)) half_move_clock = 0;
                 else half_move_clock++;
+                pgn_moves.push_back(b.move_in_pgn(*move_found, legal_moves));
+                b.make_move(*move_found);
+
                 if (half_move_clock >= 50) {
                     std::cout << "DRAW BY 50-move RULE" << std::endl;
                     break;
+                } else {
+                    int repetition_count = 0;
+                    for (int k = 0; k < half_move_clock; k++) if (last_positions[k] == b)
+                        repetition_count++;
+
+                    if (repetition_count >= 3) {
+                        std::cout << "DRAW BY 3-FOLD-REPETITION" << std::endl;
+                        break;
+                    }
+                    last_positions[half_move_clock] = b;
                 }
-                pgn_moves.push_back(b.move_in_pgn(*move_found, legal_moves));
-                b.make_move(*move_found);
             } else {
                 std::cout << "Move " << moves.back() << " not found in list of legal moves!!" << std::endl;
                 if (legal_moves.empty()) {
@@ -130,7 +142,7 @@ void arbiter::start_game() {
 
     int k = 0;
     for (auto move = begin(pgn_moves); move != end(pgn_moves); move++) {
-        if (k % 2 == 0) std::cout << std::endl << k/2 + 1 << ". ";
+        if (k % 10 == 0) std::cout << std::endl << k/2 + 1 << ". ";
         std::cout << *move << " ";
         k++;
     }
