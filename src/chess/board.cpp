@@ -39,6 +39,7 @@ void board::range_moves(const bitboard origin, const std::function<bitboard(bitb
         if (!newboard.under_check(c)) {
             moves.emplace_back(origin.get_square(), sq.get_square());
         }
+        if (piece_of_color[opposite(c)][sq]) break; // captured opponent piece: stop there
     }
 }
 
