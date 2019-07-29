@@ -657,9 +657,7 @@ std::string board::move_in_pgn(const move m, const std::vector<move>& legal_move
             ss << "+";
         }
     }
-    string s;
-    ss >> s;
-    return s;
+    return ss.str();
 }
 
 /**

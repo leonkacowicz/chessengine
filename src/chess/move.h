@@ -37,9 +37,7 @@ public:
         if (special == PROMOTION_ROOK) ss << 'r';
         if (special == PROMOTION_BISHOP) ss << 'b';
         if (special == PROMOTION_KNIGHT) ss << 'n';
-        std::string s;
-        ss >> s;
-        return s;
+        return ss.str();
     }
 };
 
