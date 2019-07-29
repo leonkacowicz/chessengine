@@ -6,32 +6,48 @@
 #include "engine.h"
 #include "evaluator.h"
 
-int minimax(const board& brd, int ply, std::vector<move>& sequence, move try_first, int alpha, int beta) {
+int minimax(const board& brd, int ply, std::vector<move>& sequence, bool log, int alpha, int beta) {
     if (ply == 0) {
-        return evaluator().evaluate(brd);
+        return 0; //evaluator().evaluate(brd);
     } else {
         const std::vector<move> legal_moves = brd.get_legal_moves(brd.side_to_play);
-        std::deque<move> legal(legal_moves.begin(), legal_moves.end(), legal_moves.get_allocator());
-        if (try_first.special != NULL_MOVE) {
-            legal.push_front(try_first);
-        }
-        int k = 0;
-        for (auto& m : legal) {
-            k++;
-            if (k > 1 && m == try_first) continue;
-            board bnew = brd;
-            bnew.make_move(m);
-            int value = -minimax(bnew, ply - 1, sequence, move(), -beta, -alpha);
-            if (value >= beta) {
-                return beta;
+        if (brd.side_to_play == WHITE) {
+            int best = -1'000'000;
+            for (auto& m : brd.get_legal_moves(WHITE)) {
+                board bnew = brd;
+                bnew.make_move(m);
+                int val = minimax(bnew, ply - 1, sequence, false, alpha, beta);
+
+                if (val >= best) {
+                    best = val;
+                    sequence[ply] = m;
+                    if (log) {
+                        std::cout << "info depth " << ply << " cp " << val << " " << m.to_long_move() << std::endl;
+                    }
+                }
+                if (best > alpha) alpha = best;
+                if (beta <= alpha) break;
             }
-            if (value > alpha) {
-                //std::cout << "info depth " << ply << " cp " << value << std::endl;
-                alpha = value;
-                sequence[ply] = m;
+            return best;
+        } else {
+            int best = 1'000'000;
+            for (auto& m : brd.get_legal_moves(BLACK)) {
+                board bnew = brd;
+                bnew.make_move(m);
+                int val = minimax(bnew, ply - 1, sequence, false, alpha, beta);
+
+                if (val <= best) {
+                    best = val;
+                    sequence[ply] = m;
+                    if (log) {
+                        std::cout << "info depth " << ply << " cp " << val << " " << m.to_long_move() << std::endl;
+                    }
+                }
+                if (best < beta) beta = best;
+                if (beta <= alpha) break;
             }
+            return best;
         }
-        return alpha;
     }
 }
 
@@ -40,7 +56,7 @@ move engine::get_move() const {
     std::vector<move> seq(plys + 1);
     for (int ply = 1; ply <= plys; ply++) {
         std::cerr << "Trying starting with move " << seq[ply - 1].to_long_move() << std::endl;
-        int value = minimax(b, ply, seq, seq[ply - 1], -1000000, 1000000);
+        int value = minimax(b, ply, seq, true, -1000000, 1000000);
         std::cout << "info depth " << ply << " cp " << value << std::endl;
         std::cerr << "Current best move " << seq[ply].to_long_move() << std::endl;
     }
