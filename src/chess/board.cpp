@@ -604,7 +604,8 @@ piece board::piece_at(bitboard p) const {
     return piece_of_type[PAWN][p] ? PAWN :
         piece_of_type[KNIGHT][p] ? KNIGHT :
         piece_of_type[BISHOP][p] ? BISHOP :
-        piece_of_type[ROOK][p] ? ROOK : QUEEN;
+        piece_of_type[ROOK][p] ? ROOK :
+        piece_of_type[QUEEN][p] ? QUEEN : NONE;
 }
 
 color board::color_at(bitboard p) const {

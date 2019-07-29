@@ -32,8 +32,6 @@ class board {
 
     void move_piece(square from, square to);
 
-    piece piece_at(bitboard p) const;
-    color color_at(bitboard p) const;
 public:
     color side_to_play = WHITE;
 
@@ -62,6 +60,9 @@ public:
     bool resets_half_move_counter(const move m);
 
     bool operator==(const board& other) const;
+
+    piece piece_at(bitboard p) const;
+    color color_at(bitboard p) const;
 };
 
 #endif //CHESSENGINE_BOARD_H

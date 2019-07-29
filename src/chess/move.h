@@ -13,7 +13,8 @@ enum special_move {
     PROMOTION_QUEEN,
     PROMOTION_ROOK,
     PROMOTION_BISHOP,
-    PROMOTION_KNIGHT
+    PROMOTION_KNIGHT,
+    NULL_MOVE
 };
 
 class move {
@@ -23,6 +24,7 @@ public:
     square origin;
     square destination;
     char special; // 0, n, r, b, q
+    move() : origin(square::none), destination(square::none), special(NULL_MOVE) {};
     move(square origin, square destination) : origin(origin), destination(destination), special(0) {};
     move(square origin, square destination, special_move special) : origin(origin), destination(destination), special(special) {};
 
@@ -31,6 +33,7 @@ public:
     }
 
     std::string to_long_move() const {
+        if (special == NULL_MOVE) return "(none)";
         std::stringstream ss;
         ss << origin.to_string() << destination.to_string();
         if (special == PROMOTION_QUEEN) ss << 'q';

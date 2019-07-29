@@ -6,7 +6,7 @@
 #define CHESSENGINE_PIECE_H
 
 enum piece : int {
-    PAWN = 0, KNIGHT, BISHOP, ROOK, QUEEN, KING
+    PAWN = 0, KNIGHT, BISHOP, ROOK, QUEEN, KING, NONE
 };
 
 #endif //CHESSENGINE_PIECE_H
