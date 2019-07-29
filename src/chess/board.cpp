@@ -226,8 +226,10 @@ void board::add_king_moves(bitboard origin, std::vector<move>& moves) const {
 
     board simulated = *this;
     for (int i = 0; i < N; i++, simulated = *this) {
-        simulated.set_king_position(c, in_range[i].get_square());
-        if (!simulated.under_check(c)) moves.emplace_back(origin_square, in_range[i].get_square());
+        if (!piece_of_color[c][in_range[i]]) {
+            simulated.set_king_position(c, in_range[i].get_square());
+            if (!simulated.under_check(c)) moves.emplace_back(origin_square, in_range[i].get_square());
+        }
     }
 }
 

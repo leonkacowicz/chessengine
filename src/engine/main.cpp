@@ -14,13 +14,13 @@ int main()
     string line;
     while (!std::cin.eof()) {
         std::getline(std::cin, line);
-        std::cerr << "RECEIVED: " << line << std::endl;
+        //std::cerr << "RECEIVED: " << line << std::endl;
 
         stringstream ss;
         ss << line;
         string word;
         ss >> word;
-        std::cerr << "Processing command: " << word << std::endl;
+        //std::cerr << "Processing command: " << word << std::endl;
         if (word == "uci") {
             std::cout << "uciok" << std::endl;
             continue;
@@ -46,16 +46,16 @@ int main()
             }
             continue;
         } else if (word == "go") {
-            std::cerr << "Calculating..." << std::endl;
+            //std::cerr << "Calculating..." << std::endl;
             engine e(b);
-            for (auto m : b.get_legal_moves(b.side_to_play)) {
-                std::cerr << m.to_long_move() << std::endl;
-            }
+//            for (auto m : b.get_legal_moves(b.side_to_play)) {
+//                std::cerr << m.to_long_move() << std::endl;
+//            }
             auto selected_move = e.get_move();
             std::cout << "bestmove " << selected_move.to_long_move() << std::endl;
         } else if (word == "print") {
             b.print();
-            std::cerr << (b.side_to_play == WHITE ? "White " : "Black ") << " to play" << std::endl;
+            //std::cerr << (b.side_to_play == WHITE ? "White " : "Black ") << " to play" << std::endl;
         }
     }
     return 0;

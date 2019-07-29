@@ -142,7 +142,8 @@ void arbiter::start_game() {
 
     int k = 0;
     for (auto move = begin(pgn_moves); move != end(pgn_moves); move++) {
-        if (k % 10 == 0) std::cout << std::endl << k/2 + 1 << ". ";
+        if (k % 10 == 0) std::cout << std::endl;
+        if (k % 2 == 0) std::cout << k/2 + 1 << ". ";
         std::cout << *move << " ";
         k++;
     }
