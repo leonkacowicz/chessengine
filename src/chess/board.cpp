@@ -557,6 +557,12 @@ void board::make_move(const move m) {
         if (p == KING) {
             can_castle_king_side[c] = false;
             can_castle_queen_side[c] = false;
+        } else if (p == ROOK){
+            if (can_castle_king_side[c] && file_h[m.origin]) {
+                can_castle_king_side[c] = false;
+            } else if (can_castle_queen_side[c] && file_a[m.origin]) {
+                can_castle_queen_side[c] = false;
+            }
         }
     } else if (m.special == special_move::CASTLE_KING_SIDE_WHITE) {
         can_castle_king_side[c] = false;

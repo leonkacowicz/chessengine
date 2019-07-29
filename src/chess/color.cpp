@@ -1,5 +1,5 @@
 #include "color.h"
 
-color opposite(color c) {
-    return (color)(1 - c);
-}
+//constexpr color opposite(color c) {
+//    return c == BLACK ? WHITE : BLACK;
+//}
