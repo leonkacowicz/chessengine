@@ -288,11 +288,11 @@ void board::add_pawn_moves(bitboard origin, std::vector<move>& moves) const {
         }
         if (c == WHITE && rank_2[origin]) {
             const bitboard fwd2 = fwd.shift_up(1);
-            if (empty[fwd2])
+            if (empty[fwd2] && !simulate(origin_sq, fwd2.get_square()).under_check(c))
                 moves.emplace_back(origin_sq, fwd2.get_square());
         } else if (c == BLACK && rank_7[origin]) {
             const bitboard fwd2 = fwd.shift_down(1);
-            if (empty[fwd2])
+            if (empty[fwd2] && !simulate(origin_sq, fwd2.get_square()).under_check(c))
                 moves.emplace_back(origin_sq, fwd2.get_square());
         }
     }
