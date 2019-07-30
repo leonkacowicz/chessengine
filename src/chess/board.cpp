@@ -366,10 +366,13 @@ void board::add_knight_moves(bitboard origin, std::vector<move>& moves) const {
  */
 void board::add_castle_moves(color c, std::vector<move> &moves) const {
     const bitboard anypiece = piece_of_color[WHITE] | piece_of_color[BLACK];
-    if (under_check(c)) return;
+    bool check_checked = false;
+
     const bitboard king = bitboard(king_pos[c]);
     board simulated = *this;
     if (can_castle_king_side[c]) {
+        if (under_check(c)) return;
+        else check_checked = true;
         if (!(anypiece[king.shift_right(1)] || anypiece[king.shift_right(2)])) {
             simulated.set_king_position(c, king.shift_right(1).get_square());
             if (!simulated.under_check(c)) {
@@ -383,7 +386,8 @@ void board::add_castle_moves(color c, std::vector<move> &moves) const {
         }
     }
     if (can_castle_queen_side[c]) {
-        if (!(anypiece[king.shift_left(1)] || anypiece[king.shift_left(2)])) {
+        if (!check_checked) if (under_check(c)) return;
+        if (!(anypiece[king.shift_left(1)] || anypiece[king.shift_left(2)] || anypiece[king.shift_left(3)])) {
             simulated.set_king_position(c, king.shift_left(1).get_square());
             if (!simulated.under_check(c)) {
                 const square dest = king.shift_left(2).get_square();
@@ -539,6 +543,10 @@ bool board::resets_half_move_counter(const move m) {
 void board::make_move(const move m) {
     piece p = piece_at(m.origin);
     color c = color_at(m.origin);
+    square new_en_passant = square::none;
+
+    if (resets_half_move_counter(m)) half_move_counter = 0;
+    else half_move_counter += 1;
 
     if (m.special == 0) {
         move_piece(m.origin, m.destination);
@@ -549,9 +557,9 @@ void board::make_move(const move m) {
                 piece_of_type[PAWN] &= bbi;
             }
             if (m.destination.get_rank() - m.origin.get_rank() == 2) {
-                en_passant = square(m.origin.get_file(), m.origin.get_rank() + 1);
+                new_en_passant = square(m.origin.get_file(), m.origin.get_rank() + 1);
             } else if (m.origin.get_rank() - m.destination.get_rank() == 2) {
-                en_passant = square(m.origin.get_file(), m.origin.get_rank() - 1);
+                new_en_passant = square(m.origin.get_file(), m.origin.get_rank() - 1);
             }
         }
     } else if (m.special == special_move::CASTLE_KING_SIDE_WHITE) {
@@ -592,8 +600,7 @@ void board::make_move(const move m) {
     if (!(piece_of_color[BLACK]["a8"] && piece_of_type[ROOK]["a8"]) || king_pos[BLACK] != "e8") can_castle_queen_side[BLACK] = false;
     if (!(piece_of_color[BLACK]["h8"] && piece_of_type[ROOK]["h8"]) || king_pos[BLACK] != "e8") can_castle_king_side[BLACK] = false;
 
-
-    en_passant = square::none;
+    en_passant = new_en_passant;
     side_to_play = opposite(side_to_play);
 }
 
@@ -686,3 +693,55 @@ bool board::operator==(const board &other) const {
     ;
 }
 
+char fen_char(piece p, color c) {
+    const char offset = (c == BLACK ? 'a' - 'A' : (char)0);
+    switch (p) {
+        case PAWN: return 'P' + offset;
+        case KNIGHT: return 'N' + offset;
+        case BISHOP: return 'B' + offset;
+        case ROOK: return 'R' + offset;
+        case QUEEN: return 'Q' + offset;
+        case KING: return 'K' + offset;
+        default: return '.';
+    }
+}
+
+std::string board::fen(int full_move_counter) const {
+    stringstream res;
+    for (int rank = 7; rank >= 0; rank--) {
+        int rank_counter = 0;
+        for (int file = 0; file < 8; file++) {
+            bitboard sq(square(file, rank));
+            piece p = piece_at(sq);
+            if (p == NONE) {
+                rank_counter++;
+                continue;
+            } else {
+                if (rank_counter > 0) {
+                    res << rank_counter;
+                    rank_counter = 0;
+                }
+                color c = color_at(sq);
+                res << fen_char(p, c);
+            }
+        }
+        if (rank_counter > 0) res << rank_counter;
+        if (rank > 0) res << '/';
+    }
+    res << ' ' << (side_to_play == WHITE ? 'w' : 'b') << ' ';
+    res << (can_castle_king_side[WHITE] ? 'K' : '-');
+    res << (can_castle_queen_side[WHITE] ? 'Q' : '-');
+    res << (can_castle_king_side[BLACK] ? 'k' : '-');
+    res << (can_castle_queen_side[BLACK] ? 'q' : '-');
+
+    res << ' ';
+    if (en_passant == square::none) res << '-';
+    else res << en_passant.to_string();
+    res << ' ';
+
+    res << (int)half_move_counter;
+    res << ' ' << full_move_counter;
+    return res.str();
+}
+
+;
