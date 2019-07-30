@@ -10,16 +10,17 @@
 #include "color.h"
 
 class board {
-    bitboard piece_of_color[2] = {0, 0};
-    bitboard piece_of_type[5] = {0, 0, 0, 0, 0};
-    square king_pos[2] = { square::none, square::none };
 
-    bitboard range_attacks(const bitboard origin, const std::function<bitboard(bitboard)>& shift, const bitboard in_range) const;
+    template<int up, int down, int left, int right>
+    bitboard shift_attacks(const bitboard origin, const bitboard in_range) const;
+
+    template<int up, int down, int left, int right>
+    void shift_moves(const bitboard origin, const bitboard in_range, std::vector<move>& moves) const;
+
     bitboard knight_attacks(const bitboard origin) const;
     bitboard king_attacks(const bitboard origin) const;
     bitboard pawn_attacks(const bitboard origin, const color attacker) const;
 
-    void range_moves(const bitboard origin, const std::function<bitboard(bitboard)>& shift, const bitboard in_range, std::vector<move>& moves) const;
     void add_rook_moves(bitboard origin, std::vector<move>& moves) const;
     void add_king_moves(bitboard origin, std::vector<move>& moves) const;
     void add_bishop_moves(bitboard origin, std::vector<move>& moves) const;
@@ -30,6 +31,9 @@ class board {
     void move_piece(square from, square to);
 
 public:
+    bitboard piece_of_color[2] = {0, 0};
+    bitboard piece_of_type[5] = {0, 0, 0, 0, 0};
+    square king_pos[2] = { square::none, square::none };
     square en_passant;
     bool can_castle_king_side[2] = { false, false };
     bool can_castle_queen_side[2] = { false, false };
@@ -40,8 +44,6 @@ public:
     board(const std::string& fen);
 
     bool under_check(color c) const;
-    bool is_checkmate() const;
-    bool is_stalemate() const;
     void set_initial_position();
     std::string to_string() const;
     std::string fen(int full_move_counter = 1) const;
