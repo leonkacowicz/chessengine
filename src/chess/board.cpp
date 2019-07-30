@@ -386,9 +386,9 @@ void board::add_castle_moves(color c, std::vector<move> &moves) const {
         if (!(anypiece[king.shift_left(1)] || anypiece[king.shift_left(2)])) {
             simulated.set_king_position(c, king.shift_left(1).get_square());
             if (!simulated.under_check(c)) {
-                simulated.set_king_position(c, king.shift_left(2).get_square());
+                const square dest = king.shift_left(2).get_square();
+                simulated.set_king_position(c, dest);
                 if (!simulated.under_check(c)) {
-                    const square dest = square(2, (c == BLACK) * 7);
                     special_move castle_queen_side = c == WHITE ? CASTLE_QUEEN_SIDE_WHITE : CASTLE_QUEEN_SIDE_BLACK;
                     moves.emplace_back(king_pos[c], dest, castle_queen_side);
                 }
@@ -554,34 +554,16 @@ void board::make_move(const move m) {
                 en_passant = square(m.origin.get_file(), m.origin.get_rank() - 1);
             }
         }
-        if (p == KING) {
-            can_castle_king_side[c] = false;
-            can_castle_queen_side[c] = false;
-        } else if (p == ROOK){
-            if (can_castle_king_side[c] && file_h[m.origin]) {
-                can_castle_king_side[c] = false;
-            } else if (can_castle_queen_side[c] && file_a[m.origin]) {
-                can_castle_queen_side[c] = false;
-            }
-        }
     } else if (m.special == special_move::CASTLE_KING_SIDE_WHITE) {
-        can_castle_king_side[c] = false;
-        can_castle_queen_side[c] = false;
         move_piece("e1", "g1");
         move_piece("h1", "f1");
     } else if (m.special == special_move::CASTLE_KING_SIDE_BLACK) {
-        can_castle_king_side[c] = false;
-        can_castle_queen_side[c] = false;
         move_piece("e8", "g8");
         move_piece("h8", "f8");
     } else if (m.special == special_move::CASTLE_QUEEN_SIDE_WHITE) {
-        can_castle_king_side[c] = false;
-        can_castle_queen_side[c] = false;
         move_piece("e1", "c1");
         move_piece("a1", "d1");
     } else if (m.special == special_move::CASTLE_QUEEN_SIDE_BLACK) {
-        can_castle_king_side[c] = false;
-        can_castle_queen_side[c] = false;
         move_piece("e8", "c8");
         move_piece("a8", "d8");
     } else if (m.special == special_move::PROMOTION_QUEEN) {
@@ -605,6 +587,12 @@ void board::make_move(const move m) {
         piece_of_type[PAWN] &= bbi;
         put_piece(BISHOP, c, m.destination);
     }
+    if (!(piece_of_color[WHITE]["a1"] && piece_of_type[ROOK]["a1"]) || king_pos[WHITE] != "e1") can_castle_queen_side[WHITE] = false;
+    if (!(piece_of_color[WHITE]["h1"] && piece_of_type[ROOK]["h1"]) || king_pos[WHITE] != "e1") can_castle_king_side[WHITE] = false;
+    if (!(piece_of_color[BLACK]["a8"] && piece_of_type[ROOK]["a8"]) || king_pos[BLACK] != "e8") can_castle_queen_side[BLACK] = false;
+    if (!(piece_of_color[BLACK]["h8"] && piece_of_type[ROOK]["h8"]) || king_pos[BLACK] != "e8") can_castle_king_side[BLACK] = false;
+
+
     en_passant = square::none;
     side_to_play = opposite(side_to_play);
 }

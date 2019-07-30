@@ -511,9 +511,8 @@ TEST(board_test, board_accepts_move) {
 
 
 TEST(board_test, bug_detector) {
-    std::random_device rd;  //Will be used to obtain a seed for the random number engine
-    std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-    std::uniform_int_distribution<> dis(1, 1000000);
+    std::default_random_engine gen;
+    std::uniform_int_distribution<int> dis(0, 10000);
 
     int testNum;
     for (testNum = 0; testNum < 10000; testNum++) {
@@ -523,10 +522,14 @@ TEST(board_test, bug_detector) {
         int k = 0;
 
         std::vector<std::string> pgn;
-        while (!legal_moves.empty() && k < 100) {
+        while (!legal_moves.empty() && k < 50) {
             k++;
             try {
                 unsigned long i = dis(gen) % legal_moves.size();
+//                auto castle = std::find_if(begin(legal_moves), end(legal_moves),
+//                                           [&](const move &other) { return other.special == CASTLE_QUEEN_SIDE_BLACK; });
+
+                //move m = (castle == end(legal_moves) ? legal_moves[i] : *castle);
                 move m = legal_moves[i];
                 pgn.push_back(b.move_in_pgn(m, legal_moves));
                 b.make_move(m);
@@ -535,14 +538,14 @@ TEST(board_test, bug_detector) {
                 }
                 legal_moves = b.get_legal_moves(b.side_to_play);
             } catch (std::exception& e) {
-                std::cerr << "Exception: " << e.what() << std::endl;
-                std::cerr << std::endl;
+                std::cout << "Exception: " << e.what() << std::endl;
+                std::cout << std::endl;
                 for (int j = 0; j < pgn.size(); j++)
-                    (j % 2 == 0 ? std::cerr << j / 2 + 1 << ". " : std::cerr) << pgn[j] << " ";
-                std::cerr << std::endl;
-                std::cerr << "======================================================";
-                std::cerr << std::endl;
-                std::cerr << std::endl;
+                    (j % 2 == 0 ? std::cout << j / 2 + 1 << ". " : std::cout) << pgn[j] << " ";
+                std::cout << std::endl;
+                std::cout << "======================================================";
+                std::cout << std::endl;
+                std::cout << std::endl;
                 break;
             }
         }
