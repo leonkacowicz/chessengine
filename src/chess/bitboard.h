@@ -183,6 +183,24 @@ static const bitboard rank_6(0x0000FF0000000000);
 static const bitboard rank_7(0x00FF000000000000);
 static const bitboard rank_8(0xFF00000000000000);
 
+static const bitboard file_a_i(~file_a);
+static const bitboard file_b_i(~file_b);
+static const bitboard file_c_i(~file_c);
+static const bitboard file_d_i(~file_d);
+static const bitboard file_e_i(~file_e);
+static const bitboard file_f_i(~file_f);
+static const bitboard file_g_i(~file_g);
+static const bitboard file_h_i(~file_h);
+static const bitboard rank_1_i(~rank_1);
+static const bitboard rank_2_i(~rank_2);
+static const bitboard rank_3_i(~rank_3);
+static const bitboard rank_4_i(~rank_4);
+static const bitboard rank_5_i(~rank_5);
+static const bitboard rank_6_i(~rank_6);
+static const bitboard rank_7_i(~rank_7);
+static const bitboard rank_8_i(~rank_8);
+
+
 static const bitboard file[8] = {file_a, file_b, file_c, file_d, file_e, file_f, file_g, file_h};
 static const bitboard rank[8] = {rank_1, rank_2, rank_3, rank_4, rank_5, rank_6, rank_7, rank_8};
 
