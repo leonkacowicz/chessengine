@@ -5,3 +5,4 @@
 #include "zobrist.h"
 
 uint64_t zobrist::table[64][6][2];
+uint64_t zobrist::side = 0;

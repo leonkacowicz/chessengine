@@ -23,6 +23,23 @@ TEST(random_test, random_t) {
     auto b = empty;
     b.set_initial_position();
     printf("%lx\n", zobrist::hash(b));
-    printf("%lx\n", zobrist::hash(empty));
+    printf("%s\n", b.fen().c_str());
+    b.make_move(b.get_legal_moves(WHITE)[3]);
     printf("%lx\n", zobrist::hash(b));
+    printf("%s\n", b.fen().c_str());
+    b.make_move(b.get_legal_moves(BLACK)[3]);
+    printf("%lx\n", zobrist::hash(b));
+    printf("%s\n", b.fen().c_str());
+    b.make_move(b.get_legal_moves(WHITE)[3]);
+    printf("%lx\n", zobrist::hash(b));
+    printf("%s\n", b.fen().c_str());
+    b.make_move(b.get_legal_moves(BLACK)[3]);
+    printf("%lx\n", zobrist::hash(b));
+    printf("%s\n", b.fen().c_str());
+    b.make_move(b.get_legal_moves(WHITE)[3]);
+    printf("%lx\n", zobrist::hash(b));
+    printf("%s\n", b.fen().c_str());
+    b.make_move(b.get_legal_moves(BLACK)[3]);
+    printf("%lx\n", zobrist::hash(b));
+    printf("%s\n", b.fen().c_str());
 }
