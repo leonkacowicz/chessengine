@@ -53,14 +53,22 @@ int negamax(const board& b, int depth, std::vector<move>& moves, move* selected,
 
     int best = -32001;
     move best_m;
+    bool first = true;
     for (move& m : moves) {
         board bnew = b;
         bnew.make_move(m);
-
         auto bnew_moves = bnew.get_legal_moves(bnew.side_to_play);
 
         int val;
-        val = -negamax(bnew, depth - 1, bnew_moves, nullptr, -beta, -alpha, cache_hit, total_nodes);
+        if (first) {
+            val = -negamax(bnew, depth - 1, bnew_moves, nullptr, -beta, -alpha, cache_hit, total_nodes);
+            first = false;
+        } else {
+            val = -negamax(bnew, depth - 1, bnew_moves, nullptr, -alpha - 1, -alpha, cache_hit, total_nodes);
+            if (val > alpha && val < beta) {
+                val = -negamax(bnew, depth - 1, bnew_moves, nullptr, -beta, -alpha, cache_hit, total_nodes);
+            }
+        }
         if (val > best) {
             best = val;
             best_m = m;
@@ -81,7 +89,7 @@ int negamax(const board& b, int depth, std::vector<move>& moves, move* selected,
 }
 
 move engine::get_move(const board& b) {
-    int plys = 5;
+    int plys = 6;
     std::vector<move> legal_moves = b.get_legal_moves(b.side_to_play);
     if (legal_moves.empty()) return {};
     std::vector<move> seq(plys + 1);
