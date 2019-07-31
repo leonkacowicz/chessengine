@@ -10,17 +10,20 @@
 #include "zobrist.h"
 std::unordered_map<uint64_t, node> transp;
 
-void log_score(int val, move m, int depth) {
+void log_score(int val, std::vector<move>& variation, int depth) {
     auto mate = 32000 - std::abs(val);
     if (mate < 30) {
-        std::cout << "info depth " << depth << " score mate " << (val < 0 ? "-" : "") << mate
-                << " " << m.to_long_move() << std::endl;
+        std::cout << "info depth " << depth << " score mate " << (val < 0 ? "-" : "") << mate;
     } else {
-        std::cout << "info depth " << depth << " score cp " << val << " " << m.to_long_move() << std::endl;
+        std::cout << "info depth " << depth << " score cp " << val;
     }
+
+    for (auto m = variation.end() - 1; m != variation.begin(); m--)
+        std::cout << " " << m->to_long_move();
+    std::cout << std::endl;
 }
 
-int negamax(const board& b, int depth, std::vector<move>& moves, move* selected, int alpha, int beta, int *cache_hit, int *total_nodes) {
+int negamax(const board& b, int depth, std::vector<move>& moves, std::vector<move>& variation, int alpha, int beta, int *cache_hit, int *total_nodes) {
 
     (*total_nodes)++;
     auto hash = zobrist::hash(b);
@@ -36,12 +39,14 @@ int negamax(const board& b, int depth, std::vector<move>& moves, move* selected,
         }
     }
 
-    if (transp.find(hash + depth) != transp.end()) {
-        (*cache_hit)++;
-        auto n = transp[hash + depth];
-        if (selected != nullptr) *selected = n.m;
-        return n.val;
-    }
+//    if (transp.find(hash + depth) != transp.end()) {
+//        (*cache_hit)++;
+//        auto n = transp[hash + depth];
+//        if (!n.beta_cut && depth > 0) {
+//            variation[depth] = n.m;
+//        }
+//        return n.val;
+//    }
 
     if (depth == 0) {
         // base case
@@ -52,8 +57,14 @@ int negamax(const board& b, int depth, std::vector<move>& moves, move* selected,
     }
 
     int best = -32001;
-    move best_m;
     bool first = true;
+    auto move_pos = std::find_if(moves.begin(), moves.end(), [&](const move& m) { return m == variation[depth]; });
+    if (move_pos == moves.end()){
+        //std::cerr << "Principal Variation move not found in legal moves... weird" << std::endl;
+    } else if (move_pos != moves.begin()) {
+        moves.erase(move_pos);
+        moves.insert(moves.begin(), variation[depth]);
+    }
     for (move& m : moves) {
         board bnew = b;
         bnew.make_move(m);
@@ -61,60 +72,56 @@ int negamax(const board& b, int depth, std::vector<move>& moves, move* selected,
 
         int val;
         if (first) {
-            val = -negamax(bnew, depth - 1, bnew_moves, nullptr, -beta, -alpha, cache_hit, total_nodes);
+            val = -negamax(bnew, depth - 1, bnew_moves, variation, -beta, -alpha, cache_hit, total_nodes);
+            variation[depth] = m;
             first = false;
         } else {
-            val = -negamax(bnew, depth - 1, bnew_moves, nullptr, -alpha - 1, -alpha, cache_hit, total_nodes);
+            std::vector<move> newvar = variation;
+            val = -negamax(bnew, depth - 1, bnew_moves, newvar, -alpha - 1, -alpha, cache_hit, total_nodes);
             if (val > alpha && val < beta) {
-                val = -negamax(bnew, depth - 1, bnew_moves, nullptr, -beta, -alpha, cache_hit, total_nodes);
+                val = -negamax(bnew, depth - 1, bnew_moves, variation, -beta, -alpha, cache_hit, total_nodes);
             }
         }
-        if (val > best) {
-            best = val;
-            best_m = m;
-            if (selected != nullptr) {
-                log_score(val, m, depth);
+        if (val > alpha) {
+            alpha = val;
+            variation[depth] = m;
+            if (depth == variation.size() - 1) {
+                log_score(val, variation, depth);
             }
         }
-        alpha = std::max(alpha, val);
         if (alpha >= beta) {
-            transp[hash + depth] = {val, m};
-            return best;
+            transp[hash + depth] = {beta, m, true};
+            return alpha;
         }
     }
-
-    transp[hash + depth] = {best, best_m};
-    if (selected != nullptr) *selected = best_m;
-    return best;
+    transp[hash + depth] = {alpha, variation[depth], false};
+    return alpha;
 }
 
 move engine::get_move(const board& b) {
-    int plys = 6;
+    int plys = 4;
     std::vector<move> legal_moves = b.get_legal_moves(b.side_to_play);
     if (legal_moves.empty()) return {};
-    std::vector<move> seq(plys + 1);
+    std::vector<move> seq;
     int alpha = -32001;
     int beta = 32001;
+    seq.push_back({});
     for (int depth = 1; depth <= plys; depth++) {
         std::cerr << "Trying starting with move " << seq[depth - 1].to_long_move() << std::endl;
-        seq[depth] = seq[depth - 1];
-        move selected = legal_moves.front();
+        seq.insert(seq.begin(), move());
         int cache_hit = 0;
         int total_nodes = 0;
 
+        int val;
         if (b.side_to_play == WHITE)
-            negamax(b, depth, legal_moves, &selected, alpha, beta, &cache_hit, &total_nodes);
+            val = negamax(b, depth, legal_moves, seq, alpha, beta, &cache_hit, &total_nodes);
         else
-            negamax(b, depth, legal_moves, &selected, -beta, -alpha, &cache_hit, &total_nodes);
+            val = negamax(b, depth, legal_moves, seq, -beta, -alpha, &cache_hit, &total_nodes);
 
-        seq[depth] = selected;
         std::cout << "info cachehit " << cache_hit << std::endl;
         std::cout << "info nodes " << total_nodes << std::endl;
-        std::cout << "info currmove "; for (move m : legal_moves) std::cout << " " << m.to_long_move(); std::cout << std::endl;
-        legal_moves.erase(std::find_if(legal_moves.begin(), legal_moves.end(), [&] (const move m) { return m == seq[depth]; }));
-        legal_moves.insert(legal_moves.begin(), seq[depth]);
-        std::cout << "info currmove "; for (move m : legal_moves) std::cout << " " << m.to_long_move(); std::cout << std::endl;
-
+        //std::cout << "info currmove "; for (move m : legal_moves) std::cout << " " << m.to_long_move(); std::cout << std::endl;
+        log_score(val, seq, depth);
         std::cerr << "Current best move " << seq[depth].to_long_move() << std::endl;
     }
     if (seq[plys].special == NULL_MOVE) {

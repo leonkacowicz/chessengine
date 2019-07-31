@@ -15,6 +15,7 @@
 struct node {
     int val;
     move m;
+    bool beta_cut;
 };
 
 

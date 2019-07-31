@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <cassert>
 #include "color.h"
 #include "board.h"
 #include "move.h"
@@ -549,6 +550,7 @@ bool board::resets_half_move_counter(const move m) {
 }
 
 void board::make_move(const move m) {
+    assert(m.special != NULL_MOVE);
     piece p = piece_at(m.origin);
     color c = color_at(m.origin);
     square new_en_passant = square::none;
