@@ -14,18 +14,14 @@
 
 struct node {
     int val;
+    move m;
 };
 
 
 class engine {
-
-    const board& b;
-    evaluator eval;
 public:
-    engine(const board& b);
-    move get_move();
-
-    int minimax(const board& brd, int ply, std::vector<move>& legal_moves, std::vector<move>& sequence, bool log, int alpha, int beta);
+    engine();
+    move get_move(const board& b);
 };
 
 

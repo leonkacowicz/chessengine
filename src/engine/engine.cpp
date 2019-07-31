@@ -10,95 +10,104 @@
 #include "zobrist.h"
 std::unordered_map<uint64_t, node> transp;
 
-int engine::minimax(const board& brd, int ply, std::vector<move>& legal_moves, std::vector<move>& sequence, bool log, int alpha, int beta) {
-    if (legal_moves.empty() && brd.under_check(brd.side_to_play)) {
-        return brd.side_to_play == WHITE ? -1000000 : 1000000;
-    }
-    if (ply == 0) {
-        return eval.evaluate(brd);
+void log_score(int val, move m, int depth) {
+    auto mate = 32000 - std::abs(val);
+    if (mate < 30) {
+        std::cout << "info depth " << depth << " score mate " << (val < 0 ? "-" : "") << mate
+                << " " << m.to_long_move() << std::endl;
     } else {
-        if (brd.side_to_play == WHITE) {
-            int best = alpha;
-            for (auto& m : legal_moves) {
-                board bnew = brd;
-                bnew.make_move(m);
-                int val;
-                auto hash = zobrist::hash(bnew) + ply;
-                if (transp.find(hash) != transp.end()) {
-                    node n = transp[hash];
-                    val = n.val;
-                } else {
-                    auto moves = bnew.get_legal_moves(bnew.side_to_play);
-                    val = minimax(bnew, ply - 1, moves, sequence, false, alpha, beta);
-                    transp[hash] = {val};
-                }
-
-                if (val >= beta) {
-                    return beta;
-                }
-                if (val > best) {
-                    best = val;
-                    sequence[ply] = m;
-                    if (log) {
-                        std::cout << "info depth " << ply << " score cp " << val << " " << m.to_long_move() << std::endl;
-                    }
-                }
-                if (best > alpha) alpha = best;
-            }
-
-            return best;
-        } else {
-            int best = beta;
-            for (auto& m : legal_moves) {
-                board bnew = brd;
-                bnew.make_move(m);
-                int val;
-                auto hash = zobrist::hash(bnew) + ply;
-                if (transp.find(hash) != transp.end()) {
-                    node n = transp[hash];
-                    val = n.val;
-                } else {
-                    auto moves = bnew.get_legal_moves(bnew.side_to_play);
-                    val = minimax(bnew, ply - 1, moves, sequence, false, alpha, beta);
-                    transp[hash] = {val};
-                }
-
-                if (val <= alpha) {
-                    return alpha;
-                }
-                if (val < best) {
-                    best = val;
-                    sequence[ply] = m;
-                    if (log) {
-                        std::cout << "info depth " << ply << " cp " << val << " " << m.to_long_move() << std::endl;
-                    }
-                }
-                if (best < beta) beta = best;
-            }
-            return best;
-        }
+        std::cout << "info depth " << depth << " score cp " << val << " " << m.to_long_move() << std::endl;
     }
 }
 
+int negamax(const board& b, int depth, std::vector<move>& moves, move* selected, int alpha, int beta, int *cache_hit, int *total_nodes) {
 
-move engine::get_move() {
-    int plys = 6;
+    (*total_nodes)++;
+    auto hash = zobrist::hash(b);
+    if (moves.empty()) {
+        // Game ended in less moves than "depth"
+        if (b.under_check(b.side_to_play)) {
+            int val = -32000;
+            transp[hash] = {val};
+            return val;
+        } else {
+            transp[hash] = {0};
+            return 0;
+        }
+    }
+
+    if (transp.find(hash + depth) != transp.end()) {
+        (*cache_hit)++;
+        auto n = transp[hash + depth];
+        if (selected != nullptr) *selected = n.m;
+        return n.val;
+    }
+
+    if (depth == 0) {
+        // base case
+        int val = evaluator::evaluate(b);
+        val = (b.side_to_play == WHITE ? val : -val);
+        transp[hash] = {val};
+        return val;
+    }
+
+    int best = -32001;
+    move best_m;
+    for (move& m : moves) {
+        board bnew = b;
+        bnew.make_move(m);
+
+        auto bnew_moves = bnew.get_legal_moves(bnew.side_to_play);
+
+        int val;
+        val = -negamax(bnew, depth - 1, bnew_moves, nullptr, -beta, -alpha, cache_hit, total_nodes);
+        if (val > best) {
+            best = val;
+            best_m = m;
+            if (selected != nullptr) {
+                log_score(val, m, depth);
+            }
+        }
+        alpha = std::max(alpha, val);
+        if (alpha >= beta) {
+            transp[hash + depth] = {val, m};
+            return best;
+        }
+    }
+
+    transp[hash + depth] = {best, best_m};
+    if (selected != nullptr) *selected = best_m;
+    return best;
+}
+
+move engine::get_move(const board& b) {
+    int plys = 5;
     std::vector<move> legal_moves = b.get_legal_moves(b.side_to_play);
     if (legal_moves.empty()) return {};
     std::vector<move> seq(plys + 1);
-    for (int ply = 1; ply <= plys; ply++) {
-        std::cerr << "Trying starting with move " << seq[ply - 1].to_long_move() << std::endl;
-        int value = minimax(b, ply, legal_moves, seq, true, -1'000'000'000, 1'000'000'000);
-        //board b2 = b;
-        //b2.make_move(seq[ply]);
-        //transp[zobrist::hash(b2)] = {value, seq[ply]};
+    int alpha = -32001;
+    int beta = 32001;
+    for (int depth = 1; depth <= plys; depth++) {
+        std::cerr << "Trying starting with move " << seq[depth - 1].to_long_move() << std::endl;
+        seq[depth] = seq[depth - 1];
+        move selected = legal_moves.front();
+        int cache_hit = 0;
+        int total_nodes = 0;
 
+        if (b.side_to_play == WHITE)
+            negamax(b, depth, legal_moves, &selected, alpha, beta, &cache_hit, &total_nodes);
+        else
+            negamax(b, depth, legal_moves, &selected, -beta, -alpha, &cache_hit, &total_nodes);
+
+        seq[depth] = selected;
+        std::cout << "info cachehit " << cache_hit << std::endl;
+        std::cout << "info nodes " << total_nodes << std::endl;
         std::cout << "info currmove "; for (move m : legal_moves) std::cout << " " << m.to_long_move(); std::cout << std::endl;
-        legal_moves.erase(std::find_if(legal_moves.begin(), legal_moves.end(), [&] (const move m) { return m == seq[ply]; }));
-        legal_moves.insert(legal_moves.begin(), seq[ply]);
+        legal_moves.erase(std::find_if(legal_moves.begin(), legal_moves.end(), [&] (const move m) { return m == seq[depth]; }));
+        legal_moves.insert(legal_moves.begin(), seq[depth]);
         std::cout << "info currmove "; for (move m : legal_moves) std::cout << " " << m.to_long_move(); std::cout << std::endl;
 
-        std::cerr << "Current best move " << seq[ply].to_long_move() << std::endl;
+        std::cerr << "Current best move " << seq[depth].to_long_move() << std::endl;
     }
     if (seq[plys].special == NULL_MOVE) {
         return legal_moves[0];
@@ -106,7 +115,7 @@ move engine::get_move() {
     return seq[plys];
 }
 
-engine::engine(const board& b) : b(b) {
+engine::engine() {
     zobrist::init();
     transp.clear();
 }

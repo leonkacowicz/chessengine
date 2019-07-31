@@ -12,9 +12,9 @@
 class evaluator {
 //    std::default_random_engine gen;
 //    std::uniform_int_distribution<int> dis{0, 100};
-    int rnd = 0;
+
 public:
-    int evaluate(const board& b);
+    static int evaluate(const board& b);
 };
 
 

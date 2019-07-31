@@ -10,8 +10,14 @@
 TEST(engine_test, engine_call) {
     board b;
     b.set_initial_position();
-    engine e(b);
-    e.get_move();
+    engine e;
+    for (int i = 1; i < 10; i++) {
+        std::cout << i << ".\n\n";
+        auto m = e.get_move(b);
+        if (m.special == NULL_MOVE) break;
+        b.make_move(m);
+        b.print();
+    }
 }
 
 TEST(random_test, random_t) {

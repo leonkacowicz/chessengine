@@ -9,6 +9,7 @@ using std::string;
 
 int main()
 {
+    engine e;
     board b;
     b.set_initial_position();
     string line;
@@ -46,12 +47,11 @@ int main()
             }
             continue;
         } else if (word == "go") {
-            engine e(b);
             if (b.get_legal_moves(b.side_to_play).empty()) {
                 std::cerr << "no legal move found to be searched" << std::endl;
                 std::cout << "bestmove (none)" << std::endl;
             } else {
-                auto selected_move = e.get_move();
+                auto selected_move = e.get_move(b);
                 std::cout << "bestmove " << selected_move.to_long_move() << std::endl;
             }
         } else if (word == "print") {
