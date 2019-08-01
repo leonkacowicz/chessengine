@@ -11,7 +11,7 @@
 TEST(board_test, bug_detector) {
     std::default_random_engine gen;
     std::uniform_int_distribution<int> dis(0, 20000);
-
+    dis(gen);
     int testNum;
     for (testNum = 0; testNum < 10000; testNum++) {
         board b;
@@ -21,7 +21,7 @@ TEST(board_test, bug_detector) {
         if (testNum % 100 == 0) std::cout << "Tested " << testNum << " cases." << std::endl;
 
         std::vector<std::string> pgn;
-        while (!legal_moves.empty() && k < 50) {
+        while (!legal_moves.empty() && k < 100) {
             k++;
             try {
                 unsigned long i = dis(gen) % legal_moves.size();
