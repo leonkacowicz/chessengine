@@ -143,7 +143,7 @@ public:
         return (*this)[bitboard(square)];
     }
 
-    bool isEmpty() const {
+    bool empty() const {
         return board == 0;
     }
 
@@ -200,6 +200,19 @@ static const bitboard rank_6_i(~rank_6);
 static const bitboard rank_7_i(~rank_7);
 static const bitboard rank_8_i(~rank_8);
 
+static const bitboard file_a_i_rank_1_i = file_a_i & rank_1_i;
+static const bitboard file_a_i_rank_8_i = file_a_i & rank_8_i;
+static const bitboard file_h_i_rank_1_i = file_h_i & rank_1_i;
+static const bitboard file_h_i_rank_8_i = file_h_i & rank_8_i;
+
+static const bitboard file_a_i_rank_8_i_rank_7_i = file_a_i_rank_8_i & rank_7_i;
+static const bitboard file_a_i_rank_1_i_rank_2_i = file_a_i_rank_1_i & rank_2_i;
+static const bitboard file_h_i_rank_8_i_rank_7_i = file_h_i_rank_8_i & rank_7_i;
+static const bitboard file_h_i_rank_1_i_rank_2_i = file_h_i_rank_1_i & rank_2_i;
+static const bitboard file_a_i_rank_8_i_file_b_i = file_a_i_rank_8_i & file_b_i;
+static const bitboard file_a_i_rank_1_i_file_b_i = file_a_i_rank_1_i & file_b_i;
+static const bitboard file_h_i_rank_8_i_file_g_i = file_h_i_rank_8_i & file_g_i;
+static const bitboard file_h_i_rank_1_i_file_g_i = file_h_i_rank_1_i & file_g_i;
 
 static const bitboard file[8] = {file_a, file_b, file_c, file_d, file_e, file_f, file_g, file_h};
 static const bitboard rank[8] = {rank_1, rank_2, rank_3, rank_4, rank_5, rank_6, rank_7, rank_8};

@@ -7,7 +7,7 @@
 int evaluator::evaluate(const board &b) {
 
     int accum[2] = {0, 0};
-    for (bitboard i(1); !i.isEmpty(); i <<= 1uL) {
+    for (bitboard i(1); !i.empty(); i <<= 1uL) {
         color c = b.color_at(i);
         if (b.piece_of_type[PAWN][i]) accum[c] += 1'00 + 2 * (i.get_square().get_rank()) * (c == WHITE) - 2 * (7 - i.get_square().get_rank()) * (c == BLACK) + 2 * (file_d | file_e)[i];
         if (b.piece_of_type[KNIGHT][i]) accum[c] += 2'95 + 5 * ((file_c | file_d | file_e | file_f) & (rank_3 | rank_4 | rank_5 | rank_6))[i] + 5 * ((file_d | file_e) & (rank_4 | rank_5))[i];
