@@ -267,7 +267,8 @@ board::board(const std::string& fen) {
 
     this->en_passant = enpassant == "-" ? square::none : square(enpassant);
 
-    half_move_counter = (char)std::stoi(half_move_clock);
+    if (half_move_clock != "")
+        half_move_counter = (char)std::stoi(half_move_clock);
 }
 
 board board::simulate(const square from, const square to) const {

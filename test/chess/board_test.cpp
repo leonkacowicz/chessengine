@@ -9,7 +9,6 @@ void list_moves(const std::vector<move>& moves) {
     std::cout << "Moves found:" << std::endl;
     for (auto& move: moves) {
         std::cout << move.to_long_move() << std::endl;
-//        std::cout << move.origin.to_string() << move.destination.to_string() << std::endl;
     }
 }
 
@@ -506,23 +505,6 @@ TEST(board_test, assert_its_checkmate) {
     ASSERT_TRUE(moves.empty());
 }
 
-TEST(board_test, board_accepts_move) {
-    /*
- 8   . . . . . . . .
- 7   . . . . . k p .
- 6   . . p . . . . p
- 5   . p . p . . . P
- 4   . . n r . . N .
- 3   P . . . . P . .
- 2   . . . . R K . .
- 1   . . . . . . . .
-
-     a b c d e f g h
-     */
-
-    // should be legal for white to move g4e5
-}
-
 TEST(board_test, 1b4n1_p2b4_1k3pR1_3P1n1p_1PB2P1P_8_PB2P1N1_RN2K3__w__Q_____1__51) {
 
     // play 51 should not be legal:
@@ -540,51 +522,6 @@ TEST(board_test, 1b4n1_p2b4_1k3pR1_3P1n1p_1PB2P1P_8_PB2P1N1_RN2K3__w__Q_____1__5
     for (auto& m : moves) {
         ASSERT_NE(m.special, CASTLE_KING_SIDE_WHITE);
     }
-}
-
-
-
-TEST(board_test, bug_detector) {
-    std::default_random_engine gen;
-    std::uniform_int_distribution<int> dis(0, 10000);
-
-    int testNum;
-    for (testNum = 0; testNum < 10000; testNum++) {
-        board b;
-        b.set_initial_position();
-        std::vector<move> legal_moves = b.get_legal_moves(b.side_to_play);
-        int k = 0;
-        if (testNum % 100 == 0) std::cout << "Tested " << testNum << " cases." << std::endl;
-
-        std::vector<std::string> pgn;
-        while (!legal_moves.empty() && k < 50) {
-            k++;
-            try {
-                unsigned long i = dis(gen) % legal_moves.size();
-                move m = legal_moves[i];
-                pgn.push_back(b.move_in_pgn(m, legal_moves));
-                b.make_move(m);
-                if (b.under_check(opposite(b.side_to_play))) {
-                    std::__throw_runtime_error("Move ignored check");
-                }
-                if (!(b == board(b.fen()))) std::__throw_runtime_error("FEN failed");
-
-                legal_moves = b.get_legal_moves(b.side_to_play);
-            } catch (std::exception& e) {
-                std::cout << "Exception: " << e.what() << std::endl;
-                std::cout << std::endl;
-                for (int j = 0; j < pgn.size(); j++)
-                    (j % 2 == 0 ? std::cout << j / 2 + 1 << ". " : std::cout) << pgn[j] << " ";
-                std::cout << std::endl;
-                std::cout << "======================================================";
-                std::cout << std::endl;
-                std::cout << std::endl;
-                break;
-            }
-        }
-    }
-
-    std::cout << "Tested " << testNum << " cases.\n";
 }
 
 TEST(board_test, print_sizeof_board) {
