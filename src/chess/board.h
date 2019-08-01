@@ -64,8 +64,18 @@ public:
 
     bool operator==(const board& other) const;
 
-    piece piece_at(bitboard p) const;
-    color color_at(bitboard p) const;
+    inline piece piece_at(bitboard p) const {
+        return (p == king_pos[WHITE]) ? KING :
+               (p == king_pos[BLACK]) ? KING :
+               piece_of_type[PAWN][p] ? PAWN :
+               piece_of_type[KNIGHT][p] ? KNIGHT :
+               piece_of_type[BISHOP][p] ? BISHOP :
+               piece_of_type[ROOK][p] ? ROOK :
+               piece_of_type[QUEEN][p] ? QUEEN : NONE;
+    }
+    inline color color_at(bitboard p) const {
+        return piece_of_color[BLACK][p] ? BLACK : WHITE;
+    }
 };
 
 #endif //CHESSENGINE_BOARD_H

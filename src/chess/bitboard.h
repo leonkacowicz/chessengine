@@ -15,13 +15,13 @@ class bitboard {
 
 public:
 
-    bitboard() noexcept : board(0) {}
+    inline bitboard() noexcept : board(0) {}
 
-    bitboard(U64 mask) noexcept : board(mask) {};
+    inline bitboard(U64 mask) noexcept : board(mask) {};
 
-    bitboard(unsigned int x, unsigned int y) noexcept : board(1uL << (8 * y + x)) {};
+    inline bitboard(unsigned int x, unsigned int y) noexcept : board(1uL << (8 * y + x)) {};
 
-    bitboard(const square sq) noexcept : bitboard(sq == square::none ? 0 : bitboard(sq.get_file(), sq.get_rank())) {}
+    inline bitboard(const square sq) noexcept : bitboard(sq == square::none ? 0 : bitboard(sq.get_file(), sq.get_rank())) {}
 
     bitboard(const std::initializer_list<square>& squares) noexcept {
         for (auto& sq : squares) {
@@ -29,125 +29,125 @@ public:
         }
     }
 
-    bitboard shift_left(const unsigned int arg) const {
+    inline bitboard shift_left(const unsigned int arg) const {
         return {board >> arg};
     }
 
-    bitboard shift_right(const unsigned int arg) const {
+    inline bitboard shift_right(const unsigned int arg) const {
         return {board << arg};
     }
 
-    bitboard shift_up(const unsigned int arg) const {
+    inline bitboard shift_up(const unsigned int arg) const {
         return {board << (8 * arg)};
     }
 
-    bitboard shift_down(const unsigned int arg) const {
+    inline bitboard shift_down(const unsigned int arg) const {
         return {board >> (8 * arg)};
     }
 
-    bitboard shift_up_left(const unsigned int arg) const {
+    inline bitboard shift_up_left(const unsigned int arg) const {
         return shift_up(arg).shift_left(arg);
     }
 
-    bitboard shift_up_right(const unsigned int arg) const {
+    inline bitboard shift_up_right(const unsigned int arg) const {
         return shift_up(arg).shift_right(arg);
     }
 
-    bitboard shift_down_left(const unsigned int arg) const {
+    inline bitboard shift_down_left(const unsigned int arg) const {
         return shift_down(arg).shift_left(arg);
     }
 
-    bitboard shift_down_right(const unsigned int arg) const {
+    inline bitboard shift_down_right(const unsigned int arg) const {
         return shift_down(arg).shift_right(arg);
     }
 
-    bool operator==(const U64 rhs) const {
+    inline bool operator==(const U64 rhs) const {
         return board == rhs;
     }
 
-    bool operator==(const bitboard rhs) const {
+    inline bool operator==(const bitboard rhs) const {
         return board == rhs.board;
     }
 
-    bool operator!=(const U64 rhs) const {
+    inline bool operator!=(const U64 rhs) const {
         return board != rhs;
     }
 
-    bool operator!=(const bitboard rhs) const {
+    inline bool operator!=(const bitboard rhs) const {
         return board != rhs.board;
     }
 
-    bitboard operator<<(const int rhs) const {
+    inline bitboard operator<<(const int rhs) const {
         return {board << rhs};
     }
 
-    bitboard& operator<<=(const int rhs) {
+    inline bitboard& operator<<=(const int rhs) {
         board <<= rhs;
         return *this;
     }
 
-    bitboard operator>>(const int rhs) const {
+    inline bitboard operator>>(const int rhs) const {
         return {board >> rhs};
     }
 
-    bitboard& operator>>=(const int rhs) {
+    inline bitboard& operator>>=(const int rhs) {
         board >>= rhs;
         return *this;
     }
 
-    bitboard operator|(const bitboard rhs) const {
+    inline bitboard operator|(const bitboard rhs) const {
         return {board | rhs.board};
     }
 
-    bitboard operator|(const uint64_t rhs) const {
+    inline bitboard operator|(const uint64_t rhs) const {
         return {board | rhs};
     }
 
-    bitboard& operator|=(const bitboard rhs) {
+    inline bitboard& operator|=(const bitboard rhs) {
         board |= rhs.board;
         return *this;
     }
 
-    bitboard& operator|=(const U64 rhs) {
+    inline bitboard& operator|=(const U64 rhs) {
         board |= rhs;
         return *this;
     }
 
-    bitboard& operator&=(const bitboard rhs) {
+    inline bitboard& operator&=(const bitboard rhs) {
         board &= rhs.board;
         return *this;
     }
 
-    bitboard& operator&=(const U64 rhs) {
+    inline bitboard& operator&=(const U64 rhs) {
         board &= rhs;
         return *this;
     }
 
-    bitboard operator&(const bitboard rhs) const {
+    inline bitboard operator&(const bitboard rhs) const {
         return {board & rhs.board};
     }
 
-    bitboard operator&(const uint64_t rhs) const {
+    inline bitboard operator&(const uint64_t rhs) const {
         return {board & rhs};
     }
 
-    bitboard operator~() const {
+    inline bitboard operator~() const {
         return {~board};
     }
 
-    bool operator[](const bitboard position) const {
+    inline bool operator[](const bitboard position) const {
         return (board & position.board) != 0;
     }
 
-    bool operator[](const square square) const {
+    inline bool operator[](const square square) const {
         return (*this)[bitboard(square)];
     }
 
-    bool empty() const {
+    inline bool empty() const {
         return board == 0;
     }
 
-    square get_square() const {
+    inline square get_square() const {
         // https://www.chessprogramming.org/BitScan
         return squarePositions[(board & -board) % 67];
     }

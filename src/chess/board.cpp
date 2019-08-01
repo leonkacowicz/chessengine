@@ -19,10 +19,14 @@ bool board::under_check(color c) const {
     // checks if attacked by rook or queen in horizontal or vertical directions
     bitboard opponent_piece = piece_of_color[opposite(c)];
     bitboard attacker = (piece_of_type[ROOK] | piece_of_type[QUEEN]) & opponent_piece;
-    if (shift_attacks<1, 0, 0, 0>(king, rank_8_i)[attacker]) return true;
-    if (shift_attacks<0, 1, 0, 0>(king, rank_1_i)[attacker]) return true;
-    if (shift_attacks<0, 0, 1, 0>(king, file_a_i)[attacker]) return true;
-    if (shift_attacks<0, 0, 0, 1>(king, file_h_i)[attacker]) return true;
+    if (file[king_pos[c].get_file()][attacker]) {
+        if (shift_attacks<1, 0, 0, 0>(king, rank_8_i)[attacker]) return true;
+        if (shift_attacks<0, 1, 0, 0>(king, rank_1_i)[attacker]) return true;
+    }
+    if (rank[king_pos[c].get_rank()][attacker]) {
+        if (shift_attacks<0, 0, 1, 0>(king, file_a_i)[attacker]) return true;
+        if (shift_attacks<0, 0, 0, 1>(king, file_h_i)[attacker]) return true;
+    }
 
     // checks if attacked by bishop or queen in diagonal directions
     attacker = (piece_of_type[BISHOP] | piece_of_type[QUEEN]) & opponent_piece;
@@ -173,26 +177,27 @@ void board::add_bishop_moves(bitboard origin, std::vector<move>& moves) const {
 void board::add_king_moves(bitboard origin, std::vector<move>& moves) const {
     color c = piece_of_color[BLACK][origin] ? BLACK : WHITE;
     auto origin_square = origin.get_square();
-    bitboard in_range[8];
+    bitboard dest[8];
     int N = 0;
 
     if (rank_8_i[origin]) {
-        in_range[N++] = origin.shift_up(1);
-        if (file_a_i[origin]) in_range[N++] = origin.shift_up_left(1);
-        if (file_h_i[origin]) in_range[N++] = origin.shift_up_right(1);
+        dest[N++] = origin.shift_up(1);
+        if (file_a_i[origin]) dest[N++] = origin.shift_up_left(1);
+        if (file_h_i[origin]) dest[N++] = origin.shift_up_right(1);
     }
     if (rank_1_i[origin]) {
-        in_range[N++] = origin.shift_down(1);
-        if (file_a_i[origin]) in_range[N++] = origin.shift_down_left(1);
-        if (file_h_i[origin]) in_range[N++] = origin.shift_down_right(1);
+        dest[N++] = origin.shift_down(1);
+        if (file_a_i[origin]) dest[N++] = origin.shift_down_left(1);
+        if (file_h_i[origin]) dest[N++] = origin.shift_down_right(1);
     }
-    if (file_a_i[origin]) in_range[N++] = origin.shift_left(1);
-    if (file_h_i[origin]) in_range[N++] = origin.shift_right(1);
+    if (file_a_i[origin]) dest[N++] = origin.shift_left(1);
+    if (file_h_i[origin]) dest[N++] = origin.shift_right(1);
 
     for (int i = 0; i < N; i++) {
-        if (!piece_of_color[c][in_range[i]]) {
-            if (!simulate(origin_square, in_range[i].get_square()).under_check(c))
-                moves.emplace_back(origin_square, in_range[i].get_square());
+        if (!piece_of_color[c][dest[i]]) {
+            assert(dest[i].get_square() != king_pos[opposite(c)]);
+            if (!simulate(origin_square, dest[i].get_square()).under_check(c))
+                moves.emplace_back(origin_square, dest[i].get_square());
         }
     }
 }
@@ -565,21 +570,6 @@ void board::make_move(const move m) {
     side_to_play = opposite(side_to_play);
 }
 
-piece board::piece_at(bitboard p) const {
-    if (p == king_pos[WHITE]) return KING;
-    if (p == king_pos[BLACK]) return KING;
-
-    return piece_of_type[PAWN][p] ? PAWN :
-        piece_of_type[KNIGHT][p] ? KNIGHT :
-        piece_of_type[BISHOP][p] ? BISHOP :
-        piece_of_type[ROOK][p] ? ROOK :
-        piece_of_type[QUEEN][p] ? QUEEN : NONE;
-}
-
-color board::color_at(bitboard p) const {
-    return piece_of_color[BLACK][p] ? BLACK : WHITE;
-}
-
 std::string board::move_in_pgn(const move m, const std::vector<move>& legal_moves) const {
 
     color c = color_at(m.origin);
@@ -728,10 +718,7 @@ void board::shift_moves(const bitboard origin, const bitboard in_range, std::vec
     while (in_range[sq]) {
         sq = sq.shift_up(up).shift_down(down).shift_left(left).shift_right(right);
         if (player_piece[sq]) return; // blocked by own piece
-        if (sq == king_pos[opposite(c)]) {
-            assert(false);
-            return; // found opponent king
-        }
+        assert(sq != king_pos[opposite(c)]); // found opponent king
         // simulate move
         if (!simulate(origin.get_square(), sq.get_square()).under_check(c)) {
             moves.emplace_back(origin.get_square(), sq.get_square());
