@@ -11,9 +11,12 @@ using U64 = unsigned long int;
 class bitboard {
 
     static square squarePositions[67];
-    U64 board = 0;
-
+    static bitboard king_attacks_[67];
+    static bitboard knight_attacks_[67];
+    static bitboard white_pawn_attacks_[67];
+    static bitboard black_pawn_attacks_[67];
 public:
+    U64 board = 0;
 
     inline bitboard() noexcept : board(0) {}
 
@@ -163,6 +166,22 @@ public:
 //        for (int i = 0; i < 67; i++) {
 //            std::cout << "\"" << squarePositions[i].to_string() << "\", ";
 //        }
+    }
+
+    static inline bitboard king_attacks(bitboard origin) {
+        return king_attacks_[(origin.board & -origin.board) % 67];
+    }
+
+    static inline bitboard knight_attacks(bitboard origin) {
+        return knight_attacks_[(origin.board & -origin.board) % 67];
+    }
+
+    static inline bitboard white_pawn_attacks(bitboard origin) {
+        return white_pawn_attacks_[(origin.board & -origin.board) % 67];
+    }
+
+    static inline bitboard black_pawn_attacks(bitboard origin) {
+        return black_pawn_attacks_[(origin.board & -origin.board) % 67];
     }
 };
 
