@@ -56,26 +56,26 @@ TEST(bitboard_test, bitboard_square_conversion_inv) {
 
 TEST(bitboard_test, costants_and_ops) {
     for (int f = 0; f < 7; f++) {
-        EXPECT_EQ(file[f].shift_right(1), file[f + 1]);
+        EXPECT_EQ(file[f].shift<RIGHT>(), file[f + 1]);
     }
 
     for (int f = 7; f > 0; f--) {
-        EXPECT_EQ(file[f].shift_left(1), file[f - 1]);
+        EXPECT_EQ(file[f].shift<LEFT>(), file[f - 1]);
     }
 
     for (int r = 0; r < 7; r++) {
-        EXPECT_EQ(rank[r].shift_up(1), rank[r + 1]);
+        EXPECT_EQ(rank[r].shift<UP>(), rank[r + 1]);
     }
 
     for (int r = 7; r > 0; r--) {
-        EXPECT_EQ(rank[r].shift_down(1), rank[r - 1]);
+        EXPECT_EQ(rank[r].shift<DOWN>(), rank[r - 1]);
     }
 }
 
 TEST(bitboard_test, test_shift_up_right) {
     for (int r = 0; r < 7; r++) {
         for (int f = 0; f < 7; f++) {
-            EXPECT_EQ(bitboard(f, r).shift_up_right(1), bitboard(f + 1, r + 1));
+            EXPECT_EQ(bitboard(f, r).shift<UP_RIGHT>(), bitboard(f + 1, r + 1));
         }
     }
 }
@@ -83,7 +83,7 @@ TEST(bitboard_test, test_shift_up_right) {
 TEST(bitboard_test, test_shift_up_left) {
     for (int r = 0; r < 7; r++) {
         for (int f = 1; f < 8; f++) {
-            EXPECT_EQ(bitboard(f, r).shift_up_left(1), bitboard(f - 1, r + 1));
+            EXPECT_EQ(bitboard(f, r).shift<UP_LEFT>(), bitboard(f - 1, r + 1));
         }
     }
 }
@@ -91,7 +91,7 @@ TEST(bitboard_test, test_shift_up_left) {
 TEST(bitboard_test, test_shift_down_right) {
     for (int r = 1; r < 8; r++) {
         for (int f = 0; f < 7; f++) {
-            EXPECT_EQ(bitboard(f, r).shift_down_right(1), bitboard(f + 1, r - 1));
+            EXPECT_EQ(bitboard(f, r).shift<DOWN_RIGHT>(), bitboard(f + 1, r - 1));
         }
     }
 }
@@ -99,7 +99,7 @@ TEST(bitboard_test, test_shift_down_right) {
 TEST(bitboard_test, test_shift_down_left) {
     for (int r = 1; r < 8; r++) {
         for (int f = 1; f < 8; f++) {
-            EXPECT_EQ(bitboard(f, r).shift_down_left(1), bitboard(f - 1, r - 1));
+            EXPECT_EQ(bitboard(f, r).shift<DOWN_LEFT>(), bitboard(f - 1, r - 1));
         }
     }
 }

@@ -99,24 +99,28 @@ int negamax(const board& b, int depth, std::vector<move>& moves, std::vector<mov
 }
 
 move engine::get_move(const board& b) {
-    int plys = 6;
+    int plys = 8;
     std::vector<move> legal_moves = b.get_legal_moves(b.side_to_play);
     if (legal_moves.empty()) return {};
     std::vector<move> seq;
+    int cache_hit = 0;
+    int total_nodes = 0;
     int alpha = -32001;
     int beta = 32001;
     seq.emplace_back();
-    for (int depth = 1; depth <= plys; depth++) {
+    int val = negamax(b, 1, legal_moves, seq, alpha, beta, &cache_hit, &total_nodes);
+    for (int depth = 2; depth <= plys; depth++) {
         std::cerr << "Trying starting with move " << seq[depth - 1].to_long_move() << std::endl;
         seq.insert(seq.begin(), move());
-        int cache_hit = 0;
-        int total_nodes = 0;
 
-        int val;
-        if (b.side_to_play == WHITE)
-            val = negamax(b, depth, legal_moves, seq, alpha, beta, &cache_hit, &total_nodes);
-        else
-            val = negamax(b, depth, legal_moves, seq, -beta, -alpha, &cache_hit, &total_nodes);
+        alpha = val - 50;
+        beta = val + 50;
+        transp.clear();
+        val = negamax(b, depth, legal_moves, seq, alpha, beta, &cache_hit, &total_nodes);
+        if (val <= alpha || val >= beta) {
+            transp.clear();
+            val = negamax(b, depth, legal_moves, seq, -32001, 32001, &cache_hit, &total_nodes);
+        }
 
         std::cout << "info cachehit " << cache_hit << std::endl;
         std::cout << "info nodes " << total_nodes << std::endl;

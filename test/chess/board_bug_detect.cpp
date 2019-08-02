@@ -11,18 +11,18 @@
 
 TEST(board_test, bug_detector) {
     std::default_random_engine gen;
-    std::uniform_int_distribution<int> dis(0, 20000);
+    std::uniform_int_distribution<int> dis(1, 20000);
     dis(gen);
     int testNum;
-    for (testNum = 0; testNum < 10000; testNum++) {
+    for (testNum = 0; testNum < 50000; testNum++) {
         board b;
         b.set_initial_position();
         std::vector<move> legal_moves = b.get_legal_moves(b.side_to_play);
         int k = 0;
-        if (testNum % 100 == 0) std::cout << "Tested " << testNum << " cases." << std::endl;
+        if (testNum % 1000 == 0) std::cout << "Tested " << testNum << " cases." << std::endl;
 
         std::vector<std::string> pgn;
-        while (!legal_moves.empty() && k < 100) {
+        while (!legal_moves.empty() && k < 200) {
             k++;
             try {
                 unsigned long i = dis(gen) % legal_moves.size();

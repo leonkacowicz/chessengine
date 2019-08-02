@@ -11,15 +11,12 @@
 
 class board {
 public:
-    template<int up, int down, int left, int right>
+    template<shift_direction d>
     bitboard shift_attacks(const bitboard origin, const bitboard in_range) const;
 
-    template<int up, int down, int left, int right>
+    template<shift_direction d>
     void shift_moves(const bitboard origin, const bitboard in_range, std::vector<move>& moves, piece p, color c) const;
 
-    bitboard knight_attacks(const bitboard origin) const;
-    bitboard king_attacks(const bitboard origin) const;
-    bitboard pawn_attacks(const bitboard origin, const color attacker) const;
 
     void add_rook_moves(bitboard origin, std::vector<move>& moves, piece p, color c) const;
     void add_king_moves(bitboard origin, std::vector<move>& moves) const;

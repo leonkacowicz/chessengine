@@ -9,6 +9,49 @@
 
 using U64 = unsigned long int;
 
+enum shift_direction {
+    UP, DOWN, LEFT, RIGHT,
+    UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT,
+
+};
+
+namespace ns {
+    template<shift_direction d> U64 shift(U64 arg);
+    template <>
+    inline U64 shift<UP>(U64 arg) {
+        return arg << 8u;
+    }
+    template <>
+    inline U64 shift<DOWN>(U64 arg) {
+        return arg >> 8u;
+    }
+    template <>
+    inline U64 shift<LEFT>(U64 arg) {
+        return arg >> 1u;
+    }
+    template <>
+    inline U64 shift<RIGHT>(U64 arg) {
+        return arg << 1u;
+    }
+
+    template <>
+    inline U64 shift<UP_LEFT>(U64 arg) {
+        return arg << 7u;
+    }
+    template <>
+    inline U64 shift<UP_RIGHT>(U64 arg) {
+        return arg << 9u;
+    }
+    template <>
+    inline U64 shift<DOWN_LEFT>(U64 arg) {
+        return arg >> 9u;
+    }
+    template <>
+    inline U64 shift<DOWN_RIGHT>(U64 arg) {
+        return arg >> 7u;
+    }
+}
+
 class bitboard {
 
     static square squarePositions[67];
@@ -28,12 +71,6 @@ public:
 
     inline bitboard(const square sq) noexcept : bitboard(sq == square::none ? 0 : bitboard(sq.get_file(), sq.get_rank())) {}
 
-    bitboard(const std::initializer_list<square>& squares) noexcept {
-        for (auto& sq : squares) {
-            board |= bitboard(sq).board;
-        }
-    }
-
     inline bitboard shift_left(const unsigned int arg) const {
         return {board >> arg};
     }
@@ -50,20 +87,9 @@ public:
         return {board >> (8 * arg)};
     }
 
-    inline bitboard shift_up_left(const unsigned int arg) const {
-        return shift_up(arg).shift_left(arg);
-    }
-
-    inline bitboard shift_up_right(const unsigned int arg) const {
-        return shift_up(arg).shift_right(arg);
-    }
-
-    inline bitboard shift_down_left(const unsigned int arg) const {
-        return shift_down(arg).shift_left(arg);
-    }
-
-    inline bitboard shift_down_right(const unsigned int arg) const {
-        return shift_down(arg).shift_right(arg);
+    template <shift_direction d>
+    bitboard shift() const {
+        return ns::shift<d>(board);
     }
 
     inline bool operator==(const U64 rhs) const {
@@ -151,19 +177,6 @@ public:
     inline square get_square() const {
         // https://www.chessprogramming.org/BitScan
         return squarePositions[(board & -board) % 67];
-    }
-
-    static void initializePositions() {
-//        // https://www.chessprogramming.org/BitScan
-//        for (int y = 0; y < 8; y++)
-//            for (int x = 0; x < 8; x++) {
-//                bitboard bitBoard(x, y);
-//                squarePositions[(bitBoard.board & -bitBoard.board) % 67] = square(x, y);
-//            }
-//
-//        for (int i = 0; i < 67; i++) {
-//            std::cout << "\"" << squarePositions[i].to_string() << "\", ";
-//        }
     }
 
     static inline bitboard king_attacks(bitboard origin) {

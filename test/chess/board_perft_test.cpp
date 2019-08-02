@@ -35,7 +35,7 @@ TEST(board_test, perft_test_1) {
     ASSERT_EQ(perft<2>(b), 400);
     ASSERT_EQ(perft<3>(b), 8902);
     ASSERT_EQ(perft<4>(b), 197281);
-    //ASSERT_EQ(perft<5>(b), 4865609);
+    ASSERT_EQ(perft<5>(b), 4865609);
 }
 
 TEST(board_test, perft_test_2) {
@@ -44,8 +44,8 @@ TEST(board_test, perft_test_2) {
     ASSERT_EQ(perft<1>(b), 48);
     ASSERT_EQ(perft<2>(b), 2039);
     ASSERT_EQ(perft<3>(b), 97862);
-    //ASSERT_EQ(perft<4>(b), 4085603);
-    //ASSERT_EQ(perft<5>(b), 193690690);
+    ASSERT_EQ(perft<4>(b), 4085603);
+    ASSERT_EQ(perft<5>(b), 193690690);
 }
 
 TEST(board_test, perft_test_3) {
