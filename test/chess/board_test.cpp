@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <board.h>
 #include <square.h>
+#include <fen.h>
 #include "../test_common.h"
 
 void list_moves(const std::vector<move>& moves) {
@@ -19,16 +20,16 @@ TEST(board_test, size_of_class) {
 TEST(board_test, fen_test) {
     board b;
     b.set_initial_position();
-    ASSERT_EQ(b.fen(), "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    ASSERT_EQ(fen::to_string(b), "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     ASSERT_EQ(b, board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"));
     b.make_move(move("e2", "e4"));
-    ASSERT_EQ(b.fen(), "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1");
+    ASSERT_EQ(fen::to_string(b), "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1");
     ASSERT_EQ(b, board("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"));
     b.make_move(move("c7", "c5"));
-    ASSERT_EQ(b.fen(2), "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2");
+    ASSERT_EQ(fen::to_string(b, 2), "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2");
     ASSERT_EQ(b, board("rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2"));
     b.make_move(move("g1", "f3"));
-    ASSERT_EQ(b.fen(2), "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2");
+    ASSERT_EQ(fen::to_string(b, 2), "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2");
     ASSERT_EQ(b, board("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2"));
 }
 

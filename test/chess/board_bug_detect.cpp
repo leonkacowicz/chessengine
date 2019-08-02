@@ -7,6 +7,7 @@
 #include <gtest/gtest.h>
 #include <move.h>
 #include <board.h>
+#include <fen.h>
 
 TEST(board_test, bug_detector) {
     std::default_random_engine gen;
@@ -31,7 +32,7 @@ TEST(board_test, bug_detector) {
                 if (b.under_check(opposite(b.side_to_play))) {
                     std::__throw_runtime_error("Move ignored check");
                 }
-                if (!(b == board(b.fen()))) std::__throw_runtime_error("FEN failed");
+                if (!(b == board(fen::to_string(b)))) std::__throw_runtime_error("FEN failed");
 
                 legal_moves = b.get_legal_moves(b.side_to_play);
             } catch (std::exception& e) {

@@ -6,6 +6,7 @@
 #include <square.h>
 #include <engine.h>
 #include <zobrist.h>
+#include <fen.h>
 
 TEST(engine_test, engine_call) {
     board b;
@@ -18,34 +19,4 @@ TEST(engine_test, engine_call) {
         b.make_move(m);
         b.print();
     }
-}
-
-TEST(random_test, random_t) {
-    zobrist::init();
-
-    auto empty = board();
-    uint64_t i = zobrist::hash(empty);
-    printf("%lx\n", i);
-    auto b = empty;
-    b.set_initial_position();
-    printf("%lx\n", zobrist::hash(b));
-    printf("%s\n", b.fen().c_str());
-    b.make_move(b.get_legal_moves(WHITE)[3]);
-    printf("%lx\n", zobrist::hash(b));
-    printf("%s\n", b.fen().c_str());
-    b.make_move(b.get_legal_moves(BLACK)[3]);
-    printf("%lx\n", zobrist::hash(b));
-    printf("%s\n", b.fen().c_str());
-    b.make_move(b.get_legal_moves(WHITE)[3]);
-    printf("%lx\n", zobrist::hash(b));
-    printf("%s\n", b.fen().c_str());
-    b.make_move(b.get_legal_moves(BLACK)[3]);
-    printf("%lx\n", zobrist::hash(b));
-    printf("%s\n", b.fen().c_str());
-    b.make_move(b.get_legal_moves(WHITE)[3]);
-    printf("%lx\n", zobrist::hash(b));
-    printf("%s\n", b.fen().c_str());
-    b.make_move(b.get_legal_moves(BLACK)[3]);
-    printf("%lx\n", zobrist::hash(b));
-    printf("%s\n", b.fen().c_str());
 }

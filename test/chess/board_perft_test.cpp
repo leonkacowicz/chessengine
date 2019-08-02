@@ -76,5 +76,5 @@ TEST(board_test, perft_test_5) {
     ASSERT_EQ(perft<2>(b), 1'486);
     ASSERT_EQ(perft<3>(b), 62'379);
     ASSERT_EQ(perft<4>(b), 2'103'487);
-    //ASSERT_EQ(perft<5>(b), 89'941'194);
+    ASSERT_EQ(perft<5>(b), 89'941'194);
 }

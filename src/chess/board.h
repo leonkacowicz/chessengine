@@ -46,7 +46,6 @@ public:
     bool under_check(color c) const;
     void set_initial_position();
     std::string to_string() const;
-    std::string fen(int full_move_counter = 1) const;
     void print() const;
 
     void put_piece(piece p, color c, square s);

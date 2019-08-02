@@ -642,57 +642,6 @@ bool board::operator==(const board &other) const {
     ;
 }
 
-char fen_char(piece p, color c) {
-    const char offset = (char)(c == BLACK ? 'a' - 'A' : 0);
-    switch (p) {
-        case PAWN: return (char)('P' + offset);
-        case KNIGHT: return (char)('N' + offset);
-        case BISHOP: return (char)('B' + offset);
-        case ROOK: return (char)('R' + offset);
-        case QUEEN: return (char)('Q' + offset);
-        case KING: return (char)('K' + offset);
-        default: return '.';
-    }
-}
-
-std::string board::fen(int full_move_counter) const {
-    stringstream res;
-    for (int r = 7; r >= 0; r--) {
-        int rank_counter = 0;
-        for (int f = 0; f < 8; f++) {
-            bitboard sq(square(f, r));
-            piece p = piece_at(sq);
-            if (p == NONE) {
-                rank_counter++;
-                continue;
-            } else {
-                if (rank_counter > 0) {
-                    res << rank_counter;
-                    rank_counter = 0;
-                }
-                color c = color_at(sq);
-                res << fen_char(p, c);
-            }
-        }
-        if (rank_counter > 0) res << rank_counter;
-        if (r > 0) res << '/';
-    }
-    res << ' ' << (side_to_play == WHITE ? 'w' : 'b') << ' ';
-    res << (can_castle_king_side[WHITE] ? 'K' : '-');
-    res << (can_castle_queen_side[WHITE] ? 'Q' : '-');
-    res << (can_castle_king_side[BLACK] ? 'k' : '-');
-    res << (can_castle_queen_side[BLACK] ? 'q' : '-');
-
-    res << ' ';
-    if (en_passant == square::none) res << '-';
-    else res << en_passant.to_string();
-    res << ' ';
-
-    res << (int)half_move_counter;
-    res << ' ' << full_move_counter;
-    return res.str();
-}
-
 template<int up, int down, int left, int right>
 bitboard board::shift_attacks(const bitboard origin, const bitboard in_range) const {
     bitboard any_piece = piece_of_color[WHITE] | piece_of_color[BLACK];

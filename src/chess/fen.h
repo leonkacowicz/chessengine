@@ -12,14 +12,14 @@ class fen {
 public:
 
     static char fen_char(piece p, color c) {
-        const char offset = (c == BLACK ? 'a' - 'A' : (char)0);
+        const char offset = (char)(c == BLACK ? 'a' - 'A' : 0);
         switch (p) {
-            case PAWN: return 'P' + offset;
-            case KNIGHT: return 'N' + offset;
-            case BISHOP: return 'B' + offset;
-            case ROOK: return 'R' + offset;
-            case QUEEN: return 'Q' + offset;
-            case KING: return 'K' + offset;
+            case PAWN: return (char)('P' + offset);
+            case KNIGHT: return (char)('N' + offset);
+            case BISHOP: return (char)('B' + offset);
+            case ROOK: return (char)('R' + offset);
+            case QUEEN: return (char)('Q' + offset);
+            case KING: return (char)('K' + offset);
             default: return '.';
         }
     }
