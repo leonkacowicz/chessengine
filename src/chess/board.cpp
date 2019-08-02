@@ -108,11 +108,11 @@ std::vector<move> board::get_legal_moves(color c) const {
         if (king_pos[c] == sq.get_square()) add_king_moves(sq, moves);
         else if (piece_of_type[PAWN][sq]) add_pawn_moves(sq, moves);
         else if (piece_of_type[KNIGHT][sq]) add_knight_moves(sq, moves);
-        else if (piece_of_type[BISHOP][sq]) add_bishop_moves(sq, moves, BISHOP, c);
         else if (piece_of_type[ROOK][sq]) add_rook_moves(sq, moves, ROOK, c);
+        else if (piece_of_type[BISHOP][sq]) add_bishop_moves(sq, moves, BISHOP, c);
         else if (piece_of_type[QUEEN][sq]) {
-            add_bishop_moves(sq, moves, QUEEN, c);
             add_rook_moves(sq, moves, QUEEN, c);
+            add_bishop_moves(sq, moves, QUEEN, c);
         }
     }
     if (can_castle_king_side[c] || can_castle_queen_side[c]) {
@@ -312,7 +312,7 @@ void board::add_pawn_moves(bitboard origin, std::vector<move>& moves) const {
             const square dest = cap.get_square();
             auto bnew = simulate(origin_sq, dest, PAWN, c);
             if (cap == en_passant) {
-                auto en_passant_bbi = ~(bitboard(en_passant));
+                auto en_passant_bbi = ~(bitboard(en_passant.get_file(), origin_sq.get_rank()));
                 bnew.piece_of_color[opponent] &= en_passant_bbi; // remove captured piece
                 bnew.piece_of_type[PAWN] &= en_passant_bbi;
             }
@@ -335,7 +335,7 @@ void board::add_pawn_moves(bitboard origin, std::vector<move>& moves) const {
             const square dest = cap.get_square();
             auto bnew = simulate(origin_sq, dest, PAWN, c);
             if (cap == en_passant) {
-                auto en_passant_bbi = ~(bitboard(en_passant));
+                auto en_passant_bbi = ~(bitboard(en_passant.get_file(), origin_sq.get_rank()));
                 bnew.piece_of_color[opponent] &= en_passant_bbi; // remove captured piece
                 bnew.piece_of_type[PAWN] &= en_passant_bbi;
             }
