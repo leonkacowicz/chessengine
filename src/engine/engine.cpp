@@ -39,14 +39,14 @@ int negamax(const board& b, int depth, std::vector<move>& moves, std::vector<mov
         }
     }
 
-//    if (transp.find(hash + depth) != transp.end()) {
-//        (*cache_hit)++;
-//        auto n = transp[hash + depth];
-//        if (!n.beta_cut && depth > 0) {
-//            variation[depth] = n.m;
-//        }
-//        return n.val;
-//    }
+    if (transp.find(hash + depth) != transp.end()) {
+        (*cache_hit)++;
+        auto n = transp[hash + depth];
+        if (!n.beta_cut && depth > 0) {
+            variation[depth] = n.m;
+        }
+        return n.val;
+    }
 
     if (depth == 0) {
         // base case
@@ -99,13 +99,13 @@ int negamax(const board& b, int depth, std::vector<move>& moves, std::vector<mov
 }
 
 move engine::get_move(const board& b) {
-    int plys = 4;
+    int plys = 6;
     std::vector<move> legal_moves = b.get_legal_moves(b.side_to_play);
     if (legal_moves.empty()) return {};
     std::vector<move> seq;
     int alpha = -32001;
     int beta = 32001;
-    seq.push_back({});
+    seq.emplace_back();
     for (int depth = 1; depth <= plys; depth++) {
         std::cerr << "Trying starting with move " << seq[depth - 1].to_long_move() << std::endl;
         seq.insert(seq.begin(), move());
@@ -120,7 +120,6 @@ move engine::get_move(const board& b) {
 
         std::cout << "info cachehit " << cache_hit << std::endl;
         std::cout << "info nodes " << total_nodes << std::endl;
-        //std::cout << "info currmove "; for (move m : legal_moves) std::cout << " " << m.to_long_move(); std::cout << std::endl;
         log_score(val, seq, depth);
         std::cerr << "Current best move " << seq[depth].to_long_move() << std::endl;
     }

@@ -144,10 +144,6 @@ public:
         return (board & position.board) != 0;
     }
 
-    inline bool operator[](const square square) const {
-        return (*this)[bitboard(square)];
-    }
-
     inline bool empty() const {
         return board == 0;
     }

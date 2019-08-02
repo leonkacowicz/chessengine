@@ -15,20 +15,20 @@ public:
     bitboard shift_attacks(const bitboard origin, const bitboard in_range) const;
 
     template<int up, int down, int left, int right>
-    void shift_moves(const bitboard origin, const bitboard in_range, std::vector<move>& moves) const;
+    void shift_moves(const bitboard origin, const bitboard in_range, std::vector<move>& moves, piece p, color c) const;
 
     bitboard knight_attacks(const bitboard origin) const;
     bitboard king_attacks(const bitboard origin) const;
     bitboard pawn_attacks(const bitboard origin, const color attacker) const;
 
-    void add_rook_moves(bitboard origin, std::vector<move>& moves) const;
+    void add_rook_moves(bitboard origin, std::vector<move>& moves, piece p, color c) const;
     void add_king_moves(bitboard origin, std::vector<move>& moves) const;
-    void add_bishop_moves(bitboard origin, std::vector<move>& moves) const;
+    void add_bishop_moves(bitboard origin, std::vector<move>& moves, piece p, color c) const;
     void add_knight_moves(bitboard origin, std::vector<move>& moves) const;
     void add_pawn_moves(bitboard origin, std::vector<move>& moves) const;
     void add_castle_moves(color c, std::vector<move> &moves) const;
 
-    void move_piece(square from, square to);
+    void move_piece(square from, square to, piece p, color c);
 
 
     bitboard piece_of_color[2] = {0, 0};
@@ -56,7 +56,7 @@ public:
 
     void make_move(const move m);
 
-    board simulate(const square from, const square to) const;
+    board simulate(const square from, const square to, piece p, color c) const;
 
     std::string move_in_pgn(const move m, const std::vector<move>& legal_moves) const;
 
