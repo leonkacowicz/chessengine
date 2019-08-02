@@ -5,6 +5,7 @@
 #include <ostream>
 #include <initializer_list>
 #include "square.h"
+#include "color.h"
 
 using U64 = unsigned long int;
 
@@ -13,6 +14,7 @@ class bitboard {
     static square squarePositions[67];
     static bitboard king_attacks_[67];
     static bitboard knight_attacks_[67];
+    static bitboard pawn_attacks_[2][67];
     static bitboard white_pawn_attacks_[67];
     static bitboard black_pawn_attacks_[67];
 public:
@@ -182,6 +184,10 @@ public:
 
     static inline bitboard black_pawn_attacks(bitboard origin) {
         return black_pawn_attacks_[(origin.board & -origin.board) % 67];
+    }
+
+    static inline bitboard pawn_attacks(bitboard origin, color c) {
+        return pawn_attacks_[c][(origin.board & -origin.board) % 67];
     }
 };
 

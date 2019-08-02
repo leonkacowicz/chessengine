@@ -12,12 +12,12 @@ public:
     constexpr square(const unsigned int file, const unsigned int rank) noexcept : coords(((rank & 7u) << 4u) | (file & 7u)) {}
     square(const std::string& position) : square(position[0] - 'a', position[1] - '1') {}
     constexpr square(const char* position) : square(position[0] - 'a', position[1] - '1') {}
-    constexpr unsigned int get_file() const {
-        return coords & 0x7u;
+    constexpr char get_file() const {
+        return (char)(coords & 0x7u);
     }
 
-    constexpr unsigned int get_rank() const {
-        return (unsigned)(coords >> 4u) & 0x7u;
+    constexpr char get_rank() const {
+        return (char)(((unsigned)coords >> 4u) & 0x7u);
     }
 
     bool operator==(square rhs) const {

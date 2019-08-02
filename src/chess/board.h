@@ -10,7 +10,7 @@
 #include "color.h"
 
 class board {
-
+public:
     template<int up, int down, int left, int right>
     bitboard shift_attacks(const bitboard origin, const bitboard in_range) const;
 
@@ -30,7 +30,7 @@ class board {
 
     void move_piece(square from, square to);
 
-public:
+
     bitboard piece_of_color[2] = {0, 0};
     bitboard piece_of_type[5] = {0, 0, 0, 0, 0};
     square king_pos[2] = { square::none, square::none };

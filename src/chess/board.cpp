@@ -36,13 +36,13 @@ bool board::under_check(color c) const {
     if (shift_attacks<0, 1, 0, 1>(king, file_h_i_rank_1_i)[attacker]) return true;
 
     // check if attacked by knight
-    if ((knight_attacks(king) & piece_of_type[KNIGHT] & opponent_piece) != 0) return true;
+    if ((bitboard::knight_attacks(king) & piece_of_type[KNIGHT] & opponent_piece) != 0) return true;
 
     // check if attacked by king
-    if ((king_attacks(king)[king_pos[opposite(c)]])) return true;
+    if ((bitboard::king_attacks(king)[king_pos[opposite(c)]])) return true;
 
     // calls pawn_attacks pretending king is pawn, and if it were a pawn, then if it attacks a pawn, it means that it is also attacked by that pawn
-    return pawn_attacks(king, c)[piece_of_type[PAWN] & opponent_piece];
+    return bitboard::pawn_attacks(king, c)[piece_of_type[PAWN] & opponent_piece];
 }
 
 string board::to_string() const {
@@ -102,7 +102,7 @@ void board::set_initial_position() {
 
 std::vector<move> board::get_legal_moves(color c) const {
     std::vector<move> moves;
-    moves.reserve(60);
+    //moves.reserve(60);
     for (auto sq = bitboard(1); !sq.empty(); sq <<= 1) {
         if (!piece_of_color[c][sq]) continue;
         if (king_pos[c] == sq.get_square()) add_king_moves(sq, moves);
@@ -118,7 +118,7 @@ std::vector<move> board::get_legal_moves(color c) const {
     if (can_castle_king_side[c] || can_castle_queen_side[c]) {
         add_castle_moves(c, moves);
     }
-    moves.shrink_to_fit();
+    //moves.shrink_to_fit();
     return moves;
 }
 
