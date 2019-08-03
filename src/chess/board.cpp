@@ -256,10 +256,10 @@ board::board(const std::string& fen) {
 
     side_to_play = side_to_move == "b" ? BLACK : WHITE;
 
-    can_castle_king_side[WHITE] = castling[0] == 'K';
-    can_castle_queen_side[WHITE] = castling[1] == 'Q';
-    can_castle_king_side[BLACK] = castling[2] == 'k';
-    can_castle_queen_side[BLACK] = castling[3] == 'q';
+    can_castle_king_side[WHITE] = castling.find('K', 0) != std::string::npos;
+    can_castle_queen_side[WHITE] = castling.find('Q', 0) != std::string::npos;;
+    can_castle_king_side[BLACK] = castling.find('k', 0) != std::string::npos;;
+    can_castle_queen_side[BLACK] = castling.find('q', 0) != std::string::npos;;
 
     this->en_passant = enpassant == "-" ? square::none : square(enpassant);
 
