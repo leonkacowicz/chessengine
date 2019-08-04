@@ -108,6 +108,7 @@ move engine::get_move(const board& b) {
     int alpha = -32001;
     int beta = 32001;
     seq.emplace_back();
+    seq.emplace_back();
     int val = negamax(b, 1, legal_moves, seq, alpha, beta, &cache_hit, &total_nodes);
     for (int depth = 2; depth <= plys; depth++) {
         std::cerr << "Trying starting with move " << seq[depth - 1].to_long_move() << std::endl;
