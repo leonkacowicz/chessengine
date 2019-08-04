@@ -19,7 +19,8 @@ enum evasiveness {
 class move_gen {
 
     const board& b;
-    std::vector<move> moves;
+    move moves[250];
+    int num_moves = 0;
     bitboard checkers;
     bitboard attacked;
     char num_checkers;
@@ -41,16 +42,19 @@ public:
         them = opposite(us);
         our_piece = b.piece_of_color[us];
         their_piece = b.piece_of_color[them];
-        moves.reserve(250);
-        moves.clear();
+//        moves.reserve(250);
+//        moves.clear();
     }
 
-    std::vector<move>& generate() {
+    std::vector<move> generate() {
         reset();
         scan_board();
+        //print_bb(attacked);
+        //print_bb(pinned_any_dir);
+        std::vector<move> ret;
         generate_king_moves();
         if (num_checkers == 2) {
-            return moves; // only legal moves will be moving the king away from check
+            // only legal moves will be moving the king away from check
         } else if (num_checkers == 1) {
             // only generate moves that remove check
             generate_non_king_moves<EVASIVE>();
@@ -59,7 +63,8 @@ public:
             if (us == WHITE) castle_moves<WHITE>();
             else castle_moves<BLACK>();
         }
-        return moves;
+        ret.assign(moves, moves + num_moves);
+        return ret;
     }
 
     void generate_king_moves() {
@@ -80,7 +85,9 @@ public:
 
         for (int i = 0; i < N; i++) {
             if (((our_piece | attacked) & dest[i]) == 0) {
-                moves.emplace_back(b.king_pos[us], get_square(dest[i]));
+                //moves.emplace_back(b.king_pos[us], get_square(dest[i]));
+                moves[num_moves++] = {b.king_pos[us], get_square(dest[i])};
+
             }
         }
     }
@@ -99,9 +106,9 @@ public:
     void generate_non_king_moves() {
         for (int i = 0; i < num_our_pieces; i++) {
             bitboard sq = our_pieces[i];
-            if (sq & (b.piece_of_type[ROOK] || b.piece_of_type[QUEEN])) rook_moves<e>(sq);
-            if (sq & (b.piece_of_type[BISHOP] || b.piece_of_type[QUEEN])) bishop_moves<e>(sq);
-            else if (sq & b.piece_of_type[KNIGHT] && !(pinned_any_dir & sq)) knight_moves<e>(sq);
+            if (sq & (b.piece_of_type[ROOK] | b.piece_of_type[QUEEN])) rook_moves<e>(sq);
+            if (sq & (b.piece_of_type[BISHOP] | b.piece_of_type[QUEEN])) bishop_moves<e>(sq);
+            else if ((sq & b.piece_of_type[KNIGHT]) && !(pinned_any_dir & sq)) knight_moves<e>(sq);
             else if (sq & b.piece_of_type[PAWN]) {
                 if (us == WHITE) pawn_moves<e, UP>(sq); else pawn_moves<e, DOWN>(sq);
             }
@@ -110,7 +117,7 @@ public:
 
     void scan_board() {
         bitboard non_slider_attack;
-        for (bitboard sq(1); sq != 0; sq <<= 1) {
+        for (bitboard sq(1); sq != 0; sq <<= 1uL) {
             if (their_piece & sq) {
                 if (sq & (b.piece_of_type[ROOK] | b.piece_of_type[QUEEN])) rook_attacks(sq);
                 if (sq & (b.piece_of_type[BISHOP] | b.piece_of_type[QUEEN])) bishop_attacks(sq);
@@ -156,7 +163,7 @@ public:
             shift_moves<e, UP_LEFT>(origin, file_a_i_rank_8_i);
             shift_moves<e, DOWN_RIGHT>(origin, file_h_i_rank_1_i);
         }
-        if ((origin & (pinned[VERTICAL] | pinned[DIAGONAL_P] | pinned[DIAGONAL_S])) == 0) {
+        if ((origin & (pinned[HORIZONTAL] | pinned[VERTICAL] | pinned[DIAGONAL_P])) == 0) {
             shift_moves<e, UP_RIGHT>(origin, file_h_i_rank_8_i);
             shift_moves<e, DOWN_LEFT>(origin, file_a_i_rank_1_i);
         }
@@ -187,12 +194,11 @@ public:
                 attacked |= sq;
                 potential_block_mask |= sq;
             }
-            if (king& sq) {
+            if (king & sq) {
                 if (pin == 0) {
                     num_checkers++;
                     checkers |= origin;
                     block_mask |= potential_block_mask;
-                    return;
                 } else {
                     pinned_any_dir |= pin;
                     if (d == UP || d == DOWN) {
@@ -208,9 +214,9 @@ public:
                         pinned[DIAGONAL_S] |= pin;
                     }
                 }
-            } else if (their_piece& sq) {
+            } else if (their_piece & sq) {
                 return;
-            } else if (our_piece& sq) {
+            } else if (our_piece & sq) {
                 if (pin == 0) {
                     // ray passed first time through a piece of our side, potential pin
                     pin = sq;
@@ -225,12 +231,13 @@ public:
     template<evasiveness e, shift_direction d>
     void shift_moves(const bitboard origin, const bitboard in_range) {
         bitboard sq = origin;
-        while (in_range& sq) {
+        while (in_range & sq) {
             sq = shift<d>(sq);
-            if (our_piece& sq) return; // blocked by own piece
+            if (our_piece & sq) return; // blocked by own piece
             if (e == NON_EVASIVE || (sq & (checkers | block_mask))) {
                 // to evade a single check, we must block the checker or capture it
-                moves.emplace_back(get_square(origin), get_square(sq));
+                //moves.emplace_back(get_square(origin), get_square(sq));
+                moves[num_moves++] = {get_square(origin), get_square(sq)};
             }
             if (their_piece & sq) break; // captured opponent piece: stop there
         }
@@ -251,8 +258,10 @@ public:
 
         for (int i = 0; i < N; i++) {
             if (our_piece & dest[i]) continue;
-            if (e == NON_EVASIVE || ((checkers | block_mask) & dest[i]))
-                moves.emplace_back(get_square(origin), get_square(dest[i]));
+            if (e == NON_EVASIVE || ((checkers | block_mask) & dest[i])) {
+                //moves.emplace_back(get_square(origin), get_square(dest[i]));
+                moves[num_moves++] = {get_square(origin), get_square(dest[i])};
+            }
         }
     }
 
@@ -269,28 +278,33 @@ public:
             const square dest = get_square(fwd);
             if (e == NON_EVASIVE || (block_mask & fwd)) {
                 if (promotion) {
-                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_QUEEN);
-                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_ROOK);
-                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_BISHOP);
-                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_KNIGHT);
+//                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_QUEEN);
+//                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_ROOK);
+//                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_BISHOP);
+//                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_KNIGHT);
+                    moves[num_moves++] = move(origin_sq, dest, special_move::PROMOTION_QUEEN);
+                    moves[num_moves++] = move(origin_sq, dest, special_move::PROMOTION_ROOK);
+                    moves[num_moves++] = move(origin_sq, dest, special_move::PROMOTION_BISHOP);
+                    moves[num_moves++] = move(origin_sq, dest, special_move::PROMOTION_KNIGHT);
                 } else {
-                    moves.emplace_back(origin_sq, dest);
+                    moves[num_moves++] = move(origin_sq, dest);
+                    //moves.emplace_back(origin_sq, dest);
                 }
             }
             if ((d == UP && (rank_2 & origin)) || (d == DOWN && (rank_7 & origin))) {
                 const bitboard fwd2 = shift<d>(fwd);
                 if (empty & fwd2)
                     if (e == NON_EVASIVE || (block_mask & fwd2))
-                        moves.emplace_back(origin_sq, get_square(fwd2));
+                        moves[num_moves++] = move(origin_sq, get_square(fwd2));  // moves.emplace_back(origin_sq, get_square(fwd2));
             }
         }
 
-        if ((origin & file_a & (pinned[VERTICAL] | pinned[HORIZONTAL] | pinned[d == UP ? DIAGONAL_S : DIAGONAL_P])) == 0) {
+        if ((origin & file_a_i) && !(origin & (pinned[VERTICAL] | pinned[HORIZONTAL] | pinned[d == UP ? DIAGONAL_S : DIAGONAL_P]))) {
             const bitboard cap = shift<LEFT>(fwd);
             pawn_captures<e>(promotion, origin_sq, cap);
         }
 
-        if ((origin & file_a & (pinned[VERTICAL] | pinned[HORIZONTAL] | pinned[d == UP ? DIAGONAL_P : DIAGONAL_S])) == 0) {
+        if ((origin & file_h_i) && !(origin & (pinned[VERTICAL] | pinned[HORIZONTAL] | pinned[d == UP ? DIAGONAL_P : DIAGONAL_S]))) {
             const bitboard cap = shift<RIGHT>(fwd);
             pawn_captures<e>(promotion, origin_sq, cap);
         }
@@ -302,27 +316,34 @@ public:
             const square dest = get_square(cap);
             if (e == NON_EVASIVE || (checkers & cap)) {
                 if (promotion) {
-                    moves.emplace_back(origin_sq, dest, PROMOTION_QUEEN);
-                    moves.emplace_back(origin_sq, dest, PROMOTION_KNIGHT);
-                    moves.emplace_back(origin_sq, dest, PROMOTION_ROOK);
-                    moves.emplace_back(origin_sq, dest, PROMOTION_BISHOP);
+//                    moves.emplace_back(origin_sq, dest, PROMOTION_QUEEN);
+//                    moves.emplace_back(origin_sq, dest, PROMOTION_KNIGHT);
+//                    moves.emplace_back(origin_sq, dest, PROMOTION_ROOK);
+//                    moves.emplace_back(origin_sq, dest, PROMOTION_BISHOP);
+                    moves[num_moves++] = move(origin_sq, dest, special_move::PROMOTION_QUEEN);
+                    moves[num_moves++] = move(origin_sq, dest, special_move::PROMOTION_ROOK);
+                    moves[num_moves++] = move(origin_sq, dest, special_move::PROMOTION_BISHOP);
+                    moves[num_moves++] = move(origin_sq, dest, special_move::PROMOTION_KNIGHT);
                 } else {
-                    moves.emplace_back(origin_sq, dest);
+                    //moves.emplace_back(origin_sq, dest);
+                    moves[num_moves++] = move(origin_sq, dest);
                 }
             }
         } else if (cap & bb(b.en_passant)) {
             const square dest = get_square(cap);
-            if (b.king_pos[us].get_rank() == origin_sq.get_rank()) {
+            if (e == EVASIVE || b.king_pos[us].get_rank() == origin_sq.get_rank()) {
                 // this is a corner case that needs to be simulated
                 board bnew = b.simulate(origin_sq, get_square(cap), PAWN, us);
                 auto en_passant_bbi = ~(bb(b.en_passant.get_file(), origin_sq.get_rank()));
                 bnew.piece_of_color[them] &= en_passant_bbi; // remove captured piece
                 bnew.piece_of_type[PAWN] &= en_passant_bbi;
-                if (!b.under_check(us)) {
-                    moves.emplace_back(origin_sq, dest);
+                if (!bnew.under_check(us)) {
+                    //moves.emplace_back(origin_sq, dest);
+                    moves[num_moves++] = move(origin_sq, dest);
                 }
             } else {
-                moves.emplace_back(origin_sq, dest);
+                //moves.emplace_back(origin_sq, dest);
+                moves[num_moves++] = move(origin_sq, dest);
             }
         }
     }
@@ -334,8 +355,12 @@ public:
             auto path = shift<RIGHT>(king) | shift<RIGHT_RIGHT>(king);
             if ((anypiece & path) == 0) {
                 if ((attacked & path) == 0) {
-                    moves.emplace_back(b.king_pos[us], square(6, (us == BLACK) * 7),
-                            (us == WHITE) ? CASTLE_KING_SIDE_WHITE : CASTLE_KING_SIDE_BLACK);
+                    if (us == BLACK)
+                        moves[num_moves++] = move(b.king_pos[us], square(6, 7), CASTLE_KING_SIDE_BLACK);
+                    else
+                        moves[num_moves++] = move(b.king_pos[us], square(6, 0), CASTLE_KING_SIDE_WHITE);
+//                    moves.emplace_back(b.king_pos[us], square(6, (us == BLACK) * 7),
+//                            (us == WHITE) ? CASTLE_KING_SIDE_WHITE : CASTLE_KING_SIDE_BLACK);
                 }
             }
         }
@@ -343,8 +368,12 @@ public:
             auto path = shift<LEFT>(king) | shift<LEFT_LEFT>(king);
             if ((anypiece & (path | shift<LEFT>(path))) == 0) {
                 if ((attacked & path) == 0) {
-                    moves.emplace_back(b.king_pos[us], square(2, (us == BLACK) * 7),
-                            (us == WHITE) ? CASTLE_QUEEN_SIDE_WHITE : CASTLE_QUEEN_SIDE_BLACK);
+//                    moves.emplace_back(b.king_pos[us], square(2, (us == BLACK) * 7),
+//                            (us == WHITE) ? CASTLE_QUEEN_SIDE_WHITE : CASTLE_QUEEN_SIDE_BLACK);
+                    if (us == BLACK)
+                        moves[num_moves++] = move(b.king_pos[us], square(2, 7), CASTLE_QUEEN_SIDE_BLACK);
+                    else
+                        moves[num_moves++] = move(b.king_pos[us], square(2, 0), CASTLE_QUEEN_SIDE_WHITE);
                 }
             }
         }
@@ -353,79 +382,3 @@ public:
 
 
 #endif //CHESSENGINE_MOVE_GEN_H
-
-
-//    void calc_checks_pins() {
-//        reset();
-//        color c = b.side_to_play;
-//        color opponent = opposite(c);
-//        square king_sq = b.king_pos[c];
-//
-//        assert(king != 0);
-//        // checks if attacked by rook or queen in horizontal or vertical directions
-//        bitboard opponent_piece = b.piece_of_color[opponent];
-//
-//        bitboard attacker = (b.piece_of_type[ROOK] | b.piece_of_type[QUEEN]) & opponent_piece;
-//        if (file[king_sq.get_file()][attacker]) {
-//            calc_shift_checks_pins<UP>(king, rank_8_i, attacker);
-//            calc_shift_checks_pins<DOWN>(king, rank_1_i, attacker);
-//        }
-//        if (rank[king_sq.get_rank()][attacker]) {
-//            calc_shift_checks_pins<LEFT>(king, file_a_i, attacker);
-//            calc_shift_checks_pins<RIGHT>(king, file_h_i, attacker);
-//        }
-//
-//        // checks if attacked by bishop or queen in diagonal directions
-//        attacker = (b.piece_of_type[BISHOP] | b.piece_of_type[QUEEN]) & opponent_piece;
-//        calc_shift_checks_pins<UP_LEFT>(king, file_a_i_rank_8_i, attacker);
-//        calc_shift_checks_pins<UP_RIGHT>(king, file_h_i_rank_8_i, attacker);
-//        calc_shift_checks_pins<DOWN_LEFT>(king, file_a_i_rank_1_i, attacker);
-//        calc_shift_checks_pins<DOWN_RIGHT>(king, file_h_i_rank_1_i, attacker);
-//
-//        // check if attacked by knight
-//        auto non_sliding_checker = bitboard::knight_attacks(king) & b.piece_of_type[KNIGHT] & opponent_piece;
-//        if (non_sliding_checker != 0) {
-//            // it's impossible to be in checks by 2 knights at the same time
-//            num_checkers++;
-//            checkers |= non_sliding_checker;
-//        } else {
-//            // it's impossible to be in checks by 2 non-sliding pieces at once
-//            non_sliding_checker = bitboard::pawn_attacks(king, c) & b.piece_of_type[PAWN] & opponent_piece;
-//            if (non_sliding_checker != 0) {
-//                num_checkers++;
-//                checkers |= non_sliding_checker;
-//            }
-//        }
-//    }
-//
-//    template<shift_direction d>
-//    void calc_shift_checks_pins(bitboard origin, bitboard limit, bitboard attackers) {
-//
-//        auto sq = origin;
-//        bitboard ray = origin;
-//        bitboard pin;
-//        while (limit[sq]) {
-//            sq = sq.shift<d>();
-//            ray |= sq;
-//            if (b.piece_of_color[b.side_to_play][sq]) {
-//                if (pin.empty()) {
-//                    // ray passed first time through a piece of our side, potential pin
-//                    pin = sq;
-//                } else {
-//                    // second time our piece on the way: this means no piece is pinned in this direction, and no check in this direction
-//                    return;
-//                }
-//            } else if ((b.piece_of_color[opposite(b.side_to_play)] & attackers & sq) != 0) {
-//                // found attacker giving check or pinning
-//                if (pin.empty()) {
-//                    num_checkers++;
-//                    attackers |= sq;
-//                    attacked |= ray;
-//                } else {
-//                    pinned[d] = pin;
-//                }
-//                return;
-//            }
-//        }
-//        // if we reach here, nothing "interesting" was found
-//    }

@@ -270,4 +270,25 @@ inline bitboard pawn_attacks(bitboard origin, color c) {
     return pawn_attacks_[c][(origin & -origin) % 67];
 }
 
+inline std::string bb_to_string(bitboard b) {
+    std::stringstream ret;
+    for (int y = 7; y >= 0; y--) {
+        ret << " " << (y + 1) << "  ";
+        for (int x = 0; x <= 7; x++) {
+            bitboard sq = bb(x, y);
+            if ((b & sq) != 0) {
+                ret << " X";
+            } else {
+                ret << " .";
+            }
+        }
+        ret << std::endl;
+    }
+    ret << std::endl << "     a b c d e f g h" << std::endl;
+    return ret.str();
+}
+
+inline void print_bb(bitboard b) {
+    std::cout << "\n\n" << bb_to_string(b) << "\n\n";
+}
 #endif //CHESSENGINE_BITBOARD_H

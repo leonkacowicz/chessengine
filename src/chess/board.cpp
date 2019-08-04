@@ -60,7 +60,7 @@ string board::to_string() const {
                 else if (sq & bb(king_pos[WHITE])) ret << " ♔";
                 else ret << " X";
             }
-            else if (sq && piece_of_color[BLACK]) {
+            else if (sq & piece_of_color[BLACK]) {
                 if (sq & piece_of_type[BISHOP]) ret << " ♝";
                 else if (sq & piece_of_type[ROOK]) ret << " ♜";
                 else if (sq & piece_of_type[KNIGHT]) ret << " ♞";

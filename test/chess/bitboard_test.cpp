@@ -11,7 +11,7 @@ TEST(bitboard_test, bitboard_consistency) {
         for (int r = 0; r < 8; r++) {
             bitboard bbo = bb(f, r);
 
-            ASSERT_EQ(bbo & file[f] & rank[r], true);
+            ASSERT_EQ((bbo & file[f] & rank[r]) != 0, true);
             for (int k = 0; k < 8; k++) {
                 if (k != f) {
                     EXPECT_EQ(bbo & file[k], 0);

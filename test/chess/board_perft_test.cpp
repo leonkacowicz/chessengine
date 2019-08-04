@@ -12,8 +12,8 @@
 template <bool log>
 int perft(const board& b, int depth) {
     int n = 0;
-    auto moves = b.get_legal_moves(b.side_to_play);
-    // auto moves = move_gen(b).generate();
+    // auto moves = b.get_legal_moves(b.side_to_play);
+    auto moves = move_gen(b).generate();
     //if (depth == 1) return moves.size();
     if (depth == 0) return 1;
 
@@ -32,10 +32,10 @@ TEST(board_test, perft_test_1) {
     std::cout << "\n\n";
     board b; b.set_initial_position();
 
-//    ASSERT_EQ(perft<true>(b, 1), 20);
-//    ASSERT_EQ(perft<true>(b, 2), 400);
-//    ASSERT_EQ(perft<true>(b, 3), 8902);
-//    ASSERT_EQ(perft<true>(b, 4), 197281);
+    ASSERT_EQ(perft<true>(b, 1), 20);
+    ASSERT_EQ(perft<true>(b, 2), 400);
+    ASSERT_EQ(perft<true>(b, 3), 8902);
+    ASSERT_EQ(perft<true>(b, 4), 197281);
     EXPECT_EQ(perft<true>(b, 5), 4865609);
 //    ASSERT_EQ(perft<true>(b, 6), 119'060'324);
 }
@@ -50,7 +50,7 @@ TEST(board_test, perft_test_1_c2c3_e7e6) {
     board b; b.set_initial_position();
     b.make_move({"c2", "c3"});
     b.make_move({"e7", "e6"});
-    ASSERT_EQ(perft<true>(b, 3), 10614);
+    ASSERT_EQ(perft<true>(b, 3), 15014);
 }
 
 TEST(board_test, perft_test_1_c2c3_e7e6_d2d3) {
@@ -82,12 +82,12 @@ TEST(board_test, perft_test_1_c2c3_a7a5_d1a4) {
 
 TEST(board_test, perft_test_2) {
     board b("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ");
-
+    //b.make_move({"e2", "b5"});
     ASSERT_EQ(perft<true>(b, 1), 48);
     ASSERT_EQ(perft<true>(b, 2), 2039);
     ASSERT_EQ(perft<true>(b, 3), 97862);
     ASSERT_EQ(perft<true>(b, 4), 4085603);
-    ASSERT_EQ(perft<true>(b, 5), 193690690);
+    //ASSERT_EQ(perft<true>(b, 5), 193690690);
 }
 
 TEST(board_test, perft_test_3) {
@@ -112,11 +112,10 @@ TEST(board_test, perft_test_4) {
 
 TEST(board_test, perft_test_5) {
     board b("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
-
-
+    b.print();
     ASSERT_EQ(perft<true>(b, 1), 44);
     ASSERT_EQ(perft<true>(b, 2), 1'486);
     ASSERT_EQ(perft<true>(b, 3), 62'379);
     ASSERT_EQ(perft<true>(b, 4), 2'103'487);
-    ASSERT_EQ(perft<true>(b, 5), 89'941'194);
+    //ASSERT_EQ(perft<true>(b, 5), 89'941'194);
 }

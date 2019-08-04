@@ -8,6 +8,7 @@
 #include <move.h>
 #include <board.h>
 #include <fen.h>
+#include <move_gen.h>
 
 TEST(board_test, bug_detector) {
     std::default_random_engine gen;
@@ -17,12 +18,13 @@ TEST(board_test, bug_detector) {
     for (testNum = 0; testNum < 50000; testNum++) {
         board b;
         b.set_initial_position();
-        std::vector<move> legal_moves = b.get_legal_moves(b.side_to_play);
+        //std::vector<move> legal_moves = b.get_legal_moves(b.side_to_play);
+        std::vector<move> legal_moves = move_gen(b).generate();
         int k = 0;
         if (testNum % 1000 == 0) std::cout << "Tested " << testNum << " cases." << std::endl;
 
         std::vector<std::string> pgn;
-        while (!legal_moves.empty() && k < 200) {
+        while (!legal_moves.empty() && k < 150) {
             k++;
             try {
                 unsigned long i = dis(gen) % legal_moves.size();
@@ -32,9 +34,10 @@ TEST(board_test, bug_detector) {
                 if (b.under_check(opposite(b.side_to_play))) {
                     std::__throw_runtime_error("Move ignored check");
                 }
-                if (!(b == board(fen::to_string(b)))) std::__throw_runtime_error("FEN failed");
+                //if (!(b == board(fen::to_string(b)))) std::__throw_runtime_error("FEN failed");
 
-                legal_moves = b.get_legal_moves(b.side_to_play);
+                //legal_moves = b.get_legal_moves(b.side_to_play);
+                legal_moves = move_gen(b).generate();
             } catch (std::exception& e) {
                 std::cout << "Exception: " << e.what() << std::endl;
                 std::cout << std::endl;
