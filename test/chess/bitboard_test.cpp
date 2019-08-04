@@ -9,15 +9,15 @@ TEST(bitboard_test, size_of_class) {
 TEST(bitboard_test, bitboard_consistency) {
     for (int f = 0; f < 8; f++) {
         for (int r = 0; r < 8; r++) {
-            bitboard bb(f, r);
+            bitboard bbo = bb(f, r);
 
-            ASSERT_EQ(bb[file[f] & rank[r]], true);
+            ASSERT_EQ(bbo & file[f] & rank[r], true);
             for (int k = 0; k < 8; k++) {
                 if (k != f) {
-                    EXPECT_EQ(bb & file[k], 0);
+                    EXPECT_EQ(bbo & file[k], 0);
                 }
                 if (k != r) {
-                    EXPECT_EQ(bb & rank[k], 0);
+                    EXPECT_EQ(bbo & rank[k], 0);
                 }
             }
         }
@@ -28,15 +28,15 @@ TEST(bitboard_test, bitboard_square_conversion) {
     for (int f = 0; f < 8; f++) {
         for (int r = 0; r < 8; r++) {
             square sq(f, r);
-            bitboard bb(sq);
+            bitboard bbo = bb(sq);
 
-            ASSERT_EQ(bb[file[f] & rank[r]], true);
+            ASSERT_EQ((bbo & file[f] & rank[r]) != 0, true);
             for (int k = 0; k < 8; k++) {
                 if (k != f) {
-                    EXPECT_EQ(bb & file[k], 0);
+                    EXPECT_EQ(bbo & file[k], 0);
                 }
                 if (k != r) {
-                    EXPECT_EQ(bb & rank[k], 0);
+                    EXPECT_EQ(bbo & rank[k], 0);
                 }
             }
         }
@@ -46,8 +46,8 @@ TEST(bitboard_test, bitboard_square_conversion) {
 TEST(bitboard_test, bitboard_square_conversion_inv) {
     for (int f = 0; f < 8; f++) {
         for (int r = 0; r < 8; r++) {
-            bitboard bb(f, r);
-            auto sq = bb.get_square();
+            bitboard bbo = bb(f, r);
+            auto sq = get_square(bbo);
             ASSERT_EQ(sq.get_file(), f);
             ASSERT_EQ(sq.get_rank(), r);
         }
@@ -56,26 +56,26 @@ TEST(bitboard_test, bitboard_square_conversion_inv) {
 
 TEST(bitboard_test, costants_and_ops) {
     for (int f = 0; f < 7; f++) {
-        EXPECT_EQ(file[f].shift<RIGHT>(), file[f + 1]);
+        EXPECT_EQ(shift<RIGHT>(file[f]), file[f + 1]);
     }
 
     for (int f = 7; f > 0; f--) {
-        EXPECT_EQ(file[f].shift<LEFT>(), file[f - 1]);
+        EXPECT_EQ(shift<LEFT>(file[f]), file[f - 1]);
     }
 
     for (int r = 0; r < 7; r++) {
-        EXPECT_EQ(rank[r].shift<UP>(), rank[r + 1]);
+        EXPECT_EQ(shift<UP>(rank[r]), rank[r + 1]);
     }
 
     for (int r = 7; r > 0; r--) {
-        EXPECT_EQ(rank[r].shift<DOWN>(), rank[r - 1]);
+        EXPECT_EQ(shift<DOWN>(rank[r]), rank[r - 1]);
     }
 }
 
 TEST(bitboard_test, test_shift_up_right) {
     for (int r = 0; r < 7; r++) {
         for (int f = 0; f < 7; f++) {
-            EXPECT_EQ(bitboard(f, r).shift<UP_RIGHT>(), bitboard(f + 1, r + 1));
+            EXPECT_EQ(shift<UP_RIGHT>(bb(f, r)), bb(f + 1, r + 1));
         }
     }
 }
@@ -83,7 +83,7 @@ TEST(bitboard_test, test_shift_up_right) {
 TEST(bitboard_test, test_shift_up_left) {
     for (int r = 0; r < 7; r++) {
         for (int f = 1; f < 8; f++) {
-            EXPECT_EQ(bitboard(f, r).shift<UP_LEFT>(), bitboard(f - 1, r + 1));
+            EXPECT_EQ(shift<UP_LEFT>(bb(f, r)), bb(f - 1, r + 1));
         }
     }
 }
@@ -91,7 +91,7 @@ TEST(bitboard_test, test_shift_up_left) {
 TEST(bitboard_test, test_shift_down_right) {
     for (int r = 1; r < 8; r++) {
         for (int f = 0; f < 7; f++) {
-            EXPECT_EQ(bitboard(f, r).shift<DOWN_RIGHT>(), bitboard(f + 1, r - 1));
+            EXPECT_EQ(shift<DOWN_RIGHT>(bb(f, r)), bb(f + 1, r - 1));
         }
     }
 }
@@ -99,7 +99,7 @@ TEST(bitboard_test, test_shift_down_right) {
 TEST(bitboard_test, test_shift_down_left) {
     for (int r = 1; r < 8; r++) {
         for (int f = 1; f < 8; f++) {
-            EXPECT_EQ(bitboard(f, r).shift<DOWN_LEFT>(), bitboard(f - 1, r - 1));
+            EXPECT_EQ(shift<DOWN_LEFT>(bb(f, r)), bb(f - 1, r - 1));
         }
     }
 }
@@ -108,10 +108,10 @@ TEST(bitboard_test, bitboard_square_conv) {
     for (int x = 0; x < 8; x++)
         for (int y = 0; y < 8; y++) {
             square expected(x, y);
-            bitboard bitBoard = bitboard(expected);
-            square calculated = bitBoard.get_square();
+            bitboard bitBoard = bb(expected);
+            square calculated = get_square(bitBoard);
             ASSERT_EQ(expected, calculated);
         }
 
-    ASSERT_EQ(bitboard(square::none), 0);
+    ASSERT_EQ(bb(square::none), 0);
 }

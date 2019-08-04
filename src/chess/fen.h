@@ -29,7 +29,7 @@ public:
         for (int r = 7; r >= 0; r--) {
             int rank_counter = 0;
             for (int f = 0; f < 8; f++) {
-                bitboard sq(square(f, r));
+                auto sq = bb(f, r);
                 piece p = b.piece_at(sq);
                 if (p == NONE) {
                     rank_counter++;
