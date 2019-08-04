@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <ostream>
 #include <initializer_list>
+#include <sstream>
 #include "square.h"
 #include "color.h"
 
@@ -12,7 +13,8 @@ using U64 = unsigned long int;
 enum shift_direction {
     UP, DOWN, LEFT, RIGHT,
     UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT,
-
+    UP_UP_LEFT, UP_LEFT_LEFT, UP_UP_RIGHT, UP_RIGHT_RIGHT, DOWN_DOWN_LEFT, DOWN_LEFT_LEFT, DOWN_DOWN_RIGHT, DOWN_RIGHT_RIGHT,
+    LEFT_LEFT, RIGHT_RIGHT
 };
 
 namespace ns {
@@ -35,6 +37,14 @@ namespace ns {
     }
 
     template <>
+    inline U64 shift<LEFT_LEFT>(U64 arg) {
+        return arg >> 2u;
+    }
+    template <>
+    inline U64 shift<RIGHT_RIGHT>(U64 arg) {
+        return arg << 2u;
+    }
+    template <>
     inline U64 shift<UP_LEFT>(U64 arg) {
         return arg << 7u;
     }
@@ -49,6 +59,39 @@ namespace ns {
     template <>
     inline U64 shift<DOWN_RIGHT>(U64 arg) {
         return arg >> 7u;
+    }
+
+    template <>
+    inline U64 shift<UP_UP_LEFT>(U64 arg) {
+        return arg << 15u;
+    }
+    template <>
+    inline U64 shift<UP_LEFT_LEFT>(U64 arg) {
+        return arg << 6u;
+    }
+    template <>
+    inline U64 shift<UP_UP_RIGHT>(U64 arg) {
+        return arg << 17u;
+    }
+    template <>
+    inline U64 shift<UP_RIGHT_RIGHT>(U64 arg) {
+        return arg << 10u;
+    }
+    template <>
+    inline U64 shift<DOWN_DOWN_LEFT>(U64 arg) {
+        return arg >> 17u;
+    }
+    template <>
+    inline U64 shift<DOWN_LEFT_LEFT>(U64 arg) {
+        return arg >> 10u;
+    }
+    template <>
+    inline U64 shift<DOWN_DOWN_RIGHT>(U64 arg) {
+        return arg >> 15u;
+    }
+    template <>
+    inline U64 shift<DOWN_RIGHT_RIGHT>(U64 arg) {
+        return arg >> 6u;
     }
 }
 
@@ -197,6 +240,28 @@ public:
 
     static inline bitboard pawn_attacks(bitboard origin, color c) {
         return pawn_attacks_[c][(origin.board & -origin.board) % 67];
+    }
+
+    std::string to_string() const {
+        std::stringstream ret;
+        for (int y = 7; y >= 0; y--) {
+            ret << " " << (y + 1) << "  ";
+            for (int x = 0; x <= 7; x++) {
+                bitboard position(x, y);
+                if ((board & position.board) != 0) {
+                    ret << " X";
+                } else {
+                    ret << " .";
+                }
+            }
+            ret << std::endl;
+        }
+        ret << std::endl << "     a b c d e f g h" << std::endl;
+        return ret.str();
+    }
+
+    void print() const {
+        std::cout << "\n\n" << to_string() << "\n\n";
     }
 };
 

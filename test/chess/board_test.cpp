@@ -525,6 +525,16 @@ TEST(board_test, 1b4n1_p2b4_1k3pR1_3P1n1p_1PB2P1P_8_PB2P1N1_RN2K3__w__Q_____1__5
     }
 }
 
+TEST(board_test, legal_moves_position_1) {
+    board b("r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1");
+    b.make_move({"f1", "f2"});
+    auto legal_moves = b.get_legal_moves(BLACK);
+    list_moves(legal_moves);
+    int num_moves = legal_moves.size();
+    ASSERT_CONTAINS(legal_moves, move("e8", "c8", CASTLE_QUEEN_SIDE_BLACK));
+    ASSERT_EQ(num_moves, 45);
+}
+
 TEST(board_test, print_sizeof_board) {
     std::cout << sizeof(board) << std::endl;
 }

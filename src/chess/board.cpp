@@ -69,12 +69,12 @@ string board::to_string() const {
                 else if (position[king_pos[BLACK]]) ret << " ♚";
                 else ret << " x";
             } else {
-                ret << " .";
+                ret << " ◦";
             }
         }
         ret << std::endl;
     }
-    ret << std::endl << "     a b c d e f g h" << std::endl;
+    ret << std::endl << "     a◦b◦c◦d◦e◦f◦g◦h" << std::endl;
     return ret.str();
 }
 
