@@ -20,13 +20,9 @@ enum class move_list_type {
     VECTOR, ARRAY
 };
 
-template <move_list_type l>
 class move_gen {
     const board& b;
-    //std::conditional<true, move[250], std::vector<move>>::type list;
-    typename std::conditional<l == move_list_type::ARRAY, move[250], std::vector<move>>::type moves;
-    std::vector<move> move_list;
-    int num_moves = 0;
+    std::vector<move> moves;
     bitboard checkers;
     bitboard attacked;
     char num_checkers;
@@ -48,7 +44,7 @@ public:
         them = opposite(us);
         our_piece = b.piece_of_color[us];
         their_piece = b.piece_of_color[them];
-//        moves.reserve(250);
+        moves.reserve(100);
 //        moves.clear();
     }
 
@@ -366,19 +362,10 @@ public:
         }
     }
 
-//    inline void add_move(square from, square to, special_move special = NOT_SPECIAL) {
-//        if (true) {
-//            moves[num_moves++] = move(from, to, special);
-//        } else {
-//            moves.emplace_back(from, to, special);
-//        }
-//    }
-
     inline void add_move(square from, square to, special_move special = NOT_SPECIAL);
 };
 
-template<>
-inline std::vector<move>& move_gen<move_list_type::VECTOR>::generate() {
+inline std::vector<move>& move_gen::generate() {
     reset();
     scan_board();
     //print_bb(attacked);
@@ -398,35 +385,7 @@ inline std::vector<move>& move_gen<move_list_type::VECTOR>::generate() {
     return moves;
 }
 
-template <>
-inline std::vector<move>& move_gen<move_list_type::ARRAY>::generate() {
-    reset();
-    scan_board();
-    //print_bb(attacked);
-    //print_bb(pinned_any_dir);
-
-    generate_king_moves();
-    if (num_checkers == 2) {
-        // only legal moves will be moving the king away from check
-    } else if (num_checkers == 1) {
-        // only generate moves that remove check
-        generate_non_king_moves<EVASIVE>();
-    } else {
-        generate_non_king_moves<NON_EVASIVE>(); // generate any move that does not put the king in check
-        if (us == WHITE) castle_moves<WHITE>();
-        else castle_moves<BLACK>();
-    }
-    move_list.assign(moves, moves+num_moves);
-    return move_list;
-}
-
-template <>
-inline void move_gen<move_list_type::ARRAY>::add_move(square from, square to, special_move special) {
-    moves[num_moves++] = move(from, to, special);
-}
-
-template <>
-inline void move_gen<move_list_type::VECTOR>::add_move(square from, square to, special_move special) {
+inline void move_gen::add_move(square from, square to, special_move special) {
     moves.emplace_back(from, to, special);
 }
 
