@@ -12,7 +12,7 @@
 template <bool log>
 int perft(const board& b, int depth) {
     int n = 0;
-    // auto moves = b.get_legal_moves(b.side_to_play);
+    //auto moves = b.get_legal_moves(b.side_to_play);
     auto moves = move_gen(b).generate();
     //if (depth == 1) return moves.size();
     if (depth == 0) return 1;
@@ -107,7 +107,7 @@ TEST(board_test, perft_test_4) {
     ASSERT_EQ(perft<true>(b, 2), 264);
     ASSERT_EQ(perft<true>(b, 3), 9467);
     ASSERT_EQ(perft<true>(b, 4), 422333);
-    //ASSERT_EQ(perft<true>(b, 5), 15833292);
+    ASSERT_EQ(perft<true>(b, 5), 15833292);
 }
 
 TEST(board_test, perft_test_5) {
@@ -117,5 +117,5 @@ TEST(board_test, perft_test_5) {
     ASSERT_EQ(perft<true>(b, 2), 1'486);
     ASSERT_EQ(perft<true>(b, 3), 62'379);
     ASSERT_EQ(perft<true>(b, 4), 2'103'487);
-    //ASSERT_EQ(perft<true>(b, 5), 89'941'194);
+    ASSERT_EQ(perft<true>(b, 5), 89'941'194);
 }

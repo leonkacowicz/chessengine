@@ -24,14 +24,13 @@ public:
     square origin;
     square destination;
     char special; // 0, n, r, b, q
-    move() : origin(square::none), destination(square::none), special(NULL_MOVE) {};
-    move(square origin, square destination) : origin(origin), destination(destination), special(0) {};
-    move(square origin, square destination, special_move special) : origin(origin), destination(destination), special(special) {};
+    move() : origin(square()), destination(square()), special(NULL_MOVE) {};
+    constexpr move(square origin, square destination) : origin(origin), destination(destination), special(0) {};
+    constexpr move(square origin, square destination, special_move special) : origin(origin), destination(destination), special(special) {};
 
-    bool operator==(const move& rhs) const {
+    constexpr bool operator==(const move& rhs) const {
         return destination == rhs.destination && origin == rhs.origin && special == rhs.special;
     }
-
     std::string to_long_move() const {
         if (special == NULL_MOVE) return "(none)";
         std::stringstream ss;

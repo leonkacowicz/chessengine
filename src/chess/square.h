@@ -20,11 +20,11 @@ public:
         return (char)(((unsigned)coords >> 4u) & 0x7u);
     }
 
-    bool operator==(square rhs) const {
+    constexpr bool operator==(square rhs) const {
         return coords == rhs.coords;
     }
 
-    bool operator!=(square rhs) const {
+    constexpr bool operator!=(square rhs) const {
         return coords != rhs.coords;
     }
 
@@ -40,7 +40,11 @@ public:
         return std::string({get_file_char(), get_rank_char()});
     }
 
-    static const square none;
+    constexpr bool is_none() const {
+        return coords == 255;
+    }
+
+    const static square none;
 };
 
 #endif //CHESSENGINE_SQUARE_H

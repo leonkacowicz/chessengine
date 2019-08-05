@@ -11,87 +11,100 @@
 using U64 = unsigned long int;
 typedef uint64_t bitboard;
 
-enum shift_direction {
-    UP, DOWN, LEFT, RIGHT,
-    UP_LEFT, UP_RIGHT, DOWN_LEFT, DOWN_RIGHT,
-    UP_UP_LEFT, UP_LEFT_LEFT, UP_UP_RIGHT, UP_RIGHT_RIGHT, DOWN_DOWN_LEFT, DOWN_LEFT_LEFT, DOWN_DOWN_RIGHT, DOWN_RIGHT_RIGHT,
-    LEFT_LEFT, RIGHT_RIGHT
+enum shift_direction : int {
+    UP = 8, DOWN = -8, LEFT = -1, RIGHT = 1,
+    UP_LEFT = UP + LEFT,
+    UP_RIGHT = UP + RIGHT,
+    DOWN_LEFT,
+    DOWN_RIGHT,
+    UP_UP_LEFT,
+    UP_LEFT_LEFT,
+    UP_UP_RIGHT,
+    UP_RIGHT_RIGHT,
+    DOWN_DOWN_LEFT,
+    DOWN_LEFT_LEFT,
+    DOWN_DOWN_RIGHT,
+    DOWN_RIGHT_RIGHT,
+    LEFT_LEFT,
+    RIGHT_RIGHT
 };
 
 
-template<shift_direction d> bitboard shift(bitboard arg);
-template <>
-inline U64 shift<UP>(U64 arg) {
-    return arg << 8u;
+template<shift_direction d>
+inline bitboard shift(bitboard arg) {
+    if (d > 0) return arg << unsigned(d);
+    else if (d < 0) return arg >> unsigned(d);
+    else return arg;
 }
+
 template <>
-inline U64 shift<DOWN>(U64 arg) {
+constexpr U64 shift<DOWN>(U64 arg) {
     return arg >> 8u;
 }
 template <>
-inline U64 shift<LEFT>(U64 arg) {
+constexpr U64 shift<LEFT>(U64 arg) {
     return arg >> 1u;
 }
 template <>
-inline U64 shift<RIGHT>(U64 arg) {
+constexpr U64 shift<RIGHT>(U64 arg) {
     return arg << 1u;
 }
 
 template <>
-inline U64 shift<LEFT_LEFT>(U64 arg) {
+constexpr U64 shift<LEFT_LEFT>(U64 arg) {
     return arg >> 2u;
 }
 template <>
-inline U64 shift<RIGHT_RIGHT>(U64 arg) {
+constexpr U64 shift<RIGHT_RIGHT>(U64 arg) {
     return arg << 2u;
 }
 template <>
-inline U64 shift<UP_LEFT>(U64 arg) {
+constexpr U64 shift<UP_LEFT>(U64 arg) {
     return arg << 7u;
 }
 template <>
-inline U64 shift<UP_RIGHT>(U64 arg) {
+constexpr U64 shift<UP_RIGHT>(U64 arg) {
     return arg << 9u;
 }
 template <>
-inline U64 shift<DOWN_LEFT>(U64 arg) {
+constexpr U64 shift<DOWN_LEFT>(U64 arg) {
     return arg >> 9u;
 }
 template <>
-inline U64 shift<DOWN_RIGHT>(U64 arg) {
+constexpr U64 shift<DOWN_RIGHT>(U64 arg) {
     return arg >> 7u;
 }
 
 template <>
-inline U64 shift<UP_UP_LEFT>(U64 arg) {
+constexpr U64 shift<UP_UP_LEFT>(U64 arg) {
     return arg << 15u;
 }
 template <>
-inline U64 shift<UP_LEFT_LEFT>(U64 arg) {
+constexpr U64 shift<UP_LEFT_LEFT>(U64 arg) {
     return arg << 6u;
 }
 template <>
-inline U64 shift<UP_UP_RIGHT>(U64 arg) {
+constexpr U64 shift<UP_UP_RIGHT>(U64 arg) {
     return arg << 17u;
 }
 template <>
-inline U64 shift<UP_RIGHT_RIGHT>(U64 arg) {
+constexpr U64 shift<UP_RIGHT_RIGHT>(U64 arg) {
     return arg << 10u;
 }
 template <>
-inline U64 shift<DOWN_DOWN_LEFT>(U64 arg) {
+constexpr U64 shift<DOWN_DOWN_LEFT>(U64 arg) {
     return arg >> 17u;
 }
 template <>
-inline U64 shift<DOWN_LEFT_LEFT>(U64 arg) {
+constexpr U64 shift<DOWN_LEFT_LEFT>(U64 arg) {
     return arg >> 10u;
 }
 template <>
-inline U64 shift<DOWN_DOWN_RIGHT>(U64 arg) {
+constexpr U64 shift<DOWN_DOWN_RIGHT>(U64 arg) {
     return arg >> 15u;
 }
 template <>
-inline U64 shift<DOWN_RIGHT_RIGHT>(U64 arg) {
+constexpr U64 shift<DOWN_RIGHT_RIGHT>(U64 arg) {
     return arg >> 6u;
 }
 
@@ -186,63 +199,62 @@ const bitboard pawn_attacks_[2][67] = {{0x0000000000000000,0x0000000000000200,0x
                                             0x000000000a000000,0x0000000005000000}
                                             };
 
-const bitboard file_a = 0x0101010101010101;
-const bitboard file_b = 0x0202020202020202;
-const bitboard file_c = 0x0404040404040404;
-const bitboard file_d = 0x0808080808080808;
-const bitboard file_e = 0x1010101010101010;
-const bitboard file_f = 0x2020202020202020;
-const bitboard file_g = 0x4040404040404040;
-const bitboard file_h = 0x8080808080808080;
-const bitboard rank_1 = 0x00000000000000FF;
-const bitboard rank_2 = 0x000000000000FF00;
-const bitboard rank_3 = 0x0000000000FF0000;
-const bitboard rank_4 = 0x00000000FF000000;
-const bitboard rank_5 = 0x000000FF00000000;
-const bitboard rank_6 = 0x0000FF0000000000;
-const bitboard rank_7 = 0x00FF000000000000;
-const bitboard rank_8 = 0xFF00000000000000;
+constexpr bitboard file_a = 0x0101010101010101;
+constexpr bitboard file_b = 0x0202020202020202;
+constexpr bitboard file_c = 0x0404040404040404;
+constexpr bitboard file_d = 0x0808080808080808;
+constexpr bitboard file_e = 0x1010101010101010;
+constexpr bitboard file_f = 0x2020202020202020;
+constexpr bitboard file_g = 0x4040404040404040;
+constexpr bitboard file_h = 0x8080808080808080;
+constexpr bitboard rank_1 = 0x00000000000000FF;
+constexpr bitboard rank_2 = 0x000000000000FF00;
+constexpr bitboard rank_3 = 0x0000000000FF0000;
+constexpr bitboard rank_4 = 0x00000000FF000000;
+constexpr bitboard rank_5 = 0x000000FF00000000;
+constexpr bitboard rank_6 = 0x0000FF0000000000;
+constexpr bitboard rank_7 = 0x00FF000000000000;
+constexpr bitboard rank_8 = 0xFF00000000000000;
 
-const bitboard file_a_i(~file_a);
-const bitboard file_b_i(~file_b);
-const bitboard file_c_i(~file_c);
-const bitboard file_d_i(~file_d);
-const bitboard file_e_i(~file_e);
-const bitboard file_f_i(~file_f);
-const bitboard file_g_i(~file_g);
-const bitboard file_h_i(~file_h);
-const bitboard rank_1_i(~rank_1);
-const bitboard rank_2_i(~rank_2);
-const bitboard rank_3_i(~rank_3);
-const bitboard rank_4_i(~rank_4);
-const bitboard rank_5_i(~rank_5);
-const bitboard rank_6_i(~rank_6);
-const bitboard rank_7_i(~rank_7);
-const bitboard rank_8_i(~rank_8);
+constexpr bitboard file_a_i = ~file_a;
+constexpr bitboard file_b_i = ~file_b;
+constexpr bitboard file_c_i = ~file_c;
+constexpr bitboard file_d_i = ~file_d;
+constexpr bitboard file_e_i = ~file_e;
+constexpr bitboard file_f_i = ~file_f;
+constexpr bitboard file_g_i = ~file_g;
+constexpr bitboard file_h_i = ~file_h;
+constexpr bitboard rank_1_i = ~rank_1;
+constexpr bitboard rank_2_i = ~rank_2;
+constexpr bitboard rank_3_i = ~rank_3;
+constexpr bitboard rank_4_i = ~rank_4;
+constexpr bitboard rank_5_i = ~rank_5;
+constexpr bitboard rank_6_i = ~rank_6;
+constexpr bitboard rank_7_i = ~rank_7;
+constexpr bitboard rank_8_i = ~rank_8;
 
-const bitboard file_a_i_rank_1_i = file_a_i & rank_1_i;
-const bitboard file_a_i_rank_8_i = file_a_i & rank_8_i;
-const bitboard file_h_i_rank_1_i = file_h_i & rank_1_i;
-const bitboard file_h_i_rank_8_i = file_h_i & rank_8_i;
+constexpr bitboard file_a_i_rank_1_i = file_a_i & rank_1_i;
+constexpr bitboard file_a_i_rank_8_i = file_a_i & rank_8_i;
+constexpr bitboard file_h_i_rank_1_i = file_h_i & rank_1_i;
+constexpr bitboard file_h_i_rank_8_i = file_h_i & rank_8_i;
+constexpr bitboard file_a_i_rank_8_i_rank_7_i = file_a_i_rank_8_i & rank_7_i;
+constexpr bitboard file_a_i_rank_1_i_rank_2_i = file_a_i_rank_1_i & rank_2_i;
+constexpr bitboard file_h_i_rank_8_i_rank_7_i = file_h_i_rank_8_i & rank_7_i;
+constexpr bitboard file_h_i_rank_1_i_rank_2_i = file_h_i_rank_1_i & rank_2_i;
+constexpr bitboard file_a_i_rank_8_i_file_b_i = file_a_i_rank_8_i & file_b_i;
+constexpr bitboard file_a_i_rank_1_i_file_b_i = file_a_i_rank_1_i & file_b_i;
+constexpr bitboard file_h_i_rank_8_i_file_g_i = file_h_i_rank_8_i & file_g_i;
+constexpr bitboard file_h_i_rank_1_i_file_g_i = file_h_i_rank_1_i & file_g_i;
 
-const bitboard file_a_i_rank_8_i_rank_7_i = file_a_i_rank_8_i & rank_7_i;
-const bitboard file_a_i_rank_1_i_rank_2_i = file_a_i_rank_1_i & rank_2_i;
-const bitboard file_h_i_rank_8_i_rank_7_i = file_h_i_rank_8_i & rank_7_i;
-const bitboard file_h_i_rank_1_i_rank_2_i = file_h_i_rank_1_i & rank_2_i;
-const bitboard file_a_i_rank_8_i_file_b_i = file_a_i_rank_8_i & file_b_i;
-const bitboard file_a_i_rank_1_i_file_b_i = file_a_i_rank_1_i & file_b_i;
-const bitboard file_h_i_rank_8_i_file_g_i = file_h_i_rank_8_i & file_g_i;
-const bitboard file_h_i_rank_1_i_file_g_i = file_h_i_rank_1_i & file_g_i;
+constexpr bitboard file[8] = {file_a, file_b, file_c, file_d, file_e, file_f, file_g, file_h};
+constexpr bitboard rank[8] = {rank_1, rank_2, rank_3, rank_4, rank_5, rank_6, rank_7, rank_8};
 
-const bitboard file[8] = {file_a, file_b, file_c, file_d, file_e, file_f, file_g, file_h};
-const bitboard rank[8] = {rank_1, rank_2, rank_3, rank_4, rank_5, rank_6, rank_7, rank_8};
-
-inline bitboard bb(unsigned int x, unsigned int y) {
+constexpr bitboard bb(unsigned int x, unsigned int y) {
     return 1uL << (8 * y + x);
 }
 
-inline bitboard bb(const square sq) {
-    return sq == square::none ? 0 : bb(sq.get_file(), sq.get_rank());
+constexpr bitboard bb(const square sq) {
+    return sq.is_none() ? 0 : bb(sq.get_file(), sq.get_rank());
 }
 
 inline square get_square(bitboard board) {
