@@ -13,7 +13,7 @@ template <bool log>
 int perft(const board& b, int depth) {
     int n = 0;
     //auto moves = b.get_legal_moves(b.side_to_play);
-    auto moves = move_gen(b).generate();
+    auto moves = move_gen<move_list_type::ARRAY>(b).generate();
     //if (depth == 1) return moves.size();
     if (depth == 0) return 1;
 

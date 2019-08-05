@@ -19,7 +19,7 @@ TEST(board_test, bug_detector) {
         board b;
         b.set_initial_position();
         //std::vector<move> legal_moves = b.get_legal_moves(b.side_to_play);
-        std::vector<move> legal_moves = move_gen(b).generate();
+        std::vector<move> legal_moves = move_gen<move_list_type::ARRAY>(b).generate();
         int k = 0;
         if (testNum % 1000 == 0) std::cout << "Tested " << testNum << " cases." << std::endl;
 
@@ -37,7 +37,7 @@ TEST(board_test, bug_detector) {
                 //if (!(b == board(fen::to_string(b)))) std::__throw_runtime_error("FEN failed");
 
                 //legal_moves = b.get_legal_moves(b.side_to_play);
-                legal_moves = move_gen(b).generate();
+                legal_moves = move_gen<move_list_type::ARRAY>(b).generate();
             } catch (std::exception& e) {
                 std::cout << "Exception: " << e.what() << std::endl;
                 std::cout << std::endl;

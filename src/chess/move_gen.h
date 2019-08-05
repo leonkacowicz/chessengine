@@ -16,10 +16,16 @@ enum evasiveness {
     EVASIVE, NON_EVASIVE
 };
 
-class move_gen {
+enum class move_list_type {
+    VECTOR, ARRAY
+};
 
+template <move_list_type l>
+class move_gen {
     const board& b;
-    move moves[250];
+    //std::conditional<true, move[250], std::vector<move>>::type list;
+    typename std::conditional<l == move_list_type::ARRAY, move[250], std::vector<move>>::type moves;
+    std::vector<move> move_list;
     int num_moves = 0;
     bitboard checkers;
     bitboard attacked;
@@ -46,26 +52,7 @@ public:
 //        moves.clear();
     }
 
-    std::vector<move> generate() {
-        reset();
-        scan_board();
-        //print_bb(attacked);
-        //print_bb(pinned_any_dir);
-        std::vector<move> ret;
-        generate_king_moves();
-        if (num_checkers == 2) {
-            // only legal moves will be moving the king away from check
-        } else if (num_checkers == 1) {
-            // only generate moves that remove check
-            generate_non_king_moves<EVASIVE>();
-        } else {
-            generate_non_king_moves<NON_EVASIVE>(); // generate any move that does not put the king in check
-            if (us == WHITE) castle_moves<WHITE>();
-            else castle_moves<BLACK>();
-        }
-        ret.assign(moves, moves + num_moves);
-        return ret;
-    }
+    std::vector<move>& generate();
 
     void generate_king_moves() {
         bitboard dest[8];
@@ -86,7 +73,7 @@ public:
         for (int i = 0; i < N; i++) {
             if (((our_piece | attacked) & dest[i]) == 0) {
                 //moves.emplace_back(b.king_pos[us], get_square(dest[i]));
-                moves[num_moves++] = {b.king_pos[us], get_square(dest[i])};
+                add_move(b.king_pos[us], get_square(dest[i]));
 
             }
         }
@@ -237,7 +224,7 @@ public:
             if (e == NON_EVASIVE || (sq & (checkers | block_mask))) {
                 // to evade a single check, we must block the checker or capture it
                 //moves.emplace_back(get_square(origin), get_square(sq));
-                moves[num_moves++] = {get_square(origin), get_square(sq)};
+                add_move(get_square(origin), get_square(sq));
             }
             if (their_piece & sq) break; // captured opponent piece: stop there
         }
@@ -260,7 +247,7 @@ public:
             if (our_piece & dest[i]) continue;
             if (e == NON_EVASIVE || ((checkers | block_mask) & dest[i])) {
                 //moves.emplace_back(get_square(origin), get_square(dest[i]));
-                moves[num_moves++] = {get_square(origin), get_square(dest[i])};
+                add_move(get_square(origin), get_square(dest[i]));
             }
         }
     }
@@ -282,12 +269,12 @@ public:
 //                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_ROOK);
 //                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_BISHOP);
 //                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_KNIGHT);
-                    moves[num_moves++] = move(origin_sq, dest, special_move::PROMOTION_QUEEN);
-                    moves[num_moves++] = move(origin_sq, dest, special_move::PROMOTION_ROOK);
-                    moves[num_moves++] = move(origin_sq, dest, special_move::PROMOTION_BISHOP);
-                    moves[num_moves++] = move(origin_sq, dest, special_move::PROMOTION_KNIGHT);
+                    add_move(origin_sq, dest, special_move::PROMOTION_QUEEN);
+                    add_move(origin_sq, dest, special_move::PROMOTION_ROOK);
+                    add_move(origin_sq, dest, special_move::PROMOTION_BISHOP);
+                    add_move(origin_sq, dest, special_move::PROMOTION_KNIGHT);
                 } else {
-                    moves[num_moves++] = move(origin_sq, dest);
+                    add_move(origin_sq, dest);
                     //moves.emplace_back(origin_sq, dest);
                 }
             }
@@ -295,7 +282,7 @@ public:
                 const bitboard fwd2 = shift<d>(fwd);
                 if (empty & fwd2)
                     if (e == NON_EVASIVE || (block_mask & fwd2))
-                        moves[num_moves++] = move(origin_sq, get_square(fwd2));  // moves.emplace_back(origin_sq, get_square(fwd2));
+                        add_move(origin_sq, get_square(fwd2));  // moves.emplace_back(origin_sq, get_square(fwd2));
             }
         }
 
@@ -320,13 +307,13 @@ public:
 //                    moves.emplace_back(origin_sq, dest, PROMOTION_KNIGHT);
 //                    moves.emplace_back(origin_sq, dest, PROMOTION_ROOK);
 //                    moves.emplace_back(origin_sq, dest, PROMOTION_BISHOP);
-                    moves[num_moves++] = move(origin_sq, dest, special_move::PROMOTION_QUEEN);
-                    moves[num_moves++] = move(origin_sq, dest, special_move::PROMOTION_ROOK);
-                    moves[num_moves++] = move(origin_sq, dest, special_move::PROMOTION_BISHOP);
-                    moves[num_moves++] = move(origin_sq, dest, special_move::PROMOTION_KNIGHT);
+                    add_move(origin_sq, dest, special_move::PROMOTION_QUEEN);
+                    add_move(origin_sq, dest, special_move::PROMOTION_ROOK);
+                    add_move(origin_sq, dest, special_move::PROMOTION_BISHOP);
+                    add_move(origin_sq, dest, special_move::PROMOTION_KNIGHT);
                 } else {
                     //moves.emplace_back(origin_sq, dest);
-                    moves[num_moves++] = move(origin_sq, dest);
+                    add_move(origin_sq, dest);
                 }
             }
         } else if (cap & bb(b.en_passant)) {
@@ -339,11 +326,11 @@ public:
                 bnew.piece_of_type[PAWN] &= en_passant_bbi;
                 if (!bnew.under_check(us)) {
                     //moves.emplace_back(origin_sq, dest);
-                    moves[num_moves++] = move(origin_sq, dest);
+                    add_move(origin_sq, dest);
                 }
             } else {
                 //moves.emplace_back(origin_sq, dest);
-                moves[num_moves++] = move(origin_sq, dest);
+                add_move(origin_sq, dest);
             }
         }
     }
@@ -356,9 +343,9 @@ public:
             if ((anypiece & path) == 0) {
                 if ((attacked & path) == 0) {
                     if (us == BLACK)
-                        moves[num_moves++] = move(b.king_pos[us], square(6, 7), CASTLE_KING_SIDE_BLACK);
+                        add_move(b.king_pos[us], square(6, 7), CASTLE_KING_SIDE_BLACK);
                     else
-                        moves[num_moves++] = move(b.king_pos[us], square(6, 0), CASTLE_KING_SIDE_WHITE);
+                        add_move(b.king_pos[us], square(6, 0), CASTLE_KING_SIDE_WHITE);
 //                    moves.emplace_back(b.king_pos[us], square(6, (us == BLACK) * 7),
 //                            (us == WHITE) ? CASTLE_KING_SIDE_WHITE : CASTLE_KING_SIDE_BLACK);
                 }
@@ -371,14 +358,76 @@ public:
 //                    moves.emplace_back(b.king_pos[us], square(2, (us == BLACK) * 7),
 //                            (us == WHITE) ? CASTLE_QUEEN_SIDE_WHITE : CASTLE_QUEEN_SIDE_BLACK);
                     if (us == BLACK)
-                        moves[num_moves++] = move(b.king_pos[us], square(2, 7), CASTLE_QUEEN_SIDE_BLACK);
+                        add_move(b.king_pos[us], square(2, 7), CASTLE_QUEEN_SIDE_BLACK);
                     else
-                        moves[num_moves++] = move(b.king_pos[us], square(2, 0), CASTLE_QUEEN_SIDE_WHITE);
+                        add_move(b.king_pos[us], square(2, 0), CASTLE_QUEEN_SIDE_WHITE);
                 }
             }
         }
     }
+
+//    inline void add_move(square from, square to, special_move special = NOT_SPECIAL) {
+//        if (true) {
+//            moves[num_moves++] = move(from, to, special);
+//        } else {
+//            moves.emplace_back(from, to, special);
+//        }
+//    }
+
+    inline void add_move(square from, square to, special_move special = NOT_SPECIAL);
 };
 
+template<>
+inline std::vector<move>& move_gen<move_list_type::VECTOR>::generate() {
+    reset();
+    scan_board();
+    //print_bb(attacked);
+    //print_bb(pinned_any_dir);
+
+    generate_king_moves();
+    if (num_checkers == 2) {
+        // only legal moves will be moving the king away from check
+    } else if (num_checkers == 1) {
+        // only generate moves that remove check
+        generate_non_king_moves<EVASIVE>();
+    } else {
+        generate_non_king_moves<NON_EVASIVE>(); // generate any move that does not put the king in check
+        if (us == WHITE) castle_moves<WHITE>();
+        else castle_moves<BLACK>();
+    }
+    return moves;
+}
+
+template <>
+inline std::vector<move>& move_gen<move_list_type::ARRAY>::generate() {
+    reset();
+    scan_board();
+    //print_bb(attacked);
+    //print_bb(pinned_any_dir);
+
+    generate_king_moves();
+    if (num_checkers == 2) {
+        // only legal moves will be moving the king away from check
+    } else if (num_checkers == 1) {
+        // only generate moves that remove check
+        generate_non_king_moves<EVASIVE>();
+    } else {
+        generate_non_king_moves<NON_EVASIVE>(); // generate any move that does not put the king in check
+        if (us == WHITE) castle_moves<WHITE>();
+        else castle_moves<BLACK>();
+    }
+    move_list.assign(moves, moves+num_moves);
+    return move_list;
+}
+
+template <>
+inline void move_gen<move_list_type::ARRAY>::add_move(square from, square to, special_move special) {
+    moves[num_moves++] = move(from, to, special);
+}
+
+template <>
+inline void move_gen<move_list_type::VECTOR>::add_move(square from, square to, special_move special) {
+    moves.emplace_back(from, to, special);
+}
 
 #endif //CHESSENGINE_MOVE_GEN_H
