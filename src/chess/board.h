@@ -60,13 +60,13 @@ public:
     bool operator==(const board& other) const;
 
     inline piece piece_at(bitboard p) const {
-        return (p == bb(king_pos[WHITE])) ? KING :
-               (p == bb(king_pos[BLACK])) ? KING :
+        return (p == get_bb(king_pos[WHITE])) ? KING :
+               (p == get_bb(king_pos[BLACK])) ? KING :
                piece_of_type[PAWN] & p ? PAWN :
                piece_of_type[KNIGHT] & p ? KNIGHT :
                piece_of_type[BISHOP] & p ? BISHOP :
                piece_of_type[ROOK] & p ? ROOK :
-               piece_of_type[QUEEN] & p ? QUEEN : NONE;
+               piece_of_type[QUEEN] & p ? QUEEN : NO_PIECE;
     }
     inline color color_at(bitboard p) const {
         return piece_of_color[BLACK] & p ? BLACK : WHITE;

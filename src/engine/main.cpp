@@ -9,6 +9,7 @@ using std::string;
 
 int main()
 {
+    chess::core::init_bitboards();
     engine e;
     board b;
     b.set_initial_position();

@@ -70,6 +70,18 @@ namespace chess { namespace core {
         int d = r > f ? r : f;
         return d;
     }
+
+    constexpr square operator+(square sq, int i) {
+        return square(int(sq) + i);
+    }
+
+    constexpr square& operator+=(square& sq, int i) {
+        return sq = sq + i;
+    }
+
+    constexpr square& operator++(square& sq) {
+        return sq = sq + 1;
+    }
 }}
 
 #endif //CHESSENGINE_SQUARE_H

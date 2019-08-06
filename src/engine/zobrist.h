@@ -32,7 +32,7 @@ public:
         bitboard sq(1);
         for (int i = 0; i < 64; i++, sq <<= 1) {
             piece p = b.piece_at(sq);
-            if (p == NONE) continue;
+            if (p == NO_PIECE) continue;
             color c = b.color_at(sq);
             h ^= table[i][p][c];
         }

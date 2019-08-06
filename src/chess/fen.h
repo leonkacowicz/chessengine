@@ -29,9 +29,9 @@ public:
         for (int r = 7; r >= 0; r--) {
             int rank_counter = 0;
             for (int f = 0; f < 8; f++) {
-                auto sq = bb(f, r);
+                auto sq = get_bb(f, r);
                 piece p = b.piece_at(sq);
-                if (p == NONE) {
+                if (p == NO_PIECE) {
                     rank_counter++;
                     continue;
                 } else {

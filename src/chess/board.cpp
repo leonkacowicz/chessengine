@@ -7,6 +7,8 @@
 #include "board.h"
 #include "move.h"
 
+
+using namespace chess::core;
 using std::string;
 using std::stringstream;
 using std::cout;
@@ -14,7 +16,7 @@ using std::endl;
 
 bool board::under_check(color c) const {
 
-    bitboard king = bb(king_pos[c]);
+    bitboard king = get_bb(king_pos[c]);
     if (king == 0) return false;
     // checks if attacked by rook or queen in horizontal or vertical directions
     bitboard opponent_piece = piece_of_color[opposite(c)];
@@ -39,7 +41,7 @@ bool board::under_check(color c) const {
     if ((knight_attacks(king) & piece_of_type[KNIGHT] & opponent_piece) != 0) return true;
 
     // check if attacked by king
-    if ((king_attacks(king) & bb(king_pos[opposite(c)]))) return true;
+    if ((king_attacks(king) & get_bb(king_pos[opposite(c)]))) return true;
 
     // calls pawn_attacks pretending king is pawn, and if it were a pawn, then if it attacks a pawn, it means that it is also attacked by that pawn
     return pawn_attacks(king, c) & (piece_of_type[PAWN] & opponent_piece);
@@ -50,14 +52,14 @@ string board::to_string() const {
     for (int y = 7; y >= 0; y--) {
         ret << " " << (y + 1) << "  ";
         for (int x = 0; x <= 7; x++) {
-            bitboard sq = bb(x, y);
+            bitboard sq = get_bb(x, y);
             if (sq & piece_of_color[WHITE]) {
                 if (sq & piece_of_type[BISHOP]) ret << " ♗";
                 else if (sq & piece_of_type[ROOK]) ret << " ♖";
                 else if (sq & piece_of_type[KNIGHT]) ret << " ♘";
                 else if (sq & piece_of_type[QUEEN]) ret << " ♕";
                 else if (sq & piece_of_type[PAWN]) ret << " ♙";
-                else if (sq & bb(king_pos[WHITE])) ret << " ♔";
+                else if (sq & get_bb(king_pos[WHITE])) ret << " ♔";
                 else ret << " X";
             }
             else if (sq & piece_of_color[BLACK]) {
@@ -66,7 +68,7 @@ string board::to_string() const {
                 else if (sq & piece_of_type[KNIGHT]) ret << " ♞";
                 else if (sq & piece_of_type[QUEEN]) ret << " ♛";
                 else if (sq & piece_of_type[PAWN]) ret << " ♟";
-                else if (sq & bb(king_pos[BLACK])) ret << " ♚";
+                else if (sq & get_bb(king_pos[BLACK])) ret << " ♚";
                 else ret << " x";
             } else {
                 ret << " ◦";
@@ -134,7 +136,7 @@ void board::put_piece(piece p, color c, square s) {
         return set_king_position(c, s);
     }
 
-    bitboard bbo = bb(s);
+    bitboard bbo = get_bb(s);
     bitboard bbi = ~bbo;
 
     piece_of_type[PAWN] &= bbi;
@@ -148,9 +150,9 @@ void board::put_piece(piece p, color c, square s) {
 }
 
 void board::set_king_position(color c, square position) {
-    piece_of_color[c] &= ~(bb(king_pos[c]));
+    piece_of_color[c] &= ~(get_bb(king_pos[c]));
     king_pos[c] = position;
-    auto bbo = bb(position);
+    auto bbo = get_bb(position);
     auto bbi = ~bbo;
     piece_of_color[c] |= bbo;
     piece_of_color[opposite(c)] &= bbi;
@@ -307,7 +309,7 @@ void board::add_pawn_moves(bitboard origin, std::vector<move>& moves) const {
         }
     }
 
-    auto enpassant_bb = bb(en_passant);
+    auto enpassant_bb = get_bb(en_passant);
     if (file_a_i & origin) {
         const bitboard cap = shift<LEFT>(fwd);
         if ((opponent_piece & cap) || cap == enpassant_bb) {
@@ -387,7 +389,7 @@ void board::add_castle_moves(color c, std::vector<move> &moves) const {
     const bitboard anypiece = piece_of_color[WHITE] | piece_of_color[BLACK];
     bool check_checked = false;
 
-    const bitboard king = bb(king_pos[c]);
+    const bitboard king = get_bb(king_pos[c]);
     board simulated = *this;
     if (can_castle_king_side[c]) {
         if (under_check(c)) return;
@@ -431,7 +433,7 @@ void board::move_piece(square from, square to, piece p, color c) {
         return;
     }
 
-    bitboard ns = ~(bb(from));
+    bitboard ns = ~(get_bb(from));
     piece_of_type[p] &= ns;
     piece_of_color[c] &= ns;
 
@@ -448,9 +450,9 @@ void board::move_piece(square from, square to, piece p, color c) {
  * According to LiChess behavior, losing castling rights, and change enpassant status does not reset the counter
  */
 bool board::resets_half_move_counter(const move m) {
-    return  (piece_of_type[PAWN] & bb(m.origin)) // moving a pawn
-            || (piece_of_color[BLACK] & bb(m.destination)) // captures piece
-            || (piece_of_color[WHITE] & bb(m.destination)) // captures piece
+    return (piece_of_type[PAWN] & get_bb(m.origin)) // moving a pawn
+            || (piece_of_color[BLACK] & get_bb(m.destination)) // captures piece
+            || (piece_of_color[WHITE] & get_bb(m.destination)) // captures piece
             //|| m.special != 0
             // || en_passant != SQ_NONE // will change en passant status
             // || (((file_a | file_e) & rank_1)[m.origin] && can_castle_queen_side[WHITE]) // will lose castling right
@@ -462,8 +464,8 @@ bool board::resets_half_move_counter(const move m) {
 
 void board::make_move(const move m) {
     //assert(m.special != NULL_MOVE);
-    piece p = piece_at(bb(m.origin));
-    color c = color_at(bb(m.origin));
+    piece p = piece_at(get_bb(m.origin));
+    color c = color_at(get_bb(m.origin));
     square new_en_passant = SQ_NONE;
 
     if (resets_half_move_counter(m)) half_move_counter = 0;
@@ -473,7 +475,7 @@ void board::make_move(const move m) {
         move_piece(m.origin, m.destination, p, c);
         if (p == PAWN) {
             if (m.destination == en_passant) {
-                auto bbi = ~(bb(get_file(m.destination), get_rank(m.origin)));
+                auto bbi = ~(get_bb(get_file(m.destination), get_rank(m.origin)));
                 piece_of_color[opposite(c)] &= bbi;
                 piece_of_type[PAWN] &= bbi;
             }
@@ -496,22 +498,22 @@ void board::make_move(const move m) {
         move_piece(SQ_E8, SQ_C8, KING, c);
         move_piece(SQ_A8, SQ_D8, ROOK, c);
     } else if (m.special == special_move::PROMOTION_QUEEN) {
-        auto bbi = ~(bb(m.origin));
+        auto bbi = ~(get_bb(m.origin));
         piece_of_color[c] &= bbi;
         piece_of_type[PAWN] &= bbi;
         put_piece(QUEEN, c, m.destination);
     } else if (m.special == special_move::PROMOTION_KNIGHT) {
-        auto bbi = ~(bb(m.origin));
+        auto bbi = ~(get_bb(m.origin));
         piece_of_color[c] &= bbi;
         piece_of_type[PAWN] &= bbi;
         put_piece(KNIGHT, c, m.destination);
     } else if (m.special == special_move::PROMOTION_ROOK) {
-        auto bbi = ~(bb(m.origin));
+        auto bbi = ~(get_bb(m.origin));
         piece_of_color[c] &= bbi;
         piece_of_type[PAWN] &= bbi;
         put_piece(ROOK, c, m.destination);
     } else if (m.special == special_move::PROMOTION_BISHOP) {
-        auto bbi = ~(bb(m.origin));
+        auto bbi = ~(get_bb(m.origin));
         piece_of_color[c] &= bbi;
         piece_of_type[PAWN] &= bbi;
         put_piece(BISHOP, c, m.destination);
@@ -527,7 +529,7 @@ void board::make_move(const move m) {
 
 std::string board::move_in_pgn(const move m, const std::vector<move>& legal_moves) const {
 
-    auto origin_bb = bb(m.origin);
+    auto origin_bb = get_bb(m.origin);
     color c = color_at(origin_bb);
     piece p = piece_at(origin_bb);
     stringstream ss;
@@ -540,11 +542,11 @@ std::string board::move_in_pgn(const move m, const std::vector<move>& legal_move
         return ss.str();
     }
 
-    bool is_capture = (piece_of_color[opposite(c)] & bb(m.destination)) || (p == PAWN && get_file(m.origin) != get_file(m.destination));
+    bool is_capture = (piece_of_color[opposite(c)] & get_bb(m.destination)) || (p == PAWN && get_file(m.origin) != get_file(m.destination));
 
     if ((p == PAWN && is_capture) || std::find_if(begin(legal_moves), end(legal_moves), [&] (const move& other) {
         return other.destination == m.destination
-               && (piece_of_type[p] & bb(other.origin))
+               && (piece_of_type[p] & get_bb(other.origin))
                && get_file(other.origin) != get_file(m.origin);
     }) != end(legal_moves)) {
         ss << get_file_char(m.origin);
@@ -552,7 +554,7 @@ std::string board::move_in_pgn(const move m, const std::vector<move>& legal_move
 
     if (std::find_if(begin(legal_moves), end(legal_moves), [&] (const move& other) {
         return other.destination == m.destination
-               && (piece_of_type[p] & bb(other.origin))
+               && (piece_of_type[p] & get_bb(other.origin))
                && get_rank(other.origin) != get_rank(m.origin);
     }) != end(legal_moves)) {
         ss << get_rank_char(m.origin);
@@ -621,7 +623,7 @@ void board::shift_moves(const bitboard origin, const bitboard in_range, std::vec
     while (in_range & sq) {
         sq = shift<d>(sq);
         if (player_piece & sq) return; // blocked by own piece
-        assert(sq != bb(king_pos[opposite(c)])); // found opponent king
+        assert(sq != get_bb(king_pos[opposite(c)])); // found opponent king
         // simulate move
         if (!simulate(get_square(origin), get_square(sq), p, c).under_check(c)) {
             moves.emplace_back(get_square(origin), get_square(sq));

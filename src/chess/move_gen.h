@@ -54,7 +54,7 @@ public:
         square s;
         while (attacks) {
             s = pop_lsb(&attacks);
-            bitboard sbb = bb(s);
+            bitboard sbb = get_bb(s);
             if (((our_piece | attacked) & sbb) == 0) {
                 add_move(b.king_pos[us], s);
             }
@@ -66,7 +66,7 @@ public:
         num_checkers = 0;
         attacked = 0;
         block_mask = 0;
-        king = bb(b.king_pos[b.side_to_play]);
+        king = get_bb(b.king_pos[b.side_to_play]);
         num_our_pieces = 0;
         for (int i = 0; i < 4; i++) pinned[i] = 0;
     }
@@ -110,7 +110,7 @@ public:
                 our_pieces[num_our_pieces++] = sq;
             }
         }
-        non_slider_attack = king_attacks(bb(b.king_pos[them]));
+        non_slider_attack = king_attacks(b.king_pos[them]);
         attacked |= non_slider_attack;
     }
 
@@ -217,7 +217,7 @@ public:
         square s;
         while (attacks) {
             s = pop_lsb(&attacks);
-            bitboard sbb = bb(s);
+            bitboard sbb = get_bb(s);
             if (our_piece & sbb) continue;
             if (e == NON_EVASIVE || ((checkers | block_mask) & sbb)) {
                 add_move(get_square(origin), s);
@@ -279,12 +279,12 @@ public:
                     add_move(origin_sq, dest);
                 }
             }
-        } else if (cap & bb(b.en_passant)) {
+        } else if (cap & get_bb(b.en_passant)) {
             const square dest = get_square(cap);
             if (e == EVASIVE || get_rank(b.king_pos[us]) == get_rank(origin_sq)) {
                 // this is a corner case that needs to be simulated
                 board bnew = b.simulate(origin_sq, get_square(cap), PAWN, us);
-                auto en_passant_bbi = ~(bb(get_file(b.en_passant), get_rank(origin_sq)));
+                auto en_passant_bbi = ~(get_bb(get_file(b.en_passant), get_rank(origin_sq)));
                 bnew.piece_of_color[them] &= en_passant_bbi; // remove captured piece
                 bnew.piece_of_type[PAWN] &= en_passant_bbi;
                 if (!bnew.under_check(us)) {
