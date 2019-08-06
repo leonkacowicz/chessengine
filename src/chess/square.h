@@ -20,12 +20,15 @@ namespace chess { namespace core {
     constexpr int get_rank(square sq) {
         return sq / 8;
     }
+
     constexpr int get_file(square sq) {
         return sq % 8;
     }
+
     constexpr square get_square(int file, int rank) {
         return static_cast<enum square>(file + 8 * rank);
     }
+
     constexpr square get_square(const char* s) {
         return get_square(s[0] - 'a', s[1] - '1');
     }
@@ -68,48 +71,5 @@ namespace chess { namespace core {
         return d;
     }
 }}
-
-//class square {
-//    unsigned char coords;
-//
-//public:
-//    square() noexcept : coords(255) {}
-//    constexpr square(const unsigned int file, const unsigned int rank) noexcept : coords(((rank & 7u) << 4u) | (file & 7u)) {}
-//    square(const std::string& position) : square(position[0] - 'a', position[1] - '1') {}
-//    constexpr square(const char* position) : square(position[0] - 'a', position[1] - '1') {}
-//    constexpr char get_file() const {
-//        return (char)(coords & 0x7u);
-//    }
-//
-//    constexpr char get_rank() const {
-//        return (char)(((unsigned)coords >> 4u) & 0x7u);
-//    }
-//
-//    constexpr bool operator==(square rhs) const {
-//        return coords == rhs.coords;
-//    }
-//
-//    constexpr bool operator!=(square rhs) const {
-//        return coords != rhs.coords;
-//    }
-//
-//    constexpr char get_file_char() const {
-//        return static_cast<char>('a' + get_file());
-//    }
-//
-//    constexpr char get_rank_char() const {
-//        return static_cast<char>('1' + get_rank());
-//    }
-//
-//    std::string to_string() const {
-//        return std::string({get_file_char(), get_rank_char()});
-//    }
-//
-//    constexpr bool is_none() const {
-//        return coords == 255;
-//    }
-//
-//    const static square none;
-//};
 
 #endif //CHESSENGINE_SQUARE_H
