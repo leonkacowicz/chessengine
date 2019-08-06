@@ -2,7 +2,6 @@
 #define CHESSENGINE_BOARD_H
 
 #include <vector>
-#include <functional>
 #include "bitboard.h"
 #include "square.h"
 #include "move.h"

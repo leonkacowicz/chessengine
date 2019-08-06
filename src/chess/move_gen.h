@@ -50,24 +50,13 @@ public:
     std::vector<move>& generate();
 
     void generate_king_moves() {
-        bitboard dest[8];
-        int N = 0;
-        if (rank_8_i & king) {
-            dest[N++] = shift<UP>(king);
-            if (file_a_i& king) dest[N++] = shift<UP_LEFT>(king);
-            if (file_h_i& king) dest[N++] = shift<UP_RIGHT>(king);
-        }
-        if (rank_1_i& king) {
-            dest[N++] = shift<DOWN>(king);
-            if (file_a_i& king) dest[N++] = shift<DOWN_LEFT>(king);
-            if (file_h_i& king) dest[N++] = shift<DOWN_RIGHT>(king);
-        }
-        if (file_a_i& king) dest[N++] = shift<LEFT>(king);
-        if (file_h_i& king) dest[N++] = shift<RIGHT>(king);
-
-        for (int i = 0; i < N; i++) {
-            if (((our_piece | attacked) & dest[i]) == 0) {
-                add_move(b.king_pos[us], get_square(dest[i]));
+        bitboard attacks = king_attacks(king);
+        square s;
+        while (attacks) {
+            s = pop_lsb(&attacks);
+            bitboard sbb = bb(s);
+            if (((our_piece | attacked) & sbb) == 0) {
+                add_move(b.king_pos[us], s);
             }
         }
     }
@@ -216,7 +205,6 @@ public:
             if (our_piece & sq) return; // blocked by own piece
             if (e == NON_EVASIVE || (sq & (checkers | block_mask))) {
                 // to evade a single check, we must block the checker or capture it
-                //moves.emplace_back(get_square(origin), get_square(sq));
                 add_move(get_square(origin), get_square(sq));
             }
             if (their_piece & sq) break; // captured opponent piece: stop there
@@ -225,25 +213,17 @@ public:
 
     template <evasiveness e>
     void knight_moves(bitboard origin) {
-        int N = 0;
-        bitboard dest[8];
-        if (file_a_i_rank_8_i_rank_7_i & origin) dest[N++] = shift<UP_LEFT + UP>(origin);
-        if (file_a_i_rank_1_i_rank_2_i & origin) dest[N++] = shift<DOWN_LEFT + DOWN>(origin);
-        if (file_h_i_rank_8_i_rank_7_i & origin) dest[N++] = shift<UP_RIGHT + UP>(origin);
-        if (file_h_i_rank_1_i_rank_2_i & origin) dest[N++] = shift<DOWN_RIGHT + DOWN>(origin);
-        if (file_a_i_rank_8_i_file_b_i & origin) dest[N++] = shift<UP_LEFT + LEFT>(origin);
-        if (file_a_i_rank_1_i_file_b_i & origin) dest[N++] = shift<DOWN_LEFT + LEFT>(origin);
-        if (file_h_i_rank_8_i_file_g_i & origin) dest[N++] = shift<UP_RIGHT + RIGHT>(origin);
-        if (file_h_i_rank_1_i_file_g_i & origin) dest[N++] = shift<DOWN_RIGHT + RIGHT>(origin);
-
-        for (int i = 0; i < N; i++) {
-            if (our_piece & dest[i]) continue;
-            if (e == NON_EVASIVE || ((checkers | block_mask) & dest[i])) {
-                add_move(get_square(origin), get_square(dest[i]));
+        bitboard attacks = knight_attacks(origin);
+        square s;
+        while (attacks) {
+            s = pop_lsb(&attacks);
+            bitboard sbb = bb(s);
+            if (our_piece & sbb) continue;
+            if (e == NON_EVASIVE || ((checkers | block_mask) & sbb)) {
+                add_move(get_square(origin), s);
             }
         }
     }
-
 
     template <evasiveness e, shift_direction d>
     void pawn_moves(bitboard origin) {

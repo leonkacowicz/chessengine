@@ -255,4 +255,10 @@ inline std::string bb_to_string(bitboard b) {
 inline void print_bb(bitboard b) {
     std::cout << "\n\n" << bb_to_string(b) << "\n\n";
 }
+
+
+constexpr bitboard operator&(bitboard b, square s) {
+    return b & bb(s);
+}
+
 #endif //CHESSENGINE_BITBOARD_H
