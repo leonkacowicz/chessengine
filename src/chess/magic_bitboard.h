@@ -19,7 +19,9 @@ namespace chess {
         };
 
         extern bitboard rook_table[102400];
+        extern bitboard bishop_table[102400];
         extern magic rook_wizardry[64];
+        extern magic bishop_wizardry[64];
 
         inline bitboard attacks_from_rook(square origin, bitboard occupancy) {
             magic m = rook_wizardry[origin];
