@@ -15,7 +15,7 @@ namespace chess {
             bitboard* attack_table; // pointer to beginning of attack table originating from a given square
             bitboard attack_mask;
             uint64_t magic_number;
-            int shift;
+            uint shift;
         };
 
         extern bitboard rook_table[0x20000];
