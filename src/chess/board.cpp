@@ -361,14 +361,14 @@ void board::add_knight_moves(bitboard origin, std::vector<move>& moves) const {
     bitboard dest[8];
     int N = 0;
 
-    if (file_a_i_rank_8_i_rank_7_i & origin) dest[N++] = shift<UP_UP_LEFT>(origin);
-    if (file_a_i_rank_1_i_rank_2_i & origin) dest[N++] = shift<DOWN_DOWN_LEFT>(origin);
-    if (file_h_i_rank_8_i_rank_7_i & origin) dest[N++] = shift<UP_UP_RIGHT>(origin);
-    if (file_h_i_rank_1_i_rank_2_i & origin) dest[N++] = shift<DOWN_DOWN_RIGHT>(origin);
-    if (file_a_i_rank_8_i_file_b_i & origin) dest[N++] = shift<UP_LEFT_LEFT>(origin);
-    if (file_a_i_rank_1_i_file_b_i & origin) dest[N++] = shift<DOWN_LEFT_LEFT>(origin);
-    if (file_h_i_rank_8_i_file_g_i & origin) dest[N++] = shift<UP_RIGHT_RIGHT>(origin);
-    if (file_h_i_rank_1_i_file_g_i & origin) dest[N++] = shift<DOWN_RIGHT_RIGHT>(origin);
+    if (file_a_i_rank_8_i_rank_7_i & origin) dest[N++] = shift<UP_LEFT + UP>(origin);
+    if (file_a_i_rank_1_i_rank_2_i & origin) dest[N++] = shift<DOWN_LEFT + DOWN>(origin);
+    if (file_h_i_rank_8_i_rank_7_i & origin) dest[N++] = shift<UP_RIGHT + UP>(origin);
+    if (file_h_i_rank_1_i_rank_2_i & origin) dest[N++] = shift<DOWN_RIGHT + DOWN>(origin);
+    if (file_a_i_rank_8_i_file_b_i & origin) dest[N++] = shift<UP_LEFT + LEFT>(origin);
+    if (file_a_i_rank_1_i_file_b_i & origin) dest[N++] = shift<DOWN_LEFT + LEFT>(origin);
+    if (file_h_i_rank_8_i_file_g_i & origin) dest[N++] = shift<UP_RIGHT + RIGHT>(origin);
+    if (file_h_i_rank_1_i_file_g_i & origin) dest[N++] = shift<DOWN_RIGHT + RIGHT>(origin);
 
     for (int i = 0; i < N; i++) {
         if ((dest[i] & piece_of_color[c]) != 0) continue;

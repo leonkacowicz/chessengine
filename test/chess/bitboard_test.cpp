@@ -115,3 +115,47 @@ TEST(bitboard_test, bitboard_square_conv) {
 
     ASSERT_EQ(bb(SQ_NONE), 0);
 }
+
+TEST(bitboard_test, bitboard_poplsb) {
+
+    std::default_random_engine gen;
+    std::uniform_int_distribution<uint64_t> dis(1, (uint64_t)-1);
+    dis(gen);
+
+    for (int i = 0; i < 100000; i++) {
+        bitboard b = dis(gen);
+        bitboard b_prev = b;
+        square s = pop_lsb(&b);
+        ASSERT_LT(s, SQ_NONE);
+        ASSERT_NE(b, b_prev);
+        ASSERT_EQ(num_squares(b ^ b_prev), 1);
+        ASSERT_EQ(b | bb(s), b_prev);
+    }
+
+    // now sparse
+    for (int i = 0; i < 100000; i++) {
+        bitboard b = dis(gen);
+        b = b & dis(gen);
+        if (!b) { --i; continue; }
+        bitboard b_prev = b;
+        square s = pop_lsb(&b);
+        ASSERT_LT(s, SQ_NONE);
+        ASSERT_NE(b, b_prev);
+        ASSERT_EQ(num_squares(b ^ b_prev), 1);
+        ASSERT_EQ(b | bb(s), b_prev);
+    }
+
+    // now sparser
+    for (int i = 0; i < 100000; i++) {
+        bitboard b = dis(gen);
+        b = b & dis(gen);
+        b = b & dis(gen);
+        if (!b) { --i; continue; }
+        bitboard b_prev = b;
+        square s = pop_lsb(&b);
+        ASSERT_LT(s, SQ_NONE);
+        ASSERT_NE(b, b_prev);
+        ASSERT_EQ(num_squares(b ^ b_prev), 1);
+        ASSERT_EQ(b | bb(s), b_prev);
+    }
+}

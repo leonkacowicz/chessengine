@@ -12,22 +12,12 @@
 typedef uint64_t bitboard;
 using namespace chess::core;
 
-enum shift_direction : int64_t {
+enum shift_direction : int {
     UP = 8, DOWN = -8, LEFT = -1, RIGHT = 1,
-    UP_LEFT = UP + LEFT,
+    UP_LEFT = UP + LEFT, // not necessary but leaving them there as example: one could call shift<3 * UP + 2 * LEFT>(b)
     UP_RIGHT = UP + RIGHT,
     DOWN_LEFT = DOWN + LEFT,
     DOWN_RIGHT = DOWN + RIGHT,
-    UP_UP_LEFT = UP + UP + LEFT,
-    UP_LEFT_LEFT = UP + LEFT + LEFT,
-    UP_UP_RIGHT = UP + UP + RIGHT,
-    UP_RIGHT_RIGHT = UP + RIGHT + RIGHT,
-    DOWN_DOWN_LEFT = DOWN + DOWN + LEFT,
-    DOWN_LEFT_LEFT = DOWN + LEFT + LEFT,
-    DOWN_DOWN_RIGHT = DOWN + DOWN + RIGHT,
-    DOWN_RIGHT_RIGHT = DOWN + RIGHT + RIGHT,
-    LEFT_LEFT = LEFT + LEFT,
-    RIGHT_RIGHT = RIGHT + RIGHT
 };
 
 constexpr shift_direction operator+(shift_direction a, shift_direction b) {
@@ -62,6 +52,27 @@ inline square msb(bitboard b) {
 inline square lsb(bitboard b) {
     assert(b);
     return square(__builtin_ctzll(b));
+}
+
+/**
+ * Return the number of squares marked by a bitboard
+ * @param bitboard b
+ * @return int representing the number of squares
+ */
+inline int num_squares(bitboard b) {
+    // https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html
+    return __builtin_popcountl(b);
+}
+
+/**
+ * Making explicit that we are changing the argument by receiving argument as pointer
+ * @param bitboard *b, will be altered to clear its least significan bit
+ * @return the position of the least significant bit
+ */
+inline square pop_lsb(bitboard* b) {
+    const square s = lsb(*b);
+    *b &= *b - 1;
+    return s;
 }
 
 constexpr bitboard king_attacks_[67] = {0x0000000000000000,0x0000000000000302,0x0000000000000705,0x0000c040c0000000,0x0000000000000e0a,

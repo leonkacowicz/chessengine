@@ -45,7 +45,6 @@ public:
         our_piece = b.piece_of_color[us];
         their_piece = b.piece_of_color[them];
         moves.reserve(100);
-//        moves.clear();
     }
 
     std::vector<move>& generate();
@@ -68,9 +67,7 @@ public:
 
         for (int i = 0; i < N; i++) {
             if (((our_piece | attacked) & dest[i]) == 0) {
-                //moves.emplace_back(b.king_pos[us], get_square(dest[i]));
                 add_move(b.king_pos[us], get_square(dest[i]));
-
             }
         }
     }
@@ -230,19 +227,18 @@ public:
     void knight_moves(bitboard origin) {
         int N = 0;
         bitboard dest[8];
-        if (file_a_i_rank_8_i_rank_7_i & origin) dest[N++] = shift<UP_UP_LEFT>(origin);
-        if (file_a_i_rank_1_i_rank_2_i & origin) dest[N++] = shift<DOWN_DOWN_LEFT>(origin);
-        if (file_h_i_rank_8_i_rank_7_i & origin) dest[N++] = shift<UP_UP_RIGHT>(origin);
-        if (file_h_i_rank_1_i_rank_2_i & origin) dest[N++] = shift<DOWN_DOWN_RIGHT>(origin);
-        if (file_a_i_rank_8_i_file_b_i & origin) dest[N++] = shift<UP_LEFT_LEFT>(origin);
-        if (file_a_i_rank_1_i_file_b_i & origin) dest[N++] = shift<DOWN_LEFT_LEFT>(origin);
-        if (file_h_i_rank_8_i_file_g_i & origin) dest[N++] = shift<UP_RIGHT_RIGHT>(origin);
-        if (file_h_i_rank_1_i_file_g_i & origin) dest[N++] = shift<DOWN_RIGHT_RIGHT>(origin);
+        if (file_a_i_rank_8_i_rank_7_i & origin) dest[N++] = shift<UP_LEFT + UP>(origin);
+        if (file_a_i_rank_1_i_rank_2_i & origin) dest[N++] = shift<DOWN_LEFT + DOWN>(origin);
+        if (file_h_i_rank_8_i_rank_7_i & origin) dest[N++] = shift<UP_RIGHT + UP>(origin);
+        if (file_h_i_rank_1_i_rank_2_i & origin) dest[N++] = shift<DOWN_RIGHT + DOWN>(origin);
+        if (file_a_i_rank_8_i_file_b_i & origin) dest[N++] = shift<UP_LEFT + LEFT>(origin);
+        if (file_a_i_rank_1_i_file_b_i & origin) dest[N++] = shift<DOWN_LEFT + LEFT>(origin);
+        if (file_h_i_rank_8_i_file_g_i & origin) dest[N++] = shift<UP_RIGHT + RIGHT>(origin);
+        if (file_h_i_rank_1_i_file_g_i & origin) dest[N++] = shift<DOWN_RIGHT + RIGHT>(origin);
 
         for (int i = 0; i < N; i++) {
             if (our_piece & dest[i]) continue;
             if (e == NON_EVASIVE || ((checkers | block_mask) & dest[i])) {
-                //moves.emplace_back(get_square(origin), get_square(dest[i]));
                 add_move(get_square(origin), get_square(dest[i]));
             }
         }
@@ -261,17 +257,12 @@ public:
             const square dest = get_square(fwd);
             if (e == NON_EVASIVE || (block_mask & fwd)) {
                 if (promotion) {
-//                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_QUEEN);
-//                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_ROOK);
-//                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_BISHOP);
-//                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_KNIGHT);
                     add_move(origin_sq, dest, special_move::PROMOTION_QUEEN);
                     add_move(origin_sq, dest, special_move::PROMOTION_ROOK);
                     add_move(origin_sq, dest, special_move::PROMOTION_BISHOP);
                     add_move(origin_sq, dest, special_move::PROMOTION_KNIGHT);
                 } else {
                     add_move(origin_sq, dest);
-                    //moves.emplace_back(origin_sq, dest);
                 }
             }
             if ((d == UP && (rank_2 & origin)) || (d == DOWN && (rank_7 & origin))) {
@@ -299,10 +290,6 @@ public:
             const square dest = get_square(cap);
             if (e == NON_EVASIVE || (checkers & cap)) {
                 if (promotion) {
-//                    moves.emplace_back(origin_sq, dest, PROMOTION_QUEEN);
-//                    moves.emplace_back(origin_sq, dest, PROMOTION_KNIGHT);
-//                    moves.emplace_back(origin_sq, dest, PROMOTION_ROOK);
-//                    moves.emplace_back(origin_sq, dest, PROMOTION_BISHOP);
                     add_move(origin_sq, dest, special_move::PROMOTION_QUEEN);
                     add_move(origin_sq, dest, special_move::PROMOTION_ROOK);
                     add_move(origin_sq, dest, special_move::PROMOTION_BISHOP);
@@ -321,11 +308,9 @@ public:
                 bnew.piece_of_color[them] &= en_passant_bbi; // remove captured piece
                 bnew.piece_of_type[PAWN] &= en_passant_bbi;
                 if (!bnew.under_check(us)) {
-                    //moves.emplace_back(origin_sq, dest);
                     add_move(origin_sq, dest);
                 }
             } else {
-                //moves.emplace_back(origin_sq, dest);
                 add_move(origin_sq, dest);
             }
         }
@@ -335,24 +320,20 @@ public:
     void castle_moves() {
         const bitboard anypiece = our_piece | their_piece;
         if (b.can_castle_king_side[us]) {
-            auto path = shift<RIGHT>(king) | shift<RIGHT_RIGHT>(king);
+            auto path = shift<RIGHT>(king) | shift<2 * RIGHT>(king);
             if ((anypiece & path) == 0) {
                 if ((attacked & path) == 0) {
                     if (us == BLACK)
                         add_move(b.king_pos[us], SQ_G8, CASTLE_KING_SIDE_BLACK);
                     else
                         add_move(b.king_pos[us], SQ_G1, CASTLE_KING_SIDE_WHITE);
-//                    moves.emplace_back(b.king_pos[us], square(6, (us == BLACK) * 7),
-//                            (us == WHITE) ? CASTLE_KING_SIDE_WHITE : CASTLE_KING_SIDE_BLACK);
                 }
             }
         }
         if (b.can_castle_queen_side[us]) {
-            auto path = shift<LEFT>(king) | shift<LEFT_LEFT>(king);
+            auto path = shift<LEFT>(king) | shift<2 * LEFT>(king);
             if ((anypiece & (path | shift<LEFT>(path))) == 0) {
                 if ((attacked & path) == 0) {
-//                    moves.emplace_back(b.king_pos[us], square(2, (us == BLACK) * 7),
-//                            (us == WHITE) ? CASTLE_QUEEN_SIDE_WHITE : CASTLE_QUEEN_SIDE_BLACK);
                     if (us == BLACK)
                         add_move(b.king_pos[us], SQ_C8, CASTLE_QUEEN_SIDE_BLACK);
                     else
