@@ -10,7 +10,7 @@
 namespace chess {
     namespace core {
 
-        bitboard rook_table[0x20000];
+        bitboard rook_table[102400];
         magic rook_wizardry[64];
 
         template<shift_direction d>

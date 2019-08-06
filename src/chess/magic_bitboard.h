@@ -18,7 +18,7 @@ namespace chess {
             uint shift;
         };
 
-        extern bitboard rook_table[0x20000];
+        extern bitboard rook_table[102400];
         extern magic rook_wizardry[64];
 
         inline bitboard attacks_from_rook(square origin, bitboard occupancy) {
