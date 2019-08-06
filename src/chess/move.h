@@ -5,6 +5,8 @@
 #include <sstream>
 #include "square.h"
 
+using namespace chess::core;
+
 enum special_move : char {
     NOT_SPECIAL = 0,
     CASTLE_KING_SIDE_WHITE = 1,
@@ -29,13 +31,20 @@ public:
     constexpr move(square origin, square destination, special_move special = NOT_SPECIAL)
         : origin(origin), destination(destination), special(special) {};
 
+    constexpr move(const char* origin, const char* dest, special_move special = NOT_SPECIAL) :
+        origin(get_square(origin)), destination(get_square(dest)), special(special) {}
+
+    constexpr move(square origin, const char* dest, special_move special = NOT_SPECIAL) :
+        origin(origin), destination(get_square(dest)), special(special) {}
+
+
     constexpr bool operator==(const move& rhs) const {
         return destination == rhs.destination && origin == rhs.origin && special == rhs.special;
     }
     std::string to_long_move() const {
         if (special == NULL_MOVE) return "(none)";
         std::stringstream ss;
-        ss << origin.to_string() << destination.to_string();
+        ss << origin << destination;
         if (special == PROMOTION_QUEEN) ss << 'q';
         if (special == PROMOTION_ROOK) ss << 'r';
         if (special == PROMOTION_BISHOP) ss << 'b';

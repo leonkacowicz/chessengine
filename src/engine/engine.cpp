@@ -4,6 +4,7 @@
 
 #include <deque>
 #include <algorithm>
+#include <move_gen.h>
 
 #include "engine.h"
 #include "evaluator.h"
@@ -68,7 +69,7 @@ int negamax(const board& b, int depth, std::vector<move>& moves, std::vector<mov
     for (move& m : moves) {
         board bnew = b;
         bnew.make_move(m);
-        auto bnew_moves = bnew.get_legal_moves(bnew.side_to_play);
+        auto bnew_moves = move_gen(bnew).generate();
 
         int val;
         if (first) {
@@ -100,7 +101,7 @@ int negamax(const board& b, int depth, std::vector<move>& moves, std::vector<mov
 
 move engine::get_move(const board& b) {
     int plys = 8;
-    std::vector<move> legal_moves = b.get_legal_moves(b.side_to_play);
+    auto legal_moves = move_gen(b).generate();
     if (legal_moves.empty()) return {};
     std::vector<move> seq;
     int cache_hit = 0;

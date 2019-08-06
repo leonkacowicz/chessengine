@@ -30,7 +30,7 @@ public:
 
     bitboard piece_of_color[2] = {0, 0};
     bitboard piece_of_type[5] = {0, 0, 0, 0, 0};
-    square king_pos[2] = { square::none, square::none };
+    square king_pos[2] = { SQ_NONE, SQ_NONE };
     square en_passant;
     bool can_castle_king_side[2] = { false, false };
     bool can_castle_queen_side[2] = { false, false };

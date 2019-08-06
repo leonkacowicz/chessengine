@@ -314,10 +314,10 @@ public:
             }
         } else if (cap & bb(b.en_passant)) {
             const square dest = get_square(cap);
-            if (e == EVASIVE || b.king_pos[us].get_rank() == origin_sq.get_rank()) {
+            if (e == EVASIVE || get_rank(b.king_pos[us]) == get_rank(origin_sq)) {
                 // this is a corner case that needs to be simulated
                 board bnew = b.simulate(origin_sq, get_square(cap), PAWN, us);
-                auto en_passant_bbi = ~(bb(b.en_passant.get_file(), origin_sq.get_rank()));
+                auto en_passant_bbi = ~(bb(get_file(b.en_passant), get_rank(origin_sq)));
                 bnew.piece_of_color[them] &= en_passant_bbi; // remove captured piece
                 bnew.piece_of_type[PAWN] &= en_passant_bbi;
                 if (!bnew.under_check(us)) {
@@ -339,9 +339,9 @@ public:
             if ((anypiece & path) == 0) {
                 if ((attacked & path) == 0) {
                     if (us == BLACK)
-                        add_move(b.king_pos[us], square(6, 7), CASTLE_KING_SIDE_BLACK);
+                        add_move(b.king_pos[us], SQ_G8, CASTLE_KING_SIDE_BLACK);
                     else
-                        add_move(b.king_pos[us], square(6, 0), CASTLE_KING_SIDE_WHITE);
+                        add_move(b.king_pos[us], SQ_G1, CASTLE_KING_SIDE_WHITE);
 //                    moves.emplace_back(b.king_pos[us], square(6, (us == BLACK) * 7),
 //                            (us == WHITE) ? CASTLE_KING_SIDE_WHITE : CASTLE_KING_SIDE_BLACK);
                 }
@@ -354,9 +354,9 @@ public:
 //                    moves.emplace_back(b.king_pos[us], square(2, (us == BLACK) * 7),
 //                            (us == WHITE) ? CASTLE_QUEEN_SIDE_WHITE : CASTLE_QUEEN_SIDE_BLACK);
                     if (us == BLACK)
-                        add_move(b.king_pos[us], square(2, 7), CASTLE_QUEEN_SIDE_BLACK);
+                        add_move(b.king_pos[us], SQ_C8, CASTLE_QUEEN_SIDE_BLACK);
                     else
-                        add_move(b.king_pos[us], square(2, 0), CASTLE_QUEEN_SIDE_WHITE);
+                        add_move(b.king_pos[us], SQ_C1, CASTLE_QUEEN_SIDE_WHITE);
                 }
             }
         }

@@ -27,7 +27,7 @@ TEST(bitboard_test, bitboard_consistency) {
 TEST(bitboard_test, bitboard_square_conversion) {
     for (int f = 0; f < 8; f++) {
         for (int r = 0; r < 8; r++) {
-            square sq(f, r);
+            square sq = get_square(f, r);
             bitboard bbo = bb(sq);
 
             ASSERT_EQ((bbo & file[f] & rank[r]) != 0, true);
@@ -48,8 +48,8 @@ TEST(bitboard_test, bitboard_square_conversion_inv) {
         for (int r = 0; r < 8; r++) {
             bitboard bbo = bb(f, r);
             auto sq = get_square(bbo);
-            ASSERT_EQ(sq.get_file(), f);
-            ASSERT_EQ(sq.get_rank(), r);
+            ASSERT_EQ(get_file(sq), f);
+            ASSERT_EQ(get_rank(sq), r);
         }
     }
 }
@@ -107,11 +107,11 @@ TEST(bitboard_test, test_shift_down_left) {
 TEST(bitboard_test, bitboard_square_conv) {
     for (int x = 0; x < 8; x++)
         for (int y = 0; y < 8; y++) {
-            square expected(x, y);
+            square expected = get_square(x, y);
             bitboard bitBoard = bb(expected);
             square calculated = get_square(bitBoard);
             ASSERT_EQ(expected, calculated);
         }
 
-    ASSERT_EQ(bb(square::none), 0);
+    ASSERT_EQ(bb(SQ_NONE), 0);
 }

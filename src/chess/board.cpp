@@ -19,11 +19,11 @@ bool board::under_check(color c) const {
     // checks if attacked by rook or queen in horizontal or vertical directions
     bitboard opponent_piece = piece_of_color[opposite(c)];
     bitboard attacker = (piece_of_type[ROOK] | piece_of_type[QUEEN]) & opponent_piece;
-    if (file[king_pos[c].get_file()] & attacker) {
+    if (file[get_file(king_pos[c])] & attacker) {
         if (shift_attacks<UP>(king, rank_8_i) & attacker) return true;
         if (shift_attacks<DOWN>(king, rank_1_i) & attacker) return true;
     }
-    if (rank[king_pos[c].get_rank()] & attacker) {
+    if (rank[get_rank(king_pos[c])] & attacker) {
         if (shift_attacks<LEFT>(king, file_a_i) & attacker) return true;
         if (shift_attacks<RIGHT>(king, file_h_i) & attacker) return true;
     }
@@ -91,19 +91,20 @@ void board::set_initial_position() {
     piece_of_type[PAWN] = rank_2 | rank_7;
     piece_of_color[BLACK] = rank_7 | rank_8;
     piece_of_color[WHITE] = rank_1 | rank_2;
-    king_pos[WHITE] = "e1";
-    king_pos[BLACK] = "e8";
+    king_pos[WHITE] = SQ_E1;
+    king_pos[BLACK] = SQ_E8;
     can_castle_king_side[0] = true;
     can_castle_king_side[1] = true;
     can_castle_queen_side[0] = true;
     can_castle_queen_side[1] = true;
     side_to_play = WHITE;
+    en_passant = SQ_NONE;
 }
 
 std::vector<move> board::get_legal_moves(color c) const {
     std::vector<move> moves;
     //moves.reserve(60);
-    for (auto sq = bitboard(1); sq; sq <<= 1) {
+    for (auto sq = bitboard(1); sq; sq <<= 1u) {
         if (!(sq & piece_of_color[c])) continue;
         if (king_pos[c] == get_square(sq)) add_king_moves(sq, moves);
         else if (piece_of_type[PAWN] & sq) add_pawn_moves(sq, moves);
@@ -261,7 +262,7 @@ board::board(const std::string& fen) {
     can_castle_king_side[BLACK] = castling.find('k', 0) != std::string::npos;;
     can_castle_queen_side[BLACK] = castling.find('q', 0) != std::string::npos;;
 
-    this->en_passant = enpassant == "-" ? square::none : square(enpassant);
+    this->en_passant = enpassant == "-" ? SQ_NONE : get_square(enpassant.c_str());
 
     if (!half_move_clock.empty())
         half_move_counter = (char)std::stoi(half_move_clock);
@@ -306,13 +307,14 @@ void board::add_pawn_moves(bitboard origin, std::vector<move>& moves) const {
         }
     }
 
+    auto enpassant_bb = bb(en_passant);
     if (file_a_i & origin) {
         const bitboard cap = shift<LEFT>(fwd);
-        if ((opponent_piece & cap) || cap == bb(en_passant)) {
+        if ((opponent_piece & cap) || cap == enpassant_bb) {
             const square dest = get_square(cap);
             auto bnew = simulate(origin_sq, dest, PAWN, c);
-            if (cap == bb(en_passant)) {
-                auto en_passant_bbi = ~(bb(en_passant.get_file(), origin_sq.get_rank()));
+            if (cap == enpassant_bb) {
+                auto en_passant_bbi = ~enpassant_bb;
                 bnew.piece_of_color[opponent] &= en_passant_bbi; // remove captured piece
                 bnew.piece_of_type[PAWN] &= en_passant_bbi;
             }
@@ -331,11 +333,11 @@ void board::add_pawn_moves(bitboard origin, std::vector<move>& moves) const {
 
     if (file_h_i & origin) {
         const bitboard cap = shift<RIGHT>(fwd);
-        if ((opponent_piece & cap) || cap == bb(en_passant)) {
+        if ((opponent_piece & cap) || cap == enpassant_bb) {
             const square dest = get_square(cap);
             auto bnew = simulate(origin_sq, dest, PAWN, c);
-            if (cap == bb(en_passant)) {
-                auto en_passant_bbi = ~(bb(en_passant.get_file(), origin_sq.get_rank()));
+            if (cap == enpassant_bb) {
+                auto en_passant_bbi = ~enpassant_bb;
                 bnew.piece_of_color[opponent] &= en_passant_bbi; // remove captured piece
                 bnew.piece_of_type[PAWN] &= en_passant_bbi;
             }
@@ -390,12 +392,12 @@ void board::add_castle_moves(color c, std::vector<move> &moves) const {
     if (can_castle_king_side[c]) {
         if (under_check(c)) return;
         else check_checked = true;
-        if (!(anypiece & (shift<RIGHT>(king) | shift<RIGHT_RIGHT>(king)))) {
+        if (!(anypiece & (shift<RIGHT>(king) | shift<2 * RIGHT>(king)))) {
             simulated.set_king_position(c, get_square(shift<RIGHT>(king)));
             if (!simulated.under_check(c)) {
-                simulated.set_king_position(c, get_square(shift<RIGHT_RIGHT>(king)));
+                simulated.set_king_position(c, get_square(shift<2 * RIGHT>(king)));
                 if (!simulated.under_check(c)) {
-                    const square dest = square(6, (c == BLACK) * 7);
+                    const square dest = c == BLACK ? SQ_G8 : SQ_G1;
                     const special_move castle_king_side = c == WHITE ? CASTLE_KING_SIDE_WHITE : CASTLE_KING_SIDE_BLACK;
                     moves.emplace_back(king_pos[c], dest, castle_king_side);
                 }
@@ -404,10 +406,10 @@ void board::add_castle_moves(color c, std::vector<move> &moves) const {
     }
     if (can_castle_queen_side[c]) {
         if (!check_checked) if (under_check(c)) return;
-        if (!(anypiece & (shift<LEFT>(king) | shift<LEFT_LEFT>(king) | shift<LEFT>(shift<LEFT_LEFT>(king))))) {
+        if (!(anypiece & (shift<LEFT>(king) | shift<2 * LEFT>(king) | shift<3 * LEFT>(king)))) {
             simulated.set_king_position(c, get_square(shift<LEFT>(king)));
             if (!simulated.under_check(c)) {
-                const square dest = get_square(shift<LEFT_LEFT>(king));
+                const square dest = c == BLACK ? SQ_C8 : SQ_C1;
                 simulated.set_king_position(c, dest);
                 if (!simulated.under_check(c)) {
                     special_move castle_queen_side = c == WHITE ? CASTLE_QUEEN_SIDE_WHITE : CASTLE_QUEEN_SIDE_BLACK;
@@ -435,7 +437,7 @@ void board::move_piece(square from, square to, piece p, color c) {
 
     if ((to == king_pos[WHITE] && (p != KING || c != WHITE))
         || (to == king_pos[BLACK] && (p != KING || c != BLACK))) {
-        std::cerr << "ERROR trying to put piece of type " << p << " on square " << to.to_string() << std::endl;
+        std::cerr << "ERROR trying to put piece of type " << p << " on square " << to << std::endl;
         std::cerr << (side_to_play == WHITE ? "WHITE to play" : "BLACK to play") << std::endl;
         std::cerr << std::endl << to_string() << std::endl;
     }
@@ -450,7 +452,7 @@ bool board::resets_half_move_counter(const move m) {
             || (piece_of_color[BLACK] & bb(m.destination)) // captures piece
             || (piece_of_color[WHITE] & bb(m.destination)) // captures piece
             //|| m.special != 0
-            // || en_passant != square::none // will change en passant status
+            // || en_passant != SQ_NONE // will change en passant status
             // || (((file_a | file_e) & rank_1)[m.origin] && can_castle_queen_side[WHITE]) // will lose castling right
             // || (((file_h | file_e) & rank_1)[m.origin] && can_castle_king_side[WHITE]) // will lose castling right
             // || (((file_a | file_e) & rank_8)[m.origin] && can_castle_queen_side[BLACK]) // will lose castling right
@@ -462,7 +464,7 @@ void board::make_move(const move m) {
     //assert(m.special != NULL_MOVE);
     piece p = piece_at(bb(m.origin));
     color c = color_at(bb(m.origin));
-    square new_en_passant = square::none;
+    square new_en_passant = SQ_NONE;
 
     if (resets_half_move_counter(m)) half_move_counter = 0;
     else half_move_counter += 1;
@@ -471,28 +473,28 @@ void board::make_move(const move m) {
         move_piece(m.origin, m.destination, p, c);
         if (p == PAWN) {
             if (m.destination == en_passant) {
-                auto bbi = ~(bb(m.destination.get_file(), m.origin.get_rank()));
+                auto bbi = ~(bb(get_file(m.destination), get_rank(m.origin)));
                 piece_of_color[opposite(c)] &= bbi;
                 piece_of_type[PAWN] &= bbi;
             }
-            if (m.destination.get_rank() - m.origin.get_rank() == 2) {
-                new_en_passant = square(m.origin.get_file(), m.origin.get_rank() + 1);
-            } else if (m.origin.get_rank() - m.destination.get_rank() == 2) {
-                new_en_passant = square(m.origin.get_file(), m.origin.get_rank() - 1);
+            if (get_rank(m.destination) - get_rank(m.origin) == 2) {
+                new_en_passant = get_square(get_file(m.origin), get_rank(m.origin) + 1);
+            } else if (get_rank(m.origin) - get_rank(m.destination) == 2) {
+                new_en_passant = get_square(get_file(m.origin), get_rank(m.origin) - 1);
             }
         }
     } else if (m.special == special_move::CASTLE_KING_SIDE_WHITE) {
-        move_piece("e1", "g1", KING, c);
-        move_piece("h1", "f1", ROOK, c);
+        move_piece(SQ_E1, SQ_G1, KING, c);
+        move_piece(SQ_H1, SQ_F1, ROOK, c);
     } else if (m.special == special_move::CASTLE_KING_SIDE_BLACK) {
-        move_piece("e8", "g8", KING, c);
-        move_piece("h8", "f8", ROOK, c);
+        move_piece(SQ_E8, SQ_G8, KING, c);
+        move_piece(SQ_H8, SQ_F8, ROOK, c);
     } else if (m.special == special_move::CASTLE_QUEEN_SIDE_WHITE) {
-        move_piece("e1", "c1", KING, c);
-        move_piece("a1", "d1", ROOK, c);
+        move_piece(SQ_E1, SQ_C1, KING, c);
+        move_piece(SQ_A1, SQ_D1, ROOK, c);
     } else if (m.special == special_move::CASTLE_QUEEN_SIDE_BLACK) {
-        move_piece("e8", "c8", KING, c);
-        move_piece("a8", "d8", ROOK, c);
+        move_piece(SQ_E8, SQ_C8, KING, c);
+        move_piece(SQ_A8, SQ_D8, ROOK, c);
     } else if (m.special == special_move::PROMOTION_QUEEN) {
         auto bbi = ~(bb(m.origin));
         piece_of_color[c] &= bbi;
@@ -514,10 +516,10 @@ void board::make_move(const move m) {
         piece_of_type[PAWN] &= bbi;
         put_piece(BISHOP, c, m.destination);
     }
-    if (m.origin == "a1" || m.destination == "a1" || m.origin == "e1") can_castle_queen_side[WHITE] = false;
-    if (m.origin == "h1" || m.destination == "h1" || m.origin == "e1") can_castle_king_side[WHITE] = false;
-    if (m.origin == "a8" || m.destination == "a8" || m.origin == "e8") can_castle_queen_side[BLACK] = false;
-    if (m.origin == "h8" || m.destination == "h8" || m.origin == "e8") can_castle_king_side[BLACK] = false;
+    if (m.origin == SQ_A1 || m.destination == SQ_A1 || m.origin == SQ_E1) can_castle_queen_side[WHITE] = false;
+    if (m.origin == SQ_H1 || m.destination == SQ_H1 || m.origin == SQ_E1) can_castle_king_side[WHITE] = false;
+    if (m.origin == SQ_A8 || m.destination == SQ_A8 || m.origin == SQ_E8) can_castle_queen_side[BLACK] = false;
+    if (m.origin == SQ_H8 || m.destination == SQ_H8 || m.origin == SQ_E8) can_castle_king_side[BLACK] = false;
 
     en_passant = new_en_passant;
     side_to_play = opposite(side_to_play);
@@ -534,30 +536,31 @@ std::string board::move_in_pgn(const move m, const std::vector<move>& legal_move
     if (p == KING) {
         if (m.special == CASTLE_KING_SIDE_WHITE || m.special == CASTLE_KING_SIDE_BLACK) return "O-O";
         if (m.special == CASTLE_QUEEN_SIDE_WHITE || m.special == CASTLE_QUEEN_SIDE_BLACK) return "O-O-O";
-        return "K" + m.destination.to_string();
+        ss << m.destination;
+        return ss.str();
     }
 
-    bool is_capture = (piece_of_color[opposite(c)] & bb(m.destination)) || (p == PAWN && m.origin.get_file() != m.destination.get_file());
+    bool is_capture = (piece_of_color[opposite(c)] & bb(m.destination)) || (p == PAWN && get_file(m.origin) != get_file(m.destination));
 
     if ((p == PAWN && is_capture) || std::find_if(begin(legal_moves), end(legal_moves), [&] (const move& other) {
         return other.destination == m.destination
                && (piece_of_type[p] & bb(other.origin))
-               && other.origin.get_file() != m.origin.get_file();
+               && get_file(other.origin) != get_file(m.origin);
     }) != end(legal_moves)) {
-        ss << m.origin.get_file_char();
+        ss << get_file_char(m.origin);
     }
 
     if (std::find_if(begin(legal_moves), end(legal_moves), [&] (const move& other) {
         return other.destination == m.destination
                && (piece_of_type[p] & bb(other.origin))
-               && other.origin.get_rank() != m.origin.get_rank();
+               && get_rank(other.origin) != get_rank(m.origin);
     }) != end(legal_moves)) {
-        ss << m.origin.get_rank_char();
+        ss << get_rank_char(m.origin);
     }
 
     if (is_capture) ss << "x";
 
-    ss << m.destination.to_string();
+    ss << m.destination;
 
     if (m.special == PROMOTION_QUEEN) ss << "=Q";
     if (m.special == PROMOTION_KNIGHT) ss << "=N";

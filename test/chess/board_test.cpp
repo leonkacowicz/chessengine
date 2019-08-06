@@ -36,7 +36,7 @@ TEST(board_test, fen_test) {
 TEST(legal_moves_king, king_first_rank) {
     for (color c : {WHITE, BLACK}) {
         board b;
-        b.set_king_position(c, "e1");
+        b.set_king_position(c, SQ_E1);
         const std::vector<move> &moves = b.get_legal_moves(c);
 
         list_moves(moves);
@@ -52,8 +52,8 @@ TEST(legal_moves_king, king_first_rank) {
 TEST(legal_moves_king, king_last_rank) {
     for (color c : {WHITE, BLACK}) {
         board b;
-        std::string pos("e8");
-        b.set_king_position(c, pos);
+        const char * pos = "e8";
+        b.set_king_position(c, SQ_E8);
         const std::vector<move> &moves = b.get_legal_moves(c);
 
         list_moves(moves);
@@ -69,7 +69,8 @@ TEST(legal_moves_king, king_last_rank) {
 TEST(legal_moves_king, king_h1) {
     for (color c : {WHITE, BLACK}) {
         board b;
-        std::string pos("h1");
+
+        square pos = SQ_H1;
         b.set_king_position(c, pos);
         const std::vector<move> &moves = b.get_legal_moves(c);
 
@@ -84,7 +85,7 @@ TEST(legal_moves_king, king_h1) {
 TEST(legal_moves_king, king_a1) {
     for (color c : {WHITE, BLACK}) {
         board b;
-        std::string pos("a1");
+        square pos = SQ_A1;
         b.set_king_position(c, pos);
         auto moves = b.get_legal_moves(c);
 
@@ -99,7 +100,7 @@ TEST(legal_moves_king, king_a1) {
 TEST(legal_moves_king, king_a8) {
     for (color c : {WHITE, BLACK}) {
         board b;
-        std::string pos("a8");
+        square pos = SQ_A8;
         b.set_king_position(c, pos);
         auto moves = b.get_legal_moves(c);
 
@@ -114,7 +115,7 @@ TEST(legal_moves_king, king_a8) {
 TEST(legal_moves_king, king_h8) {
     for (color c : {WHITE, BLACK}) {
         board b;
-        std::string pos("h8");
+        square pos = SQ_H8;
         b.set_king_position(c, pos);
         auto moves = b.get_legal_moves(c);
 
@@ -129,7 +130,7 @@ TEST(legal_moves_king, king_h8) {
 TEST(legal_moves_king, king_e5) {
     for (color c : {WHITE, BLACK}) {
         board b;
-        std::string pos("e5");
+        square pos = SQ_E5;
         b.set_king_position(c, pos);
         auto moves = b.get_legal_moves(c);
 
@@ -149,7 +150,7 @@ TEST(legal_moves_king, king_e5) {
 TEST(legal_moves_rook, rook_a1) {
     for (color c : {WHITE, BLACK}) {
         board b;
-        std::string pos("a1");
+        square pos = SQ_A1;
         b.put_piece(ROOK, c, pos);
         auto moves = b.get_legal_moves(c);
         list_moves(moves);
@@ -174,7 +175,7 @@ TEST(legal_moves_rook, rook_a1) {
 TEST(legal_moves_rook, rook_a8) {
     for (color c : {WHITE, BLACK}) {
         board b;
-        std::string pos("a8");
+        square pos = SQ_A8;
         b.put_piece(ROOK, c, pos);
         auto moves = b.get_legal_moves(c);
         list_moves(moves);
@@ -199,7 +200,7 @@ TEST(legal_moves_rook, rook_a8) {
 TEST(legal_moves_rook, rook_h8) {
     for (color c : {WHITE, BLACK}) {
         board b;
-        std::string pos("h8");
+        square pos = SQ_H8;
         b.put_piece(ROOK, c, pos);
         auto moves = b.get_legal_moves(c);
         list_moves(moves);
@@ -224,7 +225,7 @@ TEST(legal_moves_rook, rook_h8) {
 TEST(legal_moves_rook, rook_h1) {
     for (color c : {WHITE, BLACK}) {
         board b;
-        std::string pos("h1");
+        square pos = SQ_H1;
         b.put_piece(ROOK, c, pos);
         auto moves = b.get_legal_moves(c);
         list_moves(moves);
@@ -249,7 +250,7 @@ TEST(legal_moves_rook, rook_h1) {
 TEST(legal_moves_rook, rook_d4) {
     for (color c : {WHITE, BLACK}) {
         board b;
-        std::string pos("d4");
+        square pos = SQ_D4;
         b.put_piece(ROOK, c, pos);
         auto moves = b.get_legal_moves(c);
         list_moves(moves);
@@ -274,9 +275,9 @@ TEST(legal_moves_rook, rook_d4) {
 TEST(legal_moves_king, king_wont_move_into_check) {
     for (color c : {WHITE, BLACK}) {
         board b;
-        auto pos = "d3";
+        square pos = SQ_D3;
         b.set_king_position(c, pos);
-        b.put_piece(ROOK, opposite(c), "e8");
+        b.put_piece(ROOK, opposite(c), SQ_E8);
 
         auto moves = b.get_legal_moves(c);
         list_moves(moves);
@@ -295,7 +296,7 @@ TEST(legal_moves_king, king_wont_move_into_check) {
 TEST(legal_moves_knight, knight_at_b8) {
     for (color c : {WHITE, BLACK}) {
         board b;
-        auto pos = "b8";
+        square pos = SQ_B8;
         b.put_piece(KNIGHT, c, pos);
 
         auto moves = b.get_legal_moves(c);
@@ -310,9 +311,9 @@ TEST(legal_moves_knight, knight_at_b8) {
 TEST(legal_moves_knight, knight_at_b8_with_d7_obstructed) {
     for (color c : {WHITE, BLACK}) {
         board b;
-        auto pos = "b8";
+        square pos = SQ_B8;
         b.put_piece(KNIGHT, c, pos);
-        b.put_piece(PAWN, c, "d7");
+        b.put_piece(PAWN, c, SQ_D7);
 
         auto moves = b.get_legal_moves(c);
         list_moves(moves);
@@ -326,11 +327,11 @@ TEST(legal_moves_knight, knight_at_b8_with_d7_obstructed) {
 TEST(board_test, rook_pinned_by_rook_from_above) {
     for (color c : {WHITE, BLACK}) {
         board b;
-        auto king = "e1";
-        auto rook = "e2";
+        auto king = SQ_E1;
+        auto rook = SQ_E2;
         b.set_king_position(c, king);
         b.put_piece(ROOK, c, rook);
-        b.put_piece(ROOK, opposite(c), "e7");
+        b.put_piece(ROOK, opposite(c), SQ_E7);
 
         auto moves = b.get_legal_moves(c);
         list_moves(moves);
@@ -441,24 +442,20 @@ TEST(board_test, under_check_specific_pos1) {
      */
 
     board b;
-    b.put_piece(ROOK, WHITE, "d2");
-    b.put_piece(KNIGHT, WHITE, "e2");
-    b.set_king_position(WHITE, "f2");
-    b.put_piece(PAWN, WHITE, "h2");
-
-    b.put_piece(PAWN, WHITE, "g3");
-    b.put_piece(BISHOP, WHITE, "f3");
-
-    b.put_piece(KNIGHT, BLACK, "b5");
-    b.put_piece(ROOK, BLACK, "c5");
-    b.put_piece(PAWN, BLACK, "f5");
-
-    b.put_piece(PAWN, WHITE, "c6");
-    b.put_piece(BISHOP, BLACK, "e6");
-
-    b.set_king_position(BLACK, "e7");
-    b.put_piece(PAWN, BLACK, "f7");
-    b.put_piece(PAWN, BLACK, "h7");
+    b.put_piece(ROOK, WHITE, SQ_D2);
+    b.put_piece(KNIGHT, WHITE, SQ_E2);
+    b.set_king_position(WHITE, SQ_F2);
+    b.put_piece(PAWN, WHITE, SQ_H2);
+    b.put_piece(PAWN, WHITE, SQ_G3);
+    b.put_piece(BISHOP, WHITE, SQ_F3);
+    b.put_piece(KNIGHT, BLACK, SQ_B5);
+    b.put_piece(ROOK, BLACK, SQ_C5);
+    b.put_piece(PAWN, BLACK, SQ_F5);
+    b.put_piece(PAWN, WHITE, SQ_C6);
+    b.put_piece(BISHOP, BLACK, SQ_E6);
+    b.set_king_position(BLACK, SQ_E7);
+    b.put_piece(PAWN, BLACK, SQ_F7);
+    b.put_piece(PAWN, BLACK, SQ_H7);
 
     b.print();
     ASSERT_FALSE(b.under_check(WHITE));
@@ -478,27 +475,21 @@ TEST(board_test, assert_its_checkmate) {
      a b c d e f g h
      */
 
-    board b;
-    b.set_king_position(WHITE, "g1");
-
-    b.put_piece(PAWN, BLACK, "e2");
-    b.put_piece(PAWN, WHITE, "g2");
-
-    b.put_piece(PAWN, WHITE, "c3");
-    b.put_piece(PAWN, WHITE, "h3");
-
-    b.put_piece(BISHOP, WHITE, "c4");
-    b.put_piece(PAWN, WHITE, "d4");
-
-    b.put_piece(PAWN, WHITE, "a5");
-
-    b.put_piece(PAWN, BLACK, "a6");
-    b.put_piece(PAWN, BLACK, "c6");
-    b.put_piece(PAWN, BLACK, "f6");
-
-    b.put_piece(QUEEN, WHITE, "h6");
-    b.put_piece(KNIGHT, BLACK, "d7");
-    b.set_king_position(BLACK, "h8");
+    board b("7k/3n4/p1p2p1Q/P7/2BP4/2P4P/4p1P1/6K1 b - - 0 1");
+//    b.set_king_position(WHITE, SQ_G1);
+//    b.put_piece(PAWN, BLACK, SQ_E2);
+//    b.put_piece(PAWN, WHITE, SQ_G2);
+//    b.put_piece(PAWN, WHITE, SQ_C3);
+//    b.put_piece(PAWN, WHITE, SQ_H3);
+//    b.put_piece(BISHOP, WHITE, SQ_C4);
+//    b.put_piece(PAWN, WHITE, SQ_D4);
+//    b.put_piece(PAWN, WHITE, SQ_A5);
+//    b.put_piece(PAWN, BLACK, SQ_A6);
+//    b.put_piece(PAWN, BLACK, SQ_C6);
+//    b.put_piece(PAWN, BLACK, SQ_F6);
+//    b.put_piece(QUEEN, WHITE, SQ_H6);
+//    b.put_piece(KNIGHT, BLACK, SQ_D7);
+//    b.set_king_position(BLACK, SQ_H8);
 
     ASSERT_TRUE(b.under_check(BLACK));
     const std::vector<move> &moves = b.get_legal_moves(BLACK);

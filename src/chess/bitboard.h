@@ -1,6 +1,7 @@
 #ifndef CHESSENGINE_BITBOARD_H
 #define CHESSENGINE_BITBOARD_H
 
+#include <cassert>
 #include <cstdint>
 #include <ostream>
 #include <initializer_list>
@@ -8,114 +9,62 @@
 #include "square.h"
 #include "color.h"
 
-using U64 = unsigned long int;
 typedef uint64_t bitboard;
+using namespace chess::core;
 
-enum shift_direction : int {
+enum shift_direction : int64_t {
     UP = 8, DOWN = -8, LEFT = -1, RIGHT = 1,
     UP_LEFT = UP + LEFT,
     UP_RIGHT = UP + RIGHT,
-    DOWN_LEFT,
-    DOWN_RIGHT,
-    UP_UP_LEFT,
-    UP_LEFT_LEFT,
-    UP_UP_RIGHT,
-    UP_RIGHT_RIGHT,
-    DOWN_DOWN_LEFT,
-    DOWN_LEFT_LEFT,
-    DOWN_DOWN_RIGHT,
-    DOWN_RIGHT_RIGHT,
-    LEFT_LEFT,
-    RIGHT_RIGHT
+    DOWN_LEFT = DOWN + LEFT,
+    DOWN_RIGHT = DOWN + RIGHT,
+    UP_UP_LEFT = UP + UP + LEFT,
+    UP_LEFT_LEFT = UP + LEFT + LEFT,
+    UP_UP_RIGHT = UP + UP + RIGHT,
+    UP_RIGHT_RIGHT = UP + RIGHT + RIGHT,
+    DOWN_DOWN_LEFT = DOWN + DOWN + LEFT,
+    DOWN_LEFT_LEFT = DOWN + LEFT + LEFT,
+    DOWN_DOWN_RIGHT = DOWN + DOWN + RIGHT,
+    DOWN_RIGHT_RIGHT = DOWN + RIGHT + RIGHT,
+    LEFT_LEFT = LEFT + LEFT,
+    RIGHT_RIGHT = RIGHT + RIGHT
 };
 
+constexpr shift_direction operator+(shift_direction a, shift_direction b) {
+    return static_cast<shift_direction>(int64_t(a) + int64_t(b));
+}
+
+constexpr shift_direction operator*(int a, shift_direction b) {
+    return static_cast<shift_direction>(int64_t(a) * int64_t(b));
+}
+
+// stupid functions to supress shift warnings
+constexpr bitboard shift_left(bitboard arg, uint64_t sh) {
+    return arg << sh;
+}
+
+constexpr bitboard shift_right(bitboard arg, uint64_t sh) {
+    return arg >> sh;
+}
 
 template<shift_direction d>
 inline bitboard shift(bitboard arg) {
-    if (d > 0) return arg << unsigned(d);
-    else if (d < 0) return arg >> unsigned(d);
+    if (d > 0) return shift_left(arg, d);
+    else if (d < 0) return shift_right(arg, -d);
     else return arg;
 }
 
-template <>
-constexpr U64 shift<DOWN>(U64 arg) {
-    return arg >> 8u;
-}
-template <>
-constexpr U64 shift<LEFT>(U64 arg) {
-    return arg >> 1u;
-}
-template <>
-constexpr U64 shift<RIGHT>(U64 arg) {
-    return arg << 1u;
+inline square msb(bitboard b) {
+    assert(b);
+    return square(63 ^ __builtin_clzll(b));
 }
 
-template <>
-constexpr U64 shift<LEFT_LEFT>(U64 arg) {
-    return arg >> 2u;
-}
-template <>
-constexpr U64 shift<RIGHT_RIGHT>(U64 arg) {
-    return arg << 2u;
-}
-template <>
-constexpr U64 shift<UP_LEFT>(U64 arg) {
-    return arg << 7u;
-}
-template <>
-constexpr U64 shift<UP_RIGHT>(U64 arg) {
-    return arg << 9u;
-}
-template <>
-constexpr U64 shift<DOWN_LEFT>(U64 arg) {
-    return arg >> 9u;
-}
-template <>
-constexpr U64 shift<DOWN_RIGHT>(U64 arg) {
-    return arg >> 7u;
+inline square lsb(bitboard b) {
+    assert(b);
+    return square(__builtin_ctzll(b));
 }
 
-template <>
-constexpr U64 shift<UP_UP_LEFT>(U64 arg) {
-    return arg << 15u;
-}
-template <>
-constexpr U64 shift<UP_LEFT_LEFT>(U64 arg) {
-    return arg << 6u;
-}
-template <>
-constexpr U64 shift<UP_UP_RIGHT>(U64 arg) {
-    return arg << 17u;
-}
-template <>
-constexpr U64 shift<UP_RIGHT_RIGHT>(U64 arg) {
-    return arg << 10u;
-}
-template <>
-constexpr U64 shift<DOWN_DOWN_LEFT>(U64 arg) {
-    return arg >> 17u;
-}
-template <>
-constexpr U64 shift<DOWN_LEFT_LEFT>(U64 arg) {
-    return arg >> 10u;
-}
-template <>
-constexpr U64 shift<DOWN_DOWN_RIGHT>(U64 arg) {
-    return arg >> 15u;
-}
-template <>
-constexpr U64 shift<DOWN_RIGHT_RIGHT>(U64 arg) {
-    return arg >> 6u;
-}
-
-const square squarePositions[67] = {"h8", "a1", "b1", "h5", "c1", "h2", "a6", "h3", "d1", "e2", "a3", "d8", "b6",
-                                        "d3", "a4", "g7", "e1", "h8", "f2", "c2", "b3", "g8", "e8", "e4", "c6", "g4",
-                                        "e3", "d7", "b4", "e6", "h7", "h6", "f1", "a5", "h8", "g5", "g2", "g3", "d2",
-                                        "c8", "c3", "f7", "h8", "b2", "f8", "d4", "f4", "c7", "d6", "g6", "h4", "f5",
-                                        "f3", "b8", "e7", "a2", "c4", "b7", "f6", "e5", "a8", "h1", "a7", "d5", "g1",
-                                        "c5", "b5"};
-
-const bitboard king_attacks_[67] = {0x0000000000000000,0x0000000000000302,0x0000000000000705,0x0000c040c0000000,0x0000000000000e0a,
+constexpr bitboard king_attacks_[67] = {0x0000000000000000,0x0000000000000302,0x0000000000000705,0x0000c040c0000000,0x0000000000000e0a,
     0x0000000000c040c0,0x0003020300000000,0x00000000c040c000,0x0000000000001c14,0x0000000000382838,0x0000000003020300,0x141c000000000000,
     0x0007050700000000,0x000000001c141c00,0x0000000302030000,0xe0a0e00000000000,0x0000000000003828,0x0000000000000000,0x0000000000705070,
     0x00000000000e0a0e,0x0000000007050700,0xa0e0000000000000,0x2838000000000000,0x0000003828380000,0x000e0a0e00000000,0x000000e0a0e00000,
@@ -127,7 +76,7 @@ const bitboard king_attacks_[67] = {0x0000000000000000,0x0000000000000302,0x0000
     0x000000000000c040,0x0302030000000000,0x00001c141c000000,0x000000000000e0a0,0x00000e0a0e000000,0x0000070507000000
 };
 
-const bitboard knight_attacks_[67] = {0x0000000000000000,0x0000000000020400,0x0000000000050800,0x0040200020400000,0x00000000000a1100,
+constexpr bitboard knight_attacks_[67] = {0x0000000000000000,0x0000000000020400,0x0000000000050800,0x0040200020400000,0x00000000000a1100,
     0x0000000040200020,0x0204000402000000,0x0000004020002040,0x0000000000142200,0x0000000028440044,0x0000000204000402,0x0022140000000000,
     0x0508000805000000,0x0000001422002214,0x0000020400040200,0x100010a000000000,0x0000000000284400,0x0000000000000000,0x0000000050880088,
     0x000000000a110011,0x0000000508000805,0x0010a00000000000,0x0044280000000000,0x0000284400442800,0x0a1100110a000000,0x0000a0100010a000,
@@ -139,7 +88,7 @@ const bitboard knight_attacks_[67] = {0x0000000000000000,0x0000000000020400,0x00
     0x0000000000402000,0x0400040200000000,0x0014220022140000,0x0000000000a01000,0x000a1100110a0000,0x0005080008050000
 };
 
-const bitboard white_pawn_attacks_[67] = {0x0000000000000000,0x0000000000000200,0x0000000000000500,0x0000400000000000,0x0000000000000a00,
+constexpr bitboard white_pawn_attacks_[67] = {0x0000000000000000,0x0000000000000200,0x0000000000000500,0x0000400000000000,0x0000000000000a00,
                                                0x0000000000400000,0x0002000000000000,0x0000000040000000,0x0000000000001400,0x0000000000280000,
                                                0x0000000002000000,0x0000000000000000,0x0005000000000000,0x0000000014000000,0x0000000200000000,
                                                0xa000000000000000,0x0000000000002800,0x0000000000000000,0x0000000000500000,0x00000000000a0000,
@@ -169,7 +118,7 @@ const bitboard black_pawn_attacks_[67] =  {0x0000000000000000,0x0000000000000000
                                                 0x0002000000000000,0x0000000000000000,0x0000020000000000,0x0000000014000000,0x0000000000000000,
                                                 0x000000000a000000,0x0000000005000000};
 
-const bitboard pawn_attacks_[2][67] = {{0x0000000000000000,0x0000000000000200,0x0000000000000500,0x0000400000000000,0x0000000000000a00,
+constexpr bitboard pawn_attacks_[2][67] = {{0x0000000000000000,0x0000000000000200,0x0000000000000500,0x0000400000000000,0x0000000000000a00,
                                             0x0000000000400000,0x0002000000000000,0x0000000040000000,0x0000000000001400,0x0000000000280000,
                                             0x0000000002000000,0x0000000000000000,0x0005000000000000,0x0000000014000000,0x0000000200000000,
                                             0xa000000000000000,0x0000000000002800,0x0000000000000000,0x0000000000500000,0x00000000000a0000,
@@ -249,17 +198,17 @@ constexpr bitboard file_h_i_rank_1_i_file_g_i = file_h_i_rank_1_i & file_g_i;
 constexpr bitboard file[8] = {file_a, file_b, file_c, file_d, file_e, file_f, file_g, file_h};
 constexpr bitboard rank[8] = {rank_1, rank_2, rank_3, rank_4, rank_5, rank_6, rank_7, rank_8};
 
-constexpr bitboard bb(unsigned int x, unsigned int y) {
-    return 1uL << (8 * y + x);
+constexpr bitboard bb(unsigned int f, unsigned int r) {
+    return 1uL << (8 * r + f);
 }
 
 constexpr bitboard bb(const square sq) {
-    return sq.is_none() ? 0 : bb(sq.get_file(), sq.get_rank());
+    return sq == SQ_NONE ? 0 : bb(get_file(sq), get_rank(sq));
+    // since everything is constexpr this will be 1uL << sq, but leaving like this to prevent future corretude questioning in the future
 }
 
 inline square get_square(bitboard board) {
-    // https://www.chessprogramming.org/BitScan
-    return squarePositions[(board & -board) % 67];
+    return lsb(board);
 }
 
 inline bitboard king_attacks(bitboard origin) {
@@ -269,15 +218,7 @@ inline bitboard king_attacks(bitboard origin) {
 inline bitboard knight_attacks(bitboard origin) {
     return knight_attacks_[(origin & -origin) % 67];
 }
-//
-//    static inline bitboard white_pawn_attacks(bitboard origin) {
-//        return white_pawn_attacks_[(origin.board & -origin.board) % 67];
-//    }
-//
-//    static inline bitboard black_pawn_attacks(bitboard origin) {
-//        return black_pawn_attacks_[(origin.board & -origin.board) % 67];
-//    }
-//
+
 inline bitboard pawn_attacks(bitboard origin, color c) {
     return pawn_attacks_[c][(origin & -origin) % 67];
 }

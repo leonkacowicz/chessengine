@@ -53,8 +53,8 @@ public:
         res << (b.can_castle_queen_side[BLACK] ? 'q' : '-');
 
         res << ' ';
-        if (b.en_passant == square::none) res << '-';
-        else res << b.en_passant.to_string();
+        if (b.en_passant == SQ_NONE) res << '-';
+        else res << b.en_passant;
         res << ' ';
 
         res << (int)b.half_move_counter;

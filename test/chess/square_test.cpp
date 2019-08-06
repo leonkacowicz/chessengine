@@ -1,31 +1,29 @@
 #include <gtest/gtest.h>
 #include <square.h>
 
-TEST(square_test, size_of_class) {
-    std::cout << "\nSize of class: " << sizeof(square) << " bytes" << std::endl;
-}
+using namespace chess::core;
 
 TEST(square_test, sanity_check_null_square_is_not_equal_to_any_other) {
     for (char file = 'a'; file <= 'h'; file++) {
         for (char rank = '1'; rank <= '8'; rank++) {
-            square sq(std::string({file, rank}));
-            ASSERT_FALSE(sq == square::none);
+            square sq = get_square(file, rank);
+            ASSERT_FALSE(sq == SQ_NONE);
         }
     }
 }
 
 TEST(square_test, sanity_check_square_is_equal_to_its_spec) {
-    for (char file = 'a'; file <= 'h'; file++) {
-        for (char rank = '1'; rank <= '8'; rank++) {
-            square sq(std::string({file, rank}));
-            square sq2(file - 'a', rank - '1');
+    for (int file = 0; file < 8; file++) {
+        for (int rank = 0; rank < 8; rank++) {
+            square sq = get_square(file, rank);
+            std::stringstream ss;
+            ss << char('a' + file) << char('1' + rank);
+            square sq2 = get_square(ss.str().c_str());
             ASSERT_EQ(sq, sq2);
-            ASSERT_EQ(sq.get_file(), file - 'a');
-            ASSERT_EQ(sq2.get_file(), file - 'a');
-            ASSERT_EQ(sq.get_rank(), rank - '1');
-            ASSERT_EQ(sq2.get_rank(), rank - '1');
-            ASSERT_EQ(sq.to_string(), std::string({file, rank}));
-            ASSERT_EQ(sq2.to_string(), std::string({file, rank}));
+            ASSERT_EQ(get_file(sq), file);
+            ASSERT_EQ(get_file(sq2), file);
+            ASSERT_EQ(get_rank(sq), rank);
+            ASSERT_EQ(get_rank(sq2), rank);
         }
     }
 }

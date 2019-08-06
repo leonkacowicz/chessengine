@@ -42,32 +42,32 @@ TEST(board_test, perft_test_1) {
 
 TEST(board_test, perft_test_1_c2c3) {
     board b; b.set_initial_position();
-    b.make_move({"c2", "c3"});
+    b.make_move({SQ_C2, SQ_C3});
     ASSERT_EQ(perft<true>(b, 4), 222861);
 }
 
 TEST(board_test, perft_test_1_c2c3_e7e6) {
     board b; b.set_initial_position();
-    b.make_move({"c2", "c3"});
-    b.make_move({"e7", "e6"});
+    b.make_move({SQ_C2, SQ_C3});
+    b.make_move({SQ_E7, SQ_E6});
     ASSERT_EQ(perft<true>(b, 3), 15014);
 }
 
 TEST(board_test, perft_test_1_c2c3_e7e6_d2d3) {
     board b; b.set_initial_position();
-    b.make_move({"c2", "c3"});
-    b.make_move({"e7", "e6"});
-    b.make_move({"d2", "d3"});
+    b.make_move({SQ_C2, SQ_C3});
+    b.make_move({SQ_E7, SQ_E6});
+    b.make_move({SQ_D2, SQ_D3});
     b.print();
     ASSERT_EQ(perft<true>(b, 2), 832);
 }
 
 TEST(board_test, perft_test_1_c2c3_e7e6_d2d3_f8b4) {
     board b; b.set_initial_position();
-    b.make_move({"c2", "c3"});
-    b.make_move({"e7", "e6"});
-    b.make_move({"d2", "d3"});
-    b.make_move({"f8", "b4"});
+    b.make_move({SQ_C2, SQ_C3});
+    b.make_move({SQ_E7, SQ_E6});
+    b.make_move({SQ_D2, SQ_D3});
+    b.make_move({SQ_F8, SQ_B4});
     b.print();
     ASSERT_EQ(perft<true>(b, 1), 27);
 }
