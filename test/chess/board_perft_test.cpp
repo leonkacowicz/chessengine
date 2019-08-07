@@ -6,8 +6,40 @@
 #include <board.h>
 #include <gtest/gtest.h>
 #include <move_gen.h>
+#include "../test_common.h"
 
 #define DEBUG(x)
+
+bool recursive_cmp(const board & b, int depth) {
+    if (depth == 0) return true;
+
+    auto expected = b.get_legal_moves(b.side_to_play);
+    auto actual = move_gen(b).generate();
+
+    for (move m : expected) {
+        if (std::find(begin(actual), end(actual), m) == end(actual)) {
+            std::cout << "Move " << m.to_long_move() << " expected and not found" << std::endl;
+            return false;
+        }
+    }
+
+    for (move m : actual) {
+        if (std::find(begin(expected), end(expected), m) == end(expected)) {
+            std::cout << "Move " << m.to_long_move() << " found and not expected" << std::endl;
+            return false;
+        }
+    }
+
+    for (move m : expected) {
+        board bnew = b;
+        bnew.make_move(m);
+        if (!recursive_cmp(bnew, depth - 1)) {
+            std::cout << "Previous move " << m.to_long_move() << std::endl;
+            return false;
+        }
+    }
+    return true;
+}
 
 template <bool log>
 int perft(const board& b, int depth) {
@@ -26,6 +58,16 @@ int perft(const board& b, int depth) {
         //if (log) bnew.print();
     }
     return n;
+}
+
+TEST(board_test, recursive_cmp_1) {
+    board b; b.set_initial_position();
+//    b.make_move({SQ_B1, SQ_A3});
+//    b.make_move({SQ_C7, SQ_C6});
+//    b.make_move({SQ_B2, SQ_B4});
+//    b.make_move({SQ_D8, SQ_A5});
+
+    recursive_cmp(b, 5);
 }
 
 TEST(board_test, perft_test_1) {

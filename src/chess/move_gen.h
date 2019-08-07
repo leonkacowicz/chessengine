@@ -171,8 +171,8 @@ public:
             checkers |= origin;
             block_mask |= line_segment[origin_sq][b.king_pos[us]];
         } else {
-            bitboard path = line_segment[origin_sq][b.king_pos[us]];
-            bitboard blockers = path & our_piece & ~king;
+            bitboard path = attacks_from_rook(origin_sq, 0) & line_segment[origin_sq][b.king_pos[us]];
+            bitboard blockers = path & any_piece & ~king;
             if (num_squares(blockers) == 1) {
                 // only 1 piece blocking the attack, therefore it's pinned
                 pinned_any_dir |= blockers;
@@ -190,8 +190,8 @@ public:
             checkers |= origin;
             block_mask |= line_segment[origin_sq][b.king_pos[us]];
         } else {
-            bitboard path = line_segment[origin_sq][b.king_pos[us]];
-            bitboard blockers = path & our_piece & ~king;
+            bitboard path = attacks_from_bishop(origin_sq, 0) & line_segment[origin_sq][b.king_pos[us]];
+            bitboard blockers = path & any_piece & ~king;
             if (num_squares(blockers) == 1) {
                 // only 1 piece blocking the attack, therefore it's pinned
                 pinned_any_dir |= blockers;
