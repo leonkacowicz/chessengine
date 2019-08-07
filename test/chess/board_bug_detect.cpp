@@ -11,6 +11,7 @@
 #include <move_gen.h>
 
 TEST(board_test, bug_detector) {
+    print_bb(0);
     std::default_random_engine gen;
     std::uniform_int_distribution<int> dis(1, 20000);
     dis(gen);
@@ -24,11 +25,13 @@ TEST(board_test, bug_detector) {
         if (testNum % 1000 == 0) std::cout << "Tested " << testNum << " cases." << std::endl;
 
         std::vector<std::string> pgn;
+        std::vector<std::string> long_moves;
         while (!legal_moves.empty() && k < 150) {
             k++;
             try {
                 unsigned long i = dis(gen) % legal_moves.size();
                 move m = legal_moves[i];
+                long_moves.push_back(m.to_long_move());
                 pgn.push_back(b.move_in_pgn(m, legal_moves));
                 b.make_move(m);
                 if (b.under_check(opposite(b.side_to_play))) {

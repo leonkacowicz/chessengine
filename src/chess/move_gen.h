@@ -7,6 +7,7 @@
 
 #include <cassert>
 #include "board.h"
+#include "magic_bitboard.h"
 
 enum pin_direction {
     VERTICAL, HORIZONTAL, DIAGONAL_P, DIAGONAL_S
@@ -33,6 +34,7 @@ class move_gen {
     color them;
     bitboard our_piece = 0;
     bitboard their_piece = 0;
+    bitboard any_piece = 0;
     bitboard block_mask = 0;
 
     int num_our_pieces = 0;
@@ -44,6 +46,7 @@ public:
         them = opposite(us);
         our_piece = b.piece_of_color[us];
         their_piece = b.piece_of_color[them];
+        any_piece = our_piece | their_piece;
         moves.reserve(100);
     }
 
@@ -116,98 +119,83 @@ public:
 
     template <evasiveness e>
     void rook_moves(const bitboard origin) {
-        if ((origin & (pinned[HORIZONTAL] | pinned[DIAGONAL_P] | pinned[DIAGONAL_S])) == 0) {
-            shift_moves<e, UP>(origin, rank_8_i);
-            shift_moves<e, DOWN>(origin, rank_1_i);
-        }
-        if ((origin & (pinned[VERTICAL] | pinned[DIAGONAL_P] | pinned[DIAGONAL_S])) == 0) {
-            shift_moves<e, LEFT>(origin, file_a_i);
-            shift_moves<e, RIGHT>(origin, file_h_i);
+        square origin_sq = get_square(origin);
+        bitboard attacks = attacks_from_rook(origin_sq, b.piece_of_color[WHITE] | b.piece_of_color[BLACK]);
+        attacks &= ~our_piece;
+        if (e == EVASIVE) attacks &= (checkers | block_mask); // remove squares that don't block the checker or capture it
+
+        if (!(pinned_any_dir & origin)) {
+            // piece not pinned, anything will be legal
+            while (attacks) {
+                square dest = pop_lsb(&attacks);
+                add_move(origin_sq, dest);
+            }
+        } else {
+            while (attacks) {
+                square dest = pop_lsb(&attacks);
+                if (line[origin_sq][dest] & king) // if piece is pinned, it can only move away from or towards the king, but not any other direction
+                    add_move(origin_sq, dest);
+            }
         }
     }
 
     template <evasiveness e>
     void bishop_moves(const bitboard origin) {
-        if ((origin & (pinned[HORIZONTAL] | pinned[VERTICAL] | pinned[DIAGONAL_S])) == 0) {
-            shift_moves<e, UP_LEFT>(origin, file_a_i_rank_8_i);
-            shift_moves<e, DOWN_RIGHT>(origin, file_h_i_rank_1_i);
-        }
-        if ((origin & (pinned[HORIZONTAL] | pinned[VERTICAL] | pinned[DIAGONAL_P])) == 0) {
-            shift_moves<e, UP_RIGHT>(origin, file_h_i_rank_8_i);
-            shift_moves<e, DOWN_LEFT>(origin, file_a_i_rank_1_i);
+        square origin_sq = get_square(origin);
+        bitboard attacks = attacks_from_bishop(origin_sq, b.piece_of_color[WHITE] | b.piece_of_color[BLACK]);
+        attacks &= ~our_piece;
+        if (e == EVASIVE) attacks &= (checkers | block_mask); // remove squares that don't block the checker or capture it
+
+        if (!(pinned_any_dir & origin)) {
+            // piece not pinned, anything will be legal
+            while (attacks) {
+                square dest = pop_lsb(&attacks);
+                add_move(origin_sq, dest);
+            }
+        } else {
+            while (attacks) {
+                square dest = pop_lsb(&attacks);
+                if (line[origin_sq][dest] & king) // if piece is pinned, it can only move away from or towards the king, but not any other direction
+                    add_move(origin_sq, dest);
+            }
         }
     }
 
     void rook_attacks(const bitboard origin) {
-        shift_attacks<UP>(origin, rank_8_i);
-        shift_attacks<DOWN>(origin, rank_1_i);
-        shift_attacks<LEFT>(origin, file_a_i);
-        shift_attacks<RIGHT>(origin, file_h_i);
-    }
-
-    void bishop_attacks(const bitboard origin) {
-        shift_attacks<UP_LEFT>(origin, file_a_i_rank_8_i);
-        shift_attacks<UP_RIGHT>(origin, file_h_i_rank_8_i);
-        shift_attacks<DOWN_LEFT>(origin, file_a_i_rank_1_i);
-        shift_attacks<DOWN_RIGHT>(origin, file_h_i_rank_1_i);
-    }
-
-    template<shift_direction d>
-    void shift_attacks(const bitboard origin, const bitboard in_range) {
-        auto sq = origin;
-        bitboard pin = 0;
-        bitboard potential_block_mask = 0;
-        while (in_range & sq) {
-            sq = shift<d>(sq);
-            if (pin == 0) {
-                attacked |= sq;
-                potential_block_mask |= sq;
-            }
-            if (king & sq) {
-                if (pin == 0) {
-                    num_checkers++;
-                    checkers |= origin;
-                    block_mask |= potential_block_mask;
-                } else {
-                    pinned_any_dir |= pin;
-                    if (d == UP || d == DOWN) {
-                        pinned[VERTICAL] |= pin;
-                    }
-                    if (d == LEFT || d == RIGHT) {
-                        pinned[HORIZONTAL] |= pin;
-                    }
-                    if (d == UP_LEFT || d == DOWN_RIGHT) {
-                        pinned[DIAGONAL_P] |= pin;
-                    }
-                    if (d == UP_RIGHT || d == DOWN_LEFT) {
-                        pinned[DIAGONAL_S] |= pin;
-                    }
-                }
-            } else if (their_piece & sq) {
-                return;
-            } else if (our_piece & sq) {
-                if (pin == 0) {
-                    // ray passed first time through a piece of our side, potential pin
-                    pin = sq;
-                } else {
-                    // second time our piece on the way: this means no piece is pinned in this direction, and no check in this direction
-                    return;
-                }
+        square origin_sq = get_square(origin);
+        bitboard attacks = attacks_from_rook(origin_sq, any_piece & ~king);
+        attacked |= attacks;
+        if (attacks & king) {
+            // under check
+            num_checkers++;
+            checkers |= origin;
+            block_mask |= line_segment[origin_sq][b.king_pos[us]];
+        } else {
+            bitboard path = line_segment[origin_sq][b.king_pos[us]];
+            bitboard blockers = path & our_piece & ~king;
+            if (num_squares(blockers) == 1) {
+                // only 1 piece blocking the attack, therefore it's pinned
+                pinned_any_dir |= blockers;
             }
         }
     }
 
-    template<evasiveness e, shift_direction d>
-    void shift_moves(const bitboard origin, const bitboard in_range) {
-        bitboard sq = origin;
-        while (in_range & sq) {
-            sq = shift<d>(sq);
-            if (our_piece & sq) return; // blocked by own piece
-            if (e == NON_EVASIVE || (sq & (checkers | block_mask))) {
-                // to evade a single check, we must block the checker or capture it
-                add_move(get_square(origin), get_square(sq));
+    void bishop_attacks(const bitboard origin) {
+        square origin_sq = get_square(origin);
+        bitboard attacks = attacks_from_bishop(origin_sq, any_piece & ~king);
+        attacked |= attacks;
+        if (attacks & king) {
+            // under check
+            num_checkers++;
+            checkers |= origin;
+            block_mask |= line_segment[origin_sq][b.king_pos[us]];
+        } else {
+            bitboard path = line_segment[origin_sq][b.king_pos[us]];
+            bitboard blockers = path & our_piece & ~king;
+            if (num_squares(blockers) == 1) {
+                // only 1 piece blocking the attack, therefore it's pinned
+                pinned_any_dir |= blockers;
             }
-            if (their_piece & sq) break; // captured opponent piece: stop there
         }
     }
 
@@ -233,8 +221,8 @@ public:
         const square origin_sq = get_square(origin);
         const bitboard empty = ~(our_piece | their_piece);
 
-        if ((empty & fwd) && (origin & (pinned[HORIZONTAL] | pinned[DIAGONAL_S] | pinned[DIAGONAL_P])) == 0) {
-            const square dest = get_square(fwd);
+        square dest = get_square(fwd);
+        if ((empty & fwd) && (!(pinned_any_dir & origin) || (line[origin_sq][dest] & king))) {
             if (e == NON_EVASIVE || (block_mask & fwd)) {
                 if (promotion) {
                     add_move(origin_sq, dest, special_move::PROMOTION_QUEEN);
@@ -253,14 +241,20 @@ public:
             }
         }
 
-        if ((origin & file_a_i) && !(origin & (pinned[VERTICAL] | pinned[HORIZONTAL] | pinned[d == UP ? DIAGONAL_S : DIAGONAL_P]))) {
-            const bitboard cap = shift<LEFT>(fwd);
-            pawn_captures<e>(promotion, origin_sq, cap);
+        if (origin & file_a_i) {
+            bitboard cap = shift<LEFT>(fwd);
+            dest = get_square(cap);
+            if (!(pinned_any_dir & origin) || (line[origin_sq][dest] & king)) {
+                pawn_captures<e>(promotion, origin_sq, cap);
+            }
         }
 
-        if ((origin & file_h_i) && !(origin & (pinned[VERTICAL] | pinned[HORIZONTAL] | pinned[d == UP ? DIAGONAL_P : DIAGONAL_S]))) {
-            const bitboard cap = shift<RIGHT>(fwd);
-            pawn_captures<e>(promotion, origin_sq, cap);
+        if (origin & file_h_i) {
+            bitboard cap = shift<RIGHT>(fwd);
+            dest = get_square(cap);
+            if (!(pinned_any_dir & origin) || (line[origin_sq][dest] & king)) {
+                pawn_captures<e>(promotion, origin_sq, cap);
+            }
         }
     }
 

@@ -30,7 +30,7 @@ namespace chess {
             return static_cast<shift_direction>(int64_t(a) * int64_t(b));
         }
 
-// stupid functions to supress shift warnings
+        // stupid functions to supress shift warnings
         constexpr bitboard shift_left(bitboard arg, uint64_t sh) {
             return arg << sh;
         }
@@ -79,6 +79,8 @@ namespace chess {
 
         extern bitboard piece_attacks_bb[6][64];
         extern bitboard pawn_attacks_bb[2][64];
+        extern bitboard line[64][64];
+        extern bitboard line_segment[64][64];
 
         void init_bitboards();
 

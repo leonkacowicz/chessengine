@@ -623,7 +623,7 @@ void board::shift_moves(const bitboard origin, const bitboard in_range, std::vec
     while (in_range & sq) {
         sq = shift<d>(sq);
         if (player_piece & sq) return; // blocked by own piece
-        assert(sq != get_bb(king_pos[opposite(c)])); // found opponent king
+        if(sq == get_bb(king_pos[opposite(c)])) throw std::runtime_error("capture king"); // found opponent king
         // simulate move
         if (!simulate(get_square(origin), get_square(sq), p, c).under_check(c)) {
             moves.emplace_back(get_square(origin), get_square(sq));

@@ -28,6 +28,11 @@ namespace chess {
             return m.attack_table[((m.attack_mask & occupancy) * m.magic_number) >> m.shift];
         }
 
+        inline bitboard attacks_from_bishop(square origin, bitboard occupancy) {
+            magic m = bishop_wizardry[origin];
+            return m.attack_table[((m.attack_mask & occupancy) * m.magic_number) >> m.shift];
+        }
+
         void init_magic_bitboards();
     }
 }
