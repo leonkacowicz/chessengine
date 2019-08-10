@@ -162,7 +162,7 @@ public:
 
     void rook_attacks(const bitboard origin) {
         square origin_sq = get_square(origin);
-        bitboard attacks = attacks_from_rook(origin_sq, any_piece & ~king);
+        bitboard attacks = attacks_from_rook(origin_sq, any_piece ^ king);
         attacked |= attacks;
         if (attacks & king) {
             // under check
@@ -170,8 +170,8 @@ public:
             checkers |= origin;
             block_mask |= line_segment[origin_sq][b.king_pos[us]];
         } else {
-            bitboard path = attacks_from_rook(origin_sq, 0) & line_segment[origin_sq][b.king_pos[us]];
-            bitboard blockers = path & any_piece & ~king;
+            bitboard path = piece_attacks_bb[ROOK][origin_sq] & line_segment[origin_sq][b.king_pos[us]];
+            bitboard blockers = path & any_piece;
             if (num_squares(blockers) == 1) {
                 // only 1 piece blocking the attack, therefore it's pinned
                 pinned |= blockers;
@@ -181,7 +181,7 @@ public:
 
     void bishop_attacks(const bitboard origin) {
         square origin_sq = get_square(origin);
-        bitboard attacks = attacks_from_bishop(origin_sq, any_piece & ~king);
+        bitboard attacks = attacks_from_bishop(origin_sq, any_piece ^ king);
         attacked |= attacks;
         if (attacks & king) {
             // under check
@@ -190,7 +190,7 @@ public:
             block_mask |= line_segment[origin_sq][b.king_pos[us]];
         } else {
             bitboard path = attacks_from_bishop(origin_sq, 0) & line_segment[origin_sq][b.king_pos[us]];
-            bitboard blockers = path & any_piece & ~king;
+            bitboard blockers = path & any_piece;
             if (num_squares(blockers) == 1) {
                 // only 1 piece blocking the attack, therefore it's pinned
                 pinned |= blockers;
@@ -316,7 +316,9 @@ public:
         }
     }
 
-    inline void add_move(square from, square to, special_move special = NOT_SPECIAL);
+    inline void add_move(square from, square to, special_move special = NOT_SPECIAL) {
+        moves.emplace_back(from, to, special);
+    }
 };
 
 inline std::vector<move>& move_gen::generate() {
@@ -339,8 +341,6 @@ inline std::vector<move>& move_gen::generate() {
     return moves;
 }
 
-inline void move_gen::add_move(square from, square to, special_move special) {
-    moves.emplace_back(from, to, special);
-}
+
 
 #endif //CHESSENGINE_MOVE_GEN_H

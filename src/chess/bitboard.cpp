@@ -94,7 +94,7 @@ namespace chess {
             while (++f1 < f2) {
                 ret |= get_bb(f1, r);
             }
-            return ret | get_bb(f1, r) | get_bb(f2, r);
+            return ret;
         }
 
         /**
@@ -111,7 +111,7 @@ namespace chess {
             while (++r1 < r2) {
                 ret |= get_bb(f, r1);
             }
-            return ret | get_bb(f, r1) | get_bb(f, r2);
+            return ret;
         }
 
         /**
@@ -141,7 +141,7 @@ namespace chess {
                     sqbb = shift<DOWN_RIGHT>(sqbb);
                 }
             }
-            return ret | get_bb(sq1) | get_bb(sq2);
+            return ret;
         }
 
         /**
