@@ -162,10 +162,6 @@ namespace chess {
             return knight_attacks(get_square(origin));
         }
 
-        inline bitboard pawn_attacks(bitboard origin, color c) {
-            return pawn_attacks_bb[c][get_square(origin)];
-        }
-
         inline std::string bb_to_string(bitboard b) {
             std::stringstream ret;
             for (int y = 7; y >= 0; y--) {

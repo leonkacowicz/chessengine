@@ -50,7 +50,7 @@ public:
 
     bool square_attacked(square sq) {
         if (knight_attacks(sq) & their_piece & b.piece_of_type[KNIGHT]) return true;
-        if (pawn_attacks(sq, us) & their_piece & b.piece_of_type[PAWN]) return true;
+        if (pawn_attacks_bb[us][sq] & their_piece & b.piece_of_type[PAWN]) return true;
         if (king_attacks(sq) & get_bb(b.king_pos[them])) return true;
         if (attacks_from_rook(sq, any_piece ^ king) & their_piece & (b.piece_of_type[ROOK] | b.piece_of_type[QUEEN])) return true;
         if (attacks_from_bishop(sq, any_piece ^ king) & their_piece & (b.piece_of_type[BISHOP] | b.piece_of_type[QUEEN])) return true;
@@ -98,7 +98,7 @@ public:
         square king_sq = b.king_pos[us];
 
         checkers |= knight_attacks(king_sq) & their_piece & b.piece_of_type[KNIGHT];
-        checkers |= pawn_attacks(king_sq, us) & their_piece & b.piece_of_type[PAWN];
+        checkers |= pawn_attacks_bb[us][king_sq] & their_piece & b.piece_of_type[PAWN];
         checkers |= king_attacks(king_sq) & get_bb(b.king_pos[them]);
         bitboard rook_checkers = attacks_from_rook(king_sq, any_piece ^ king) & their_piece & (b.piece_of_type[ROOK] | b.piece_of_type[QUEEN]);
         checkers |= rook_checkers;
@@ -116,19 +116,22 @@ public:
             block_mask |= line_segment[king_sq][sq];
         }
 
-        remaining = their_piece & (b.piece_of_type[ROOK] | b.piece_of_type[QUEEN]);
+
+        bitboard ray = attacks_from_rook(king_sq, 0);
+        remaining = their_piece & (b.piece_of_type[ROOK] | b.piece_of_type[QUEEN]) & ray;
         while (remaining) {
             square sq = pop_lsb(&remaining);
-            bitboard path = attacks_from_rook(sq, 0) & line_segment[sq][king_sq] & our_piece;
+            bitboard path = ray & line_segment[sq][king_sq] & any_piece;
             if (num_squares(path) == 1) {
                 pinned |= path;
             }
         }
 
-        remaining = their_piece & (b.piece_of_type[BISHOP] | b.piece_of_type[QUEEN]);
+        ray = attacks_from_bishop(king_sq, 0);
+        remaining = their_piece & (b.piece_of_type[BISHOP] | b.piece_of_type[QUEEN]) & ray;
         while (remaining) {
             square sq = pop_lsb(&remaining);
-            bitboard path = attacks_from_bishop(sq, 0) & line_segment[sq][king_sq] & our_piece;
+            bitboard path = ray & line_segment[sq][king_sq] & any_piece;
             if (num_squares(path) == 1) {
                 pinned |= path;
             }
@@ -138,7 +141,7 @@ public:
     template <evasiveness e>
     void rook_moves(const bitboard origin) {
         square origin_sq = get_square(origin);
-        bitboard attacks = attacks_from_rook(origin_sq, b.piece_of_color[WHITE] | b.piece_of_color[BLACK]);
+        bitboard attacks = attacks_from_rook(origin_sq, any_piece);
         attacks &= ~our_piece;
         if (e == EVASIVE) attacks &= (checkers | block_mask); // remove squares that don't block the checker or capture it
 
@@ -160,7 +163,7 @@ public:
     template <evasiveness e>
     void bishop_moves(const bitboard origin) {
         square origin_sq = get_square(origin);
-        bitboard attacks = attacks_from_bishop(origin_sq, b.piece_of_color[WHITE] | b.piece_of_color[BLACK]);
+        bitboard attacks = attacks_from_bishop(origin_sq, any_piece);
         attacks &= ~our_piece;
         if (e == EVASIVE) attacks &= (checkers | block_mask); // remove squares that don't block the checker or capture it
 

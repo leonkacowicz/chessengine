@@ -49,10 +49,10 @@ namespace chess {
         }
 
         void init_pawn_attacks_bb() {
-            for (square sq = SQ_A1; sq <= SQ_H8; ++sq) pawn_attacks_bb[WHITE][sq] = 0;
-            for (square sq = SQ_A1; sq <= SQ_H8; ++sq) pawn_attacks_bb[BLACK][sq] = 0;
+            for (square sq = SQ_A8; sq <= SQ_H8; ++sq) pawn_attacks_bb[WHITE][sq] = 0;
+            for (square sq = SQ_A1; sq <= SQ_H1; ++sq) pawn_attacks_bb[BLACK][sq] = 0;
 
-            for (square sq = SQ_A2; sq <= SQ_H7; ++sq) {
+            for (square sq = SQ_A1; sq <= SQ_H7; ++sq) {
                 bitboard origin = get_bb(sq);
                 bitboard attack = 0;
                 if (file_a_i & origin) attack |= shift<UP_LEFT>(origin);
@@ -60,7 +60,7 @@ namespace chess {
                 pawn_attacks_bb[WHITE][sq] = attack;
             }
 
-            for (square sq = SQ_A2; sq <= SQ_H7; ++sq) {
+            for (square sq = SQ_A2; sq <= SQ_H8; ++sq) {
                 bitboard origin = get_bb(sq);
                 bitboard attack = 0;
                 if (file_a_i & origin) attack |= shift<DOWN_LEFT>(origin);

@@ -44,7 +44,7 @@ bool board::under_check(color c) const {
     if ((king_attacks(king) & get_bb(king_pos[opposite(c)]))) return true;
 
     // calls pawn_attacks pretending king is pawn, and if it were a pawn, then if it attacks a pawn, it means that it is also attacked by that pawn
-    return pawn_attacks(king, c) & (piece_of_type[PAWN] & opponent_piece);
+    return pawn_attacks_bb[c][king_pos[c]] & (piece_of_type[PAWN] & opponent_piece);
 }
 
 string board::to_string() const {

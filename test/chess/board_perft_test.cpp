@@ -6,6 +6,7 @@
 #include <board.h>
 #include <gtest/gtest.h>
 #include <move_gen.h>
+#include <fen.h>
 #include "../test_common.h"
 
 #define DEBUG(x)
@@ -19,6 +20,8 @@ bool recursive_cmp(const board & b, int depth) {
     for (move m : expected) {
         if (std::find(begin(actual), end(actual), m) == end(actual)) {
             std::cout << "Move " << m.to_long_move() << " expected and not found" << std::endl;
+            std::cout << fen::to_string(b) << std::endl;
+            actual = move_gen(b).generate();
             return false;
         }
     }
@@ -26,6 +29,7 @@ bool recursive_cmp(const board & b, int depth) {
     for (move m : actual) {
         if (std::find(begin(expected), end(expected), m) == end(expected)) {
             std::cout << "Move " << m.to_long_move() << " found and not expected" << std::endl;
+            std::cout << fen::to_string(b) << std::endl;
             return false;
         }
     }
