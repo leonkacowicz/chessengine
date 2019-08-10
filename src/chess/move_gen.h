@@ -26,7 +26,7 @@ class move_gen {
     std::vector<move> moves;
     bitboard checkers;
     bitboard attacked;
-    char num_checkers;
+    //char num_checkers;
     bitboard king;
     bitboard pinned = 0;
     color us;
@@ -48,22 +48,31 @@ public:
 
     std::vector<move>& generate();
 
+    bool square_attacked(square sq) {
+        if (knight_attacks(sq) & their_piece & b.piece_of_type[KNIGHT]) return true;
+        if (pawn_attacks(sq, us) & their_piece & b.piece_of_type[PAWN]) return true;
+        if (king_attacks(sq) & get_bb(b.king_pos[them])) return true;
+        if (attacks_from_rook(sq, any_piece ^ king) & their_piece & (b.piece_of_type[ROOK] | b.piece_of_type[QUEEN])) return true;
+        if (attacks_from_bishop(sq, any_piece ^ king) & their_piece & (b.piece_of_type[BISHOP] | b.piece_of_type[QUEEN])) return true;
+        return false;
+    }
+
     void generate_king_moves() {
-        bitboard attacks = king_attacks(king);
-        square s;
+        bitboard attacks = king_attacks(king) & ~our_piece;
+        square sq;
         while (attacks) {
-            s = pop_lsb(&attacks);
-            bitboard sbb = get_bb(s);
-            if (((our_piece | attacked) & sbb) == 0) {
-                add_move(b.king_pos[us], s);
+            sq = pop_lsb(&attacks);
+            bitboard bb = get_bb(sq);
+            if (!square_attacked(sq)) {
+                add_move(b.king_pos[us], sq);
             }
         }
     }
 
     void reset() {
         checkers = 0;
-        num_checkers = 0;
-        attacked = 0;
+//        num_checkers = 0;
+//        attacked = 0;
         block_mask = 0;
         king = get_bb(b.king_pos[b.side_to_play]);
     }
@@ -85,35 +94,45 @@ public:
     }
 
     void scan_board() {
-        bitboard non_slider_attack;
-        bitboard remaining = their_piece;
         //print_bb(remaining);
+        square king_sq = b.king_pos[us];
+
+        checkers |= knight_attacks(king_sq) & their_piece & b.piece_of_type[KNIGHT];
+        checkers |= pawn_attacks(king_sq, us) & their_piece & b.piece_of_type[PAWN];
+        checkers |= king_attacks(king_sq) & get_bb(b.king_pos[them]);
+        bitboard rook_checkers = attacks_from_rook(king_sq, any_piece ^ king) & their_piece & (b.piece_of_type[ROOK] | b.piece_of_type[QUEEN]);
+        checkers |= rook_checkers;
+        bitboard remaining = rook_checkers;
         while (remaining) {
-            bitboard sq = get_bb(pop_lsb(&remaining));
-            //print_bb(sq);
-            if (their_piece & sq) {
-                if (sq & (b.piece_of_type[ROOK] | b.piece_of_type[QUEEN])) rook_attacks(sq);
-                if (sq & (b.piece_of_type[BISHOP] | b.piece_of_type[QUEEN])) bishop_attacks(sq);
-                else if (sq & b.piece_of_type[KNIGHT]) {
-                    non_slider_attack = knight_attacks(sq);
-                    attacked |= non_slider_attack;
-                    if ((non_slider_attack & king) != 0) {
-                        num_checkers++;
-                        checkers |= sq;
-                    }
-                }
-                else if (sq & b.piece_of_type[PAWN]) {
-                    non_slider_attack = pawn_attacks(sq, them);
-                    attacked |= non_slider_attack;
-                    if ((non_slider_attack & king) != 0) {
-                        num_checkers++;
-                        checkers |= sq;
-                    }
-                }
+            square sq = pop_lsb(&remaining);
+            block_mask |= line_segment[king_sq][sq];
+        }
+
+        bitboard bishop_checkers = attacks_from_bishop(king_sq, any_piece ^ king) & their_piece & (b.piece_of_type[BISHOP] | b.piece_of_type[QUEEN]);
+        checkers |= bishop_checkers;
+        remaining = bishop_checkers;
+        while (remaining) {
+            square sq = pop_lsb(&remaining);
+            block_mask |= line_segment[king_sq][sq];
+        }
+
+        remaining = their_piece & (b.piece_of_type[ROOK] | b.piece_of_type[QUEEN]);
+        while (remaining) {
+            square sq = pop_lsb(&remaining);
+            bitboard path = attacks_from_rook(sq, 0) & line_segment[sq][king_sq] & our_piece;
+            if (num_squares(path) == 1) {
+                pinned |= path;
             }
         }
-        non_slider_attack = king_attacks(b.king_pos[them]);
-        attacked |= non_slider_attack;
+
+        remaining = their_piece & (b.piece_of_type[BISHOP] | b.piece_of_type[QUEEN]);
+        while (remaining) {
+            square sq = pop_lsb(&remaining);
+            bitboard path = attacks_from_bishop(sq, 0) & line_segment[sq][king_sq] & our_piece;
+            if (num_squares(path) == 1) {
+                pinned |= path;
+            }
+        }
     }
 
     template <evasiveness e>
@@ -159,44 +178,44 @@ public:
             }
         }
     }
-
-    void rook_attacks(const bitboard origin) {
-        square origin_sq = get_square(origin);
-        bitboard attacks = attacks_from_rook(origin_sq, any_piece ^ king);
-        attacked |= attacks;
-        if (attacks & king) {
-            // under check
-            num_checkers++;
-            checkers |= origin;
-            block_mask |= line_segment[origin_sq][b.king_pos[us]];
-        } else {
-            bitboard path = piece_attacks_bb[ROOK][origin_sq] & line_segment[origin_sq][b.king_pos[us]];
-            bitboard blockers = path & any_piece;
-            if (num_squares(blockers) == 1) {
-                // only 1 piece blocking the attack, therefore it's pinned
-                pinned |= blockers;
-            }
-        }
-    }
-
-    void bishop_attacks(const bitboard origin) {
-        square origin_sq = get_square(origin);
-        bitboard attacks = attacks_from_bishop(origin_sq, any_piece ^ king);
-        attacked |= attacks;
-        if (attacks & king) {
-            // under check
-            num_checkers++;
-            checkers |= origin;
-            block_mask |= line_segment[origin_sq][b.king_pos[us]];
-        } else {
-            bitboard path = attacks_from_bishop(origin_sq, 0) & line_segment[origin_sq][b.king_pos[us]];
-            bitboard blockers = path & any_piece;
-            if (num_squares(blockers) == 1) {
-                // only 1 piece blocking the attack, therefore it's pinned
-                pinned |= blockers;
-            }
-        }
-    }
+//
+//    void rook_attacks(const bitboard origin) {
+//        square origin_sq = get_square(origin);
+//        bitboard attacks = attacks_from_rook(origin_sq, any_piece ^ king);
+//        attacked |= attacks;
+//        if (attacks & king) {
+//            // under check
+//            num_checkers++;
+//            checkers |= origin;
+//            block_mask |= line_segment[origin_sq][b.king_pos[us]];
+//        } else {
+//            bitboard path = piece_attacks_bb[ROOK][origin_sq] & line_segment[origin_sq][b.king_pos[us]];
+//            bitboard blockers = path & any_piece;
+//            if (num_squares(blockers) == 1) {
+//                // only 1 piece blocking the attack, therefore it's pinned
+//                pinned |= blockers;
+//            }
+//        }
+//    }
+//
+//    void bishop_attacks(const bitboard origin) {
+//        square origin_sq = get_square(origin);
+//        bitboard attacks = attacks_from_bishop(origin_sq, any_piece ^ king);
+//        attacked |= attacks;
+//        if (attacks & king) {
+//            // under check
+//            num_checkers++;
+//            checkers |= origin;
+//            block_mask |= line_segment[origin_sq][b.king_pos[us]];
+//        } else {
+//            bitboard path = attacks_from_bishop(origin_sq, 0) & line_segment[origin_sq][b.king_pos[us]];
+//            bitboard blockers = path & any_piece;
+//            if (num_squares(blockers) == 1) {
+//                // only 1 piece blocking the attack, therefore it's pinned
+//                pinned |= blockers;
+//            }
+//        }
+//    }
 
     template <evasiveness e>
     void knight_moves(bitboard origin) {
@@ -295,22 +314,20 @@ public:
         if (b.can_castle_king_side[us]) {
             auto path = shift<RIGHT>(king) | shift<2 * RIGHT>(king);
             if ((anypiece & path) == 0) {
-                if ((attacked & path) == 0) {
-                    if (us == BLACK)
-                        add_move(b.king_pos[us], SQ_G8, CASTLE_KING_SIDE_BLACK);
-                    else
-                        add_move(b.king_pos[us], SQ_G1, CASTLE_KING_SIDE_WHITE);
+                if (us == BLACK && !square_attacked(SQ_F8) && !square_attacked(SQ_G8)) {
+                    add_move(b.king_pos[us], SQ_G8, CASTLE_KING_SIDE_BLACK);
+                } else if (us == WHITE && !square_attacked(SQ_F1) && !square_attacked(SQ_G1)) {
+                    add_move(b.king_pos[us], SQ_G1, CASTLE_KING_SIDE_WHITE);
                 }
             }
         }
         if (b.can_castle_queen_side[us]) {
             auto path = shift<LEFT>(king) | shift<2 * LEFT>(king);
             if ((anypiece & (path | shift<LEFT>(path))) == 0) {
-                if ((attacked & path) == 0) {
-                    if (us == BLACK)
-                        add_move(b.king_pos[us], SQ_C8, CASTLE_QUEEN_SIDE_BLACK);
-                    else
-                        add_move(b.king_pos[us], SQ_C1, CASTLE_QUEEN_SIDE_WHITE);
+                if (us == BLACK && !square_attacked(SQ_C8) && !square_attacked(SQ_D8)) {
+                    add_move(b.king_pos[us], SQ_C8, CASTLE_QUEEN_SIDE_BLACK);
+                } else if (us == WHITE && !square_attacked(SQ_C1) && !square_attacked(SQ_D1)){
+                    add_move(b.king_pos[us], SQ_C1, CASTLE_QUEEN_SIDE_WHITE);
                 }
             }
         }
@@ -328,6 +345,7 @@ inline std::vector<move>& move_gen::generate() {
     //print_bb(pinned);
 
     generate_king_moves();
+    int num_checkers = num_squares(checkers);
     if (num_checkers == 2) {
         // only legal moves will be moving the king away from check
     } else if (num_checkers == 1) {

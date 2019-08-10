@@ -62,7 +62,7 @@ int perft(const board& b, int depth) {
 
 TEST(board_test, recursive_cmp_1) {
     board b; b.set_initial_position();
-//    b.make_move({SQ_B1, SQ_A3});
+    b.make_move({SQ_C2, SQ_C3});
 //    b.make_move({SQ_C7, SQ_C6});
 //    b.make_move({SQ_B2, SQ_B4});
 //    b.make_move({SQ_D8, SQ_A5});
@@ -145,11 +145,11 @@ TEST(board_test, perft_test_3) {
 TEST(board_test, perft_test_4) {
     board b("r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1");
 
-    ASSERT_EQ(perft<true>(b, 1), 6);
-    ASSERT_EQ(perft<true>(b, 2), 264);
-    ASSERT_EQ(perft<true>(b, 3), 9467);
-    ASSERT_EQ(perft<true>(b, 4), 422333);
-    ASSERT_EQ(perft<true>(b, 5), 15833292);
+    EXPECT_EQ(perft<true>(b, 1), 6);
+    EXPECT_EQ(perft<true>(b, 2), 264);
+    EXPECT_EQ(perft<true>(b, 3), 9467);
+    EXPECT_EQ(perft<true>(b, 4), 422333);
+    EXPECT_EQ(perft<true>(b, 5), 15833292);
 }
 
 TEST(board_test, perft_test_5) {
