@@ -10,7 +10,7 @@ enum color : char {
 };
 
 constexpr color opposite(color c) {
-    return c == BLACK ? WHITE : BLACK;
+    return static_cast<color>((unsigned)c ^ 1u);
 }
 
 #endif //CHESSENGINE_COLOR_H

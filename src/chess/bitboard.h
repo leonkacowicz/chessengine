@@ -139,8 +139,7 @@ namespace chess {
         }
 
         constexpr bitboard get_bb(const square sq) {
-            return sq == SQ_NONE ? 0 : get_bb(get_file(sq), get_rank(sq));
-            // since everything is constexpr this will be 1uL << sq, but leaving like this to prevent future corretude questioning in the future
+            return sq == SQ_NONE ? 0 : (1uL << unsigned(sq));
         }
 
         inline square get_square(bitboard board) {

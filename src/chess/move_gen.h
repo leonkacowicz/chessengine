@@ -28,7 +28,7 @@ class move_gen {
     bitboard attacked;
     char num_checkers;
     bitboard king;
-    bitboard pinned_any_dir = 0;
+    bitboard pinned = 0;
     color us;
     color them;
     bitboard our_piece = 0;
@@ -77,7 +77,7 @@ public:
             //print_bb(sq);
             if (sq & (b.piece_of_type[ROOK] | b.piece_of_type[QUEEN])) rook_moves<e>(sq);
             if (sq & (b.piece_of_type[BISHOP] | b.piece_of_type[QUEEN])) bishop_moves<e>(sq);
-            else if ((sq & b.piece_of_type[KNIGHT]) && !(pinned_any_dir & sq)) knight_moves<e>(sq);
+            else if ((sq & b.piece_of_type[KNIGHT]) && !(pinned & sq)) knight_moves<e>(sq);
             else if (sq & b.piece_of_type[PAWN]) {
                 if (us == WHITE) pawn_moves<e, UP>(sq); else pawn_moves<e, DOWN>(sq);
             }
@@ -123,7 +123,7 @@ public:
         attacks &= ~our_piece;
         if (e == EVASIVE) attacks &= (checkers | block_mask); // remove squares that don't block the checker or capture it
 
-        if (!(pinned_any_dir & origin)) {
+        if (!(pinned & origin)) {
             // piece not pinned, anything will be legal
             while (attacks) {
                 square dest = pop_lsb(&attacks);
@@ -145,7 +145,7 @@ public:
         attacks &= ~our_piece;
         if (e == EVASIVE) attacks &= (checkers | block_mask); // remove squares that don't block the checker or capture it
 
-        if (!(pinned_any_dir & origin)) {
+        if (!(pinned & origin)) {
             // piece not pinned, anything will be legal
             while (attacks) {
                 square dest = pop_lsb(&attacks);
@@ -174,7 +174,7 @@ public:
             bitboard blockers = path & any_piece & ~king;
             if (num_squares(blockers) == 1) {
                 // only 1 piece blocking the attack, therefore it's pinned
-                pinned_any_dir |= blockers;
+                pinned |= blockers;
             }
         }
     }
@@ -193,7 +193,7 @@ public:
             bitboard blockers = path & any_piece & ~king;
             if (num_squares(blockers) == 1) {
                 // only 1 piece blocking the attack, therefore it's pinned
-                pinned_any_dir |= blockers;
+                pinned |= blockers;
             }
         }
     }
@@ -221,7 +221,7 @@ public:
         const bitboard empty = ~(our_piece | their_piece);
 
         square dest = get_square(fwd);
-        if ((empty & fwd) && (!(pinned_any_dir & origin) || (line[origin_sq][dest] & king))) {
+        if ((empty & fwd) && (!(pinned & origin) || (line[origin_sq][dest] & king))) {
             if (e == NON_EVASIVE || (block_mask & fwd)) {
                 if (promotion) {
                     add_move(origin_sq, dest, special_move::PROMOTION_QUEEN);
@@ -243,7 +243,7 @@ public:
         if (origin & file_a_i) {
             bitboard cap = shift<LEFT>(fwd);
             dest = get_square(cap);
-            if (!(pinned_any_dir & origin) || (line[origin_sq][dest] & king)) {
+            if (!(pinned & origin) || (line[origin_sq][dest] & king)) {
                 pawn_captures<e>(promotion, origin_sq, cap);
             }
         }
@@ -251,7 +251,7 @@ public:
         if (origin & file_h_i) {
             bitboard cap = shift<RIGHT>(fwd);
             dest = get_square(cap);
-            if (!(pinned_any_dir & origin) || (line[origin_sq][dest] & king)) {
+            if (!(pinned & origin) || (line[origin_sq][dest] & king)) {
                 pawn_captures<e>(promotion, origin_sq, cap);
             }
         }
@@ -323,7 +323,7 @@ inline std::vector<move>& move_gen::generate() {
     reset();
     scan_board();
     //print_bb(attacked);
-    //print_bb(pinned_any_dir);
+    //print_bb(pinned);
 
     generate_king_moves();
     if (num_checkers == 2) {
