@@ -28,7 +28,6 @@ class move_gen {
     bitboard attacked;
     char num_checkers;
     bitboard king;
-    bitboard pinned[4] = {0, 0, 0, 0}; // one per direction (we need this to know which direction the piece is pinned, you can still move towards or away from pinner while still protecting the king)
     bitboard pinned_any_dir = 0;
     color us;
     color them;
@@ -36,9 +35,6 @@ class move_gen {
     bitboard their_piece = 0;
     bitboard any_piece = 0;
     bitboard block_mask = 0;
-
-    int num_our_pieces = 0;
-    bitboard our_pieces[16];
 public:
 
     move_gen(const board& b) : b(b) {
@@ -70,14 +66,15 @@ public:
         attacked = 0;
         block_mask = 0;
         king = get_bb(b.king_pos[b.side_to_play]);
-        num_our_pieces = 0;
-        for (int i = 0; i < 4; i++) pinned[i] = 0;
     }
 
     template <evasiveness e>
     void generate_non_king_moves() {
-        for (int i = 0; i < num_our_pieces; i++) {
-            bitboard sq = our_pieces[i];
+        bitboard remaining = our_piece;
+        //print_bb(remaining);
+        while (remaining) {
+            bitboard sq = get_bb(pop_lsb(&remaining));
+            //print_bb(sq);
             if (sq & (b.piece_of_type[ROOK] | b.piece_of_type[QUEEN])) rook_moves<e>(sq);
             if (sq & (b.piece_of_type[BISHOP] | b.piece_of_type[QUEEN])) bishop_moves<e>(sq);
             else if ((sq & b.piece_of_type[KNIGHT]) && !(pinned_any_dir & sq)) knight_moves<e>(sq);
@@ -89,7 +86,11 @@ public:
 
     void scan_board() {
         bitboard non_slider_attack;
-        for (bitboard sq(1); sq != 0; sq <<= 1uL) {
+        bitboard remaining = their_piece;
+        //print_bb(remaining);
+        while (remaining) {
+            bitboard sq = get_bb(pop_lsb(&remaining));
+            //print_bb(sq);
             if (their_piece & sq) {
                 if (sq & (b.piece_of_type[ROOK] | b.piece_of_type[QUEEN])) rook_attacks(sq);
                 if (sq & (b.piece_of_type[BISHOP] | b.piece_of_type[QUEEN])) bishop_attacks(sq);
@@ -109,8 +110,6 @@ public:
                         checkers |= sq;
                     }
                 }
-            } else if (sq & our_piece) {
-                our_pieces[num_our_pieces++] = sq;
             }
         }
         non_slider_attack = king_attacks(b.king_pos[them]);
