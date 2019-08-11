@@ -14,7 +14,7 @@ TEST(engine_test, engine_call) {
     engine e;
     for (int i = 1; i < 100; i++) {
         std::cout << i << ".\n\n";
-        auto m = e.get_move(b);
+        auto m = e.search_iterate(b);
         if (move_type(m) == NULL_MOVE) break;
         b.make_move(m);
         b.print();

@@ -52,7 +52,7 @@ int main()
                 std::cerr << "no legal move found to be searched" << std::endl;
                 std::cout << "bestmove (none)" << std::endl;
             } else {
-                auto selected_move = e.get_move(b);
+                auto selected_move = e.search_iterate(b);
                 std::cout << "bestmove " << to_long_move(selected_move) << std::endl;
             }
         } else if (word == "print") {

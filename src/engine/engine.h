@@ -12,17 +12,21 @@
 #include "evaluator.h"
 #include "zobrist.h"
 
+enum node_type {
+    EXACT, ALPHA, BETA
+};
+
 struct node {
-    int val;
-    move m;
-    bool beta_cut;
+    int value;
+    node_type type;
+    std::vector<move> variation;
 };
 
 
 class engine {
 public:
     engine();
-    move get_move(const board& b);
+    move search_iterate(const board& b);
 };
 
 

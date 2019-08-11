@@ -9,6 +9,10 @@
 #include <board.h>
 #include <random>
 
+enum value : int {
+    INF = 32001, MATE = 32000, DRAW = 0, CERTAIN_VICTORY = 10000
+};
+
 class evaluator {
 //    std::default_random_engine gen;
 //    std::uniform_int_distribution<int> dis{0, 100};
