@@ -31,7 +31,7 @@ TEST(board_test, bug_detector) {
             try {
                 unsigned long i = dis(gen) % legal_moves.size();
                 move m = legal_moves[i];
-                long_moves.push_back(m.to_long_move());
+                long_moves.push_back(to_long_move(m));
                 pgn.push_back(b.move_in_pgn(m, legal_moves));
                 b.make_move(m);
                 if (b.under_check(opposite(b.side_to_play))) {

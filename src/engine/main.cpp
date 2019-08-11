@@ -37,7 +37,7 @@ int main()
                 ss >> word;
                 auto legal_moves = b.get_legal_moves(b.side_to_play);
                 auto move_found = std::find_if(legal_moves.begin(), legal_moves.end(), [&] (const move& m) {
-                    return m.to_long_move() == word;
+                    return to_long_move(m) == word;
                 });
                 if (move_found == end(legal_moves)) {
                     std::cout << "ERROR: Illegal move informed" << std::endl;
@@ -53,7 +53,7 @@ int main()
                 std::cout << "bestmove (none)" << std::endl;
             } else {
                 auto selected_move = e.get_move(b);
-                std::cout << "bestmove " << selected_move.to_long_move() << std::endl;
+                std::cout << "bestmove " << to_long_move(selected_move) << std::endl;
             }
         } else if (word == "print") {
             b.print();

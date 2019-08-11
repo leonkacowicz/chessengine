@@ -49,6 +49,8 @@ public:
 
     std::vector<move> get_legal_moves(color c) const;
 
+    void make_move(square from, square to);
+
     void make_move(const move m);
 
     board simulate(const square from, const square to, piece p, color c) const;

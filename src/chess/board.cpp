@@ -200,7 +200,7 @@ void board::add_king_moves(bitboard origin, std::vector<move>& moves) const {
         if (!(piece_of_color[c] & dest[i])) {
             assert(get_square(dest[i]) != king_pos[opposite(c)]);
             if (!simulate(origin_square, get_square(dest[i]), KING, c).under_check(c))
-                moves.emplace_back(origin_square, get_square(dest[i]));
+                moves.push_back(get_move(origin_square, get_square(dest[i])));
         }
     }
 }
@@ -290,22 +290,22 @@ void board::add_pawn_moves(bitboard origin, std::vector<move>& moves) const {
         const square dest = get_square(fwd);
         if (!simulate(origin_sq, dest, PAWN, c).under_check(c)) {
             if (promotion) {
-                moves.emplace_back(origin_sq, dest, special_move::PROMOTION_QUEEN);
-                moves.emplace_back(origin_sq, dest, special_move::PROMOTION_ROOK);
-                moves.emplace_back(origin_sq, dest, special_move::PROMOTION_BISHOP);
-                moves.emplace_back(origin_sq, dest, special_move::PROMOTION_KNIGHT);
+                moves.push_back(get_move(origin_sq, dest, special_move::PROMOTION_QUEEN));
+                moves.push_back(get_move(origin_sq, dest, special_move::PROMOTION_ROOK));
+                moves.push_back(get_move(origin_sq, dest, special_move::PROMOTION_BISHOP));
+                moves.push_back(get_move(origin_sq, dest, special_move::PROMOTION_KNIGHT));
             } else {
-                moves.emplace_back(origin_sq, dest);
+                moves.push_back(get_move(origin_sq, dest));
             }
         }
         if (c == WHITE && (rank_2 & origin)) {
             const bitboard fwd2 = shift<UP>(fwd);
             if ((empty & fwd2) && !simulate(origin_sq, get_square(fwd2), PAWN, c).under_check(c))
-                moves.emplace_back(origin_sq, get_square(fwd2));
+                moves.push_back(get_move(origin_sq, get_square(fwd2)));
         } else if (c == BLACK && (rank_7 & origin)) {
             const bitboard fwd2 = shift<DOWN>(fwd);
             if ((empty & fwd2) && !simulate(origin_sq, get_square(fwd2), PAWN, c).under_check(c))
-                moves.emplace_back(origin_sq, get_square(fwd2));
+                moves.push_back(get_move(origin_sq, get_square(fwd2)));
         }
     }
 
@@ -322,12 +322,12 @@ void board::add_pawn_moves(bitboard origin, std::vector<move>& moves) const {
             }
             if (!bnew.under_check(c)) {
                 if (promotion) {
-                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_QUEEN);
-                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_KNIGHT);
-                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_ROOK);
-                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_BISHOP);
+                    moves.push_back(get_move(origin_sq, dest, special_move::PROMOTION_QUEEN));
+                    moves.push_back(get_move(origin_sq, dest, special_move::PROMOTION_KNIGHT));
+                    moves.push_back(get_move(origin_sq, dest, special_move::PROMOTION_ROOK));
+                    moves.push_back(get_move(origin_sq, dest, special_move::PROMOTION_BISHOP));
                 } else {
-                    moves.emplace_back(origin_sq, dest);
+                    moves.push_back(get_move(origin_sq, dest));
                 }
             }
         }
@@ -345,12 +345,12 @@ void board::add_pawn_moves(bitboard origin, std::vector<move>& moves) const {
             }
             if (!bnew.under_check(c)) {
                 if (promotion) {
-                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_QUEEN);
-                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_KNIGHT);
-                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_ROOK);
-                    moves.emplace_back(origin_sq, dest, special_move::PROMOTION_BISHOP);
+                    moves.push_back(get_move(origin_sq, dest, special_move::PROMOTION_QUEEN));
+                    moves.push_back(get_move(origin_sq, dest, special_move::PROMOTION_KNIGHT));
+                    moves.push_back(get_move(origin_sq, dest, special_move::PROMOTION_ROOK));
+                    moves.push_back(get_move(origin_sq, dest, special_move::PROMOTION_BISHOP));
                 } else {
-                    moves.emplace_back(origin_sq, dest);
+                    moves.push_back(get_move(origin_sq, dest));
                 }
             }
         }
@@ -375,7 +375,7 @@ void board::add_knight_moves(bitboard origin, std::vector<move>& moves) const {
     for (int i = 0; i < N; i++) {
         if ((dest[i] & piece_of_color[c]) != 0) continue;
         if (!simulate(origin_square, get_square(dest[i]), KNIGHT, c).under_check(c)) {
-            moves.emplace_back(origin_square, get_square(dest[i]));
+            moves.push_back(get_move(origin_square, get_square(dest[i])));
         }
     }
 }
@@ -401,7 +401,7 @@ void board::add_castle_moves(color c, std::vector<move> &moves) const {
                 if (!simulated.under_check(c)) {
                     const square dest = c == BLACK ? SQ_G8 : SQ_G1;
                     const special_move castle_king_side = c == WHITE ? CASTLE_KING_SIDE_WHITE : CASTLE_KING_SIDE_BLACK;
-                    moves.emplace_back(king_pos[c], dest, castle_king_side);
+                    moves.push_back(get_move(king_pos[c], dest, castle_king_side));
                 }
             }
         }
@@ -415,7 +415,7 @@ void board::add_castle_moves(color c, std::vector<move> &moves) const {
                 simulated.set_king_position(c, dest);
                 if (!simulated.under_check(c)) {
                     special_move castle_queen_side = c == WHITE ? CASTLE_QUEEN_SIDE_WHITE : CASTLE_QUEEN_SIDE_BLACK;
-                    moves.emplace_back(king_pos[c], dest, castle_queen_side);
+                    moves.push_back(get_move(king_pos[c], dest, castle_queen_side));
                 }
             }
         }
@@ -450,78 +450,78 @@ void board::move_piece(square from, square to, piece p, color c) {
  * According to LiChess behavior, losing castling rights, and change enpassant status does not reset the counter
  */
 bool board::resets_half_move_counter(const move m) {
-    return (piece_of_type[PAWN] & get_bb(m.origin)) // moving a pawn
-            || (piece_of_color[BLACK] & get_bb(m.destination)) // captures piece
-            || (piece_of_color[WHITE] & get_bb(m.destination)) // captures piece
-            //|| m.special != 0
+    return (piece_of_type[PAWN] & get_bb(move_origin(m))) // moving a pawn
+            || (piece_of_color[BLACK] & get_bb(move_dest(m))) // captures piece
+            || (piece_of_color[WHITE] & get_bb(move_dest(m))) // captures piece
+            //|| move_type(m) != 0
             // || en_passant != SQ_NONE // will change en passant status
-            // || (((file_a | file_e) & rank_1)[m.origin] && can_castle_queen_side[WHITE]) // will lose castling right
-            // || (((file_h | file_e) & rank_1)[m.origin] && can_castle_king_side[WHITE]) // will lose castling right
-            // || (((file_a | file_e) & rank_8)[m.origin] && can_castle_queen_side[BLACK]) // will lose castling right
-            // || (((file_h | file_e) & rank_8)[m.origin] && can_castle_king_side[BLACK]) // will lose castling right
+            // || (((file_a | file_e) & rank_1)[move_origin(m)] && can_castle_queen_side[WHITE]) // will lose castling right
+            // || (((file_h | file_e) & rank_1)[move_origin(m)] && can_castle_king_side[WHITE]) // will lose castling right
+            // || (((file_a | file_e) & rank_8)[move_origin(m)] && can_castle_queen_side[BLACK]) // will lose castling right
+            // || (((file_h | file_e) & rank_8)[move_origin(m)] && can_castle_king_side[BLACK]) // will lose castling right
             ;
 }
 
 void board::make_move(const move m) {
-    //assert(m.special != NULL_MOVE);
-    piece p = piece_at(get_bb(m.origin));
-    color c = color_at(get_bb(m.origin));
+    //assert(move_type(m) != NULL_MOVE);
+    piece p = piece_at(get_bb(move_origin(m)));
+    color c = color_at(get_bb(move_origin(m)));
     square new_en_passant = SQ_NONE;
 
     if (resets_half_move_counter(m)) half_move_counter = 0;
     else half_move_counter += 1;
 
-    if (m.special == 0) {
-        move_piece(m.origin, m.destination, p, c);
+    if (move_type(m) == 0) {
+        move_piece(move_origin(m), move_dest(m), p, c);
         if (p == PAWN) {
-            if (m.destination == en_passant) {
-                auto bbi = ~(get_bb(get_file(m.destination), get_rank(m.origin)));
+            if (move_dest(m) == en_passant) {
+                auto bbi = ~(get_bb(get_file(move_dest(m)), get_rank(move_origin(m))));
                 piece_of_color[opposite(c)] &= bbi;
                 piece_of_type[PAWN] &= bbi;
             }
-            if (get_rank(m.destination) - get_rank(m.origin) == 2) {
-                new_en_passant = get_square(get_file(m.origin), get_rank(m.origin) + 1);
-            } else if (get_rank(m.origin) - get_rank(m.destination) == 2) {
-                new_en_passant = get_square(get_file(m.origin), get_rank(m.origin) - 1);
+            if (get_rank(move_dest(m)) - get_rank(move_origin(m)) == 2) {
+                new_en_passant = get_square(get_file(move_origin(m)), get_rank(move_origin(m)) + 1);
+            } else if (get_rank(move_origin(m)) - get_rank(move_dest(m)) == 2) {
+                new_en_passant = get_square(get_file(move_origin(m)), get_rank(move_origin(m)) - 1);
             }
         }
-    } else if (m.special == special_move::CASTLE_KING_SIDE_WHITE) {
+    } else if (move_type(m) == special_move::CASTLE_KING_SIDE_WHITE) {
         move_piece(SQ_E1, SQ_G1, KING, c);
         move_piece(SQ_H1, SQ_F1, ROOK, c);
-    } else if (m.special == special_move::CASTLE_KING_SIDE_BLACK) {
+    } else if (move_type(m) == special_move::CASTLE_KING_SIDE_BLACK) {
         move_piece(SQ_E8, SQ_G8, KING, c);
         move_piece(SQ_H8, SQ_F8, ROOK, c);
-    } else if (m.special == special_move::CASTLE_QUEEN_SIDE_WHITE) {
+    } else if (move_type(m) == special_move::CASTLE_QUEEN_SIDE_WHITE) {
         move_piece(SQ_E1, SQ_C1, KING, c);
         move_piece(SQ_A1, SQ_D1, ROOK, c);
-    } else if (m.special == special_move::CASTLE_QUEEN_SIDE_BLACK) {
+    } else if (move_type(m) == special_move::CASTLE_QUEEN_SIDE_BLACK) {
         move_piece(SQ_E8, SQ_C8, KING, c);
         move_piece(SQ_A8, SQ_D8, ROOK, c);
-    } else if (m.special == special_move::PROMOTION_QUEEN) {
-        auto bbi = ~(get_bb(m.origin));
+    } else if (move_type(m) == special_move::PROMOTION_QUEEN) {
+        auto bbi = ~(get_bb(move_origin(m)));
         piece_of_color[c] &= bbi;
         piece_of_type[PAWN] &= bbi;
-        put_piece(QUEEN, c, m.destination);
-    } else if (m.special == special_move::PROMOTION_KNIGHT) {
-        auto bbi = ~(get_bb(m.origin));
+        put_piece(QUEEN, c, move_dest(m));
+    } else if (move_type(m) == special_move::PROMOTION_KNIGHT) {
+        auto bbi = ~(get_bb(move_origin(m)));
         piece_of_color[c] &= bbi;
         piece_of_type[PAWN] &= bbi;
-        put_piece(KNIGHT, c, m.destination);
-    } else if (m.special == special_move::PROMOTION_ROOK) {
-        auto bbi = ~(get_bb(m.origin));
+        put_piece(KNIGHT, c, move_dest(m));
+    } else if (move_type(m) == special_move::PROMOTION_ROOK) {
+        auto bbi = ~(get_bb(move_origin(m)));
         piece_of_color[c] &= bbi;
         piece_of_type[PAWN] &= bbi;
-        put_piece(ROOK, c, m.destination);
-    } else if (m.special == special_move::PROMOTION_BISHOP) {
-        auto bbi = ~(get_bb(m.origin));
+        put_piece(ROOK, c, move_dest(m));
+    } else if (move_type(m) == special_move::PROMOTION_BISHOP) {
+        auto bbi = ~(get_bb(move_origin(m)));
         piece_of_color[c] &= bbi;
         piece_of_type[PAWN] &= bbi;
-        put_piece(BISHOP, c, m.destination);
+        put_piece(BISHOP, c, move_dest(m));
     }
-    if (m.origin == SQ_A1 || m.destination == SQ_A1 || m.origin == SQ_E1) can_castle_queen_side[WHITE] = false;
-    if (m.origin == SQ_H1 || m.destination == SQ_H1 || m.origin == SQ_E1) can_castle_king_side[WHITE] = false;
-    if (m.origin == SQ_A8 || m.destination == SQ_A8 || m.origin == SQ_E8) can_castle_queen_side[BLACK] = false;
-    if (m.origin == SQ_H8 || m.destination == SQ_H8 || m.origin == SQ_E8) can_castle_king_side[BLACK] = false;
+    if (move_origin(m) == SQ_A1 || move_dest(m) == SQ_A1 || move_origin(m) == SQ_E1) can_castle_queen_side[WHITE] = false;
+    if (move_origin(m) == SQ_H1 || move_dest(m) == SQ_H1 || move_origin(m) == SQ_E1) can_castle_king_side[WHITE] = false;
+    if (move_origin(m) == SQ_A8 || move_dest(m) == SQ_A8 || move_origin(m) == SQ_E8) can_castle_queen_side[BLACK] = false;
+    if (move_origin(m) == SQ_H8 || move_dest(m) == SQ_H8 || move_origin(m) == SQ_E8) can_castle_king_side[BLACK] = false;
 
     en_passant = new_en_passant;
     side_to_play = opposite(side_to_play);
@@ -529,45 +529,45 @@ void board::make_move(const move m) {
 
 std::string board::move_in_pgn(const move m, const std::vector<move>& legal_moves) const {
 
-    auto origin_bb = get_bb(m.origin);
+    auto origin_bb = get_bb(move_origin(m));
     color c = color_at(origin_bb);
     piece p = piece_at(origin_bb);
     stringstream ss;
     ss << (p == KING ? "K" : p == QUEEN ? "Q" : p == ROOK ? "R" : p == BISHOP ? "B" : p == KNIGHT ? "N" : "");
 
     if (p == KING) {
-        if (m.special == CASTLE_KING_SIDE_WHITE || m.special == CASTLE_KING_SIDE_BLACK) return "O-O";
-        if (m.special == CASTLE_QUEEN_SIDE_WHITE || m.special == CASTLE_QUEEN_SIDE_BLACK) return "O-O-O";
-        ss << m.destination;
+        if (move_type(m) == CASTLE_KING_SIDE_WHITE || move_type(m) == CASTLE_KING_SIDE_BLACK) return "O-O";
+        if (move_type(m) == CASTLE_QUEEN_SIDE_WHITE || move_type(m) == CASTLE_QUEEN_SIDE_BLACK) return "O-O-O";
+        ss << move_dest(m);
         return ss.str();
     }
 
-    bool is_capture = (piece_of_color[opposite(c)] & get_bb(m.destination)) || (p == PAWN && get_file(m.origin) != get_file(m.destination));
+    bool is_capture = (piece_of_color[opposite(c)] & get_bb(move_dest(m))) || (p == PAWN && get_file(move_origin(m)) != get_file(move_dest(m)));
 
     if ((p == PAWN && is_capture) || std::find_if(begin(legal_moves), end(legal_moves), [&] (const move& other) {
-        return other.destination == m.destination
-               && (piece_of_type[p] & get_bb(other.origin))
-               && get_file(other.origin) != get_file(m.origin);
+        return move_dest(other) == move_dest(m)
+               && (piece_of_type[p] & get_bb(move_origin(other)))
+               && get_file(move_origin(other)) != get_file(move_origin(m));
     }) != end(legal_moves)) {
-        ss << get_file_char(m.origin);
+        ss << get_file_char(move_origin(m));
     }
 
     if (std::find_if(begin(legal_moves), end(legal_moves), [&] (const move& other) {
-        return other.destination == m.destination
-               && (piece_of_type[p] & get_bb(other.origin))
-               && get_rank(other.origin) != get_rank(m.origin);
+        return move_dest(other) == move_dest(m)
+               && (piece_of_type[p] & get_bb(move_origin(other)))
+               && get_rank(move_origin(other)) != get_rank(move_origin(m));
     }) != end(legal_moves)) {
-        ss << get_rank_char(m.origin);
+        ss << get_rank_char(move_origin(m));
     }
 
     if (is_capture) ss << "x";
 
-    ss << m.destination;
+    ss << move_dest(m);
 
-    if (m.special == PROMOTION_QUEEN) ss << "=Q";
-    if (m.special == PROMOTION_KNIGHT) ss << "=N";
-    if (m.special == PROMOTION_ROOK) ss << "=R";
-    if (m.special == PROMOTION_BISHOP) ss << "=B";
+    if (move_type(m) == PROMOTION_QUEEN) ss << "=Q";
+    if (move_type(m) == PROMOTION_KNIGHT) ss << "=N";
+    if (move_type(m) == PROMOTION_ROOK) ss << "=R";
+    if (move_type(m) == PROMOTION_BISHOP) ss << "=B";
 
     board simulated = *this;
     simulated.make_move(m);
@@ -626,9 +626,13 @@ void board::shift_moves(const bitboard origin, const bitboard in_range, std::vec
         if(sq == get_bb(king_pos[opposite(c)])) throw std::runtime_error("capture king"); // found opponent king
         // simulate move
         if (!simulate(get_square(origin), get_square(sq), p, c).under_check(c)) {
-            moves.emplace_back(get_square(origin), get_square(sq));
+            moves.push_back(get_move(get_square(origin), get_square(sq)));
         }
         if (piece_of_color[opposite(c)] & sq) break; // captured opponent piece: stop there
     }
+}
+
+void board::make_move(square from, square to) {
+    this->make_move(get_move(from, to));
 }
 

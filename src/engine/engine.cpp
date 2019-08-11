@@ -20,7 +20,7 @@ void log_score(int val, std::vector<move>& variation, int depth) {
     }
 
     for (auto m = variation.end() - 1; m != variation.begin(); m--)
-        std::cout << " " << m->to_long_move();
+        std::cout << " " << to_long_move(*m);
     std::cout << std::endl;
 }
 
@@ -108,11 +108,11 @@ move engine::get_move(const board& b) {
     int total_nodes = 0;
     int alpha = -32001;
     int beta = 32001;
-    seq.emplace_back();
-    seq.emplace_back();
+    seq.push_back(null_move);
+    seq.push_back(null_move);
     int val = negamax(b, 1, legal_moves, seq, alpha, beta, &cache_hit, &total_nodes);
     for (int depth = 2; depth <= plys; depth++) {
-        std::cerr << "Trying starting with move " << seq[depth - 1].to_long_move() << std::endl;
+        std::cerr << "Trying starting with move " << to_long_move(seq[depth - 1]) << std::endl;
         seq.insert(seq.begin(), move());
 
         alpha = val - 50;
@@ -127,9 +127,9 @@ move engine::get_move(const board& b) {
         std::cout << "info cachehit " << cache_hit << std::endl;
         std::cout << "info nodes " << total_nodes << std::endl;
         log_score(val, seq, depth);
-        std::cerr << "Current best move " << seq[depth].to_long_move() << std::endl;
+        std::cerr << "Current best move " << to_long_move(seq[depth]) << std::endl;
     }
-    if (seq[plys].special == NULL_MOVE) {
+    if (seq[plys] == null_move) {
         return legal_moves[0];
     }
     return seq[plys];

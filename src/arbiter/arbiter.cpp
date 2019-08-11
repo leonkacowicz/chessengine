@@ -34,7 +34,7 @@ void arbiter::start_players() {
 }
 
 auto equals(std::string s) {
-    return [&] (const move& m) { return m.to_long_move() == s; };
+    return [&] (const move& m) { return to_long_move(m) == s; };
 }
 
 void arbiter::start_game() {
@@ -127,7 +127,7 @@ void arbiter::start_game() {
             // player resigned
             std::cout << "RESIGNED/ILLEGAL MOVE" << std::endl;
             player_won[opposite(b.side_to_play)] = true;
-            for (auto m : legal_moves) std::cout << m.to_long_move() << std::endl;
+            for (auto m : legal_moves) std::cout << to_long_move(m) << std::endl;
             break;
         }
 

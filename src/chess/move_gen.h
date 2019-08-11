@@ -9,10 +9,6 @@
 #include "board.h"
 #include "magic_bitboard.h"
 
-enum pin_direction {
-    VERTICAL, HORIZONTAL, DIAGONAL_P, DIAGONAL_S
-};
-
 enum evasiveness {
     EVASIVE, NON_EVASIVE
 };
@@ -24,6 +20,8 @@ enum class move_list_type {
 class move_gen {
     const board& b;
     std::vector<move> moves;
+    move moves_array[220];
+    move *last_move = moves_array;
     bitboard checkers;
     bitboard attacked;
     //char num_checkers;
@@ -43,7 +41,7 @@ public:
         our_piece = b.piece_of_color[us];
         their_piece = b.piece_of_color[them];
         any_piece = our_piece | their_piece;
-        moves.reserve(100);
+        //moves.reserve(100);
     }
 
     std::vector<move>& generate();
@@ -337,7 +335,8 @@ public:
     }
 
     inline void add_move(square from, square to, special_move special = NOT_SPECIAL) {
-        moves.emplace_back(from, to, special);
+        //moves.emplace_back(from, to, special);
+        *last_move++ = get_move(from, to, special);
     }
 };
 
@@ -359,6 +358,7 @@ inline std::vector<move>& move_gen::generate() {
         if (us == WHITE) castle_moves<WHITE>();
         else castle_moves<BLACK>();
     }
+    moves.assign(moves_array, last_move);
     return moves;
 }
 
