@@ -19,6 +19,7 @@ void log_score(int val, std::vector<move>& variation, int depth) {
         std::cout << "info depth " << depth << " score cp " << val;
     }
 
+    std::cout << " pv";
     for (auto m = variation.end() - 1; m != variation.begin(); m--)
         std::cout << " " << to_long_move(*m);
     std::cout << std::endl;
@@ -100,7 +101,7 @@ int negamax(const board& b, int depth, std::vector<move>& moves, std::vector<mov
 }
 
 move engine::get_move(const board& b) {
-    int plys = 8;
+    int plys = 6;
     auto legal_moves = move_gen(b).generate();
     if (legal_moves.empty()) return {};
     std::vector<move> seq;
@@ -115,14 +116,15 @@ move engine::get_move(const board& b) {
         std::cerr << "Trying starting with move " << to_long_move(seq[depth - 1]) << std::endl;
         seq.insert(seq.begin(), move());
 
-        alpha = val - 50;
-        beta = val + 50;
         transp.clear();
-        val = negamax(b, depth, legal_moves, seq, alpha, beta, &cache_hit, &total_nodes);
-        if (val <= alpha || val >= beta) {
-            transp.clear();
-            val = negamax(b, depth, legal_moves, seq, -32001, 32001, &cache_hit, &total_nodes);
-        }
+//        alpha = val - 150;
+//        beta = val + 150;
+//        val = negamax(b, depth, legal_moves, seq, alpha, beta, &cache_hit, &total_nodes);
+//        if (val <= alpha || val >= beta) {
+//            transp.clear();
+//            val = negamax(b, depth, legal_moves, seq, -32001, 32001, &cache_hit, &total_nodes);
+//        }
+        val = negamax(b, depth, legal_moves, seq, -32001, 32001, &cache_hit, &total_nodes);
 
         std::cout << "info cachehit " << cache_hit << std::endl;
         std::cout << "info nodes " << total_nodes << std::endl;
