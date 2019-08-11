@@ -13,18 +13,16 @@ enum evasiveness {
     EVASIVE, NON_EVASIVE
 };
 
-enum class move_list_type {
-    VECTOR, ARRAY
-};
+#define USE_ARRAY true
 
 class move_gen {
     const board& b;
     std::vector<move> moves;
+#if USE_ARRAY
     move moves_array[220];
     move *last_move = moves_array;
+#endif
     bitboard checkers;
-    bitboard attacked;
-    //char num_checkers;
     bitboard king;
     bitboard pinned = 0;
     color us;
@@ -41,7 +39,9 @@ public:
         our_piece = b.piece_of_color[us];
         their_piece = b.piece_of_color[them];
         any_piece = our_piece | their_piece;
-        //moves.reserve(100);
+#if !USE_ARRAY
+        moves.reserve(220);
+#endif
     }
 
     std::vector<move>& generate();
@@ -238,10 +238,9 @@ public:
         const bitboard fwd = shift<d>(origin);
         const bool promotion = (rank_1 | rank_8) & fwd;
         const square origin_sq = get_square(origin);
-        const bitboard empty = ~(our_piece | their_piece);
 
         square dest = get_square(fwd);
-        if ((empty & fwd) && (!(pinned & origin) || (line[origin_sq][dest] & king))) {
+        if ((~any_piece & fwd) && (!(pinned & origin) || (line[origin_sq][dest] & king))) {
             if (e == NON_EVASIVE || (block_mask & fwd)) {
                 if (promotion) {
                     add_move(origin_sq, dest, special_move::PROMOTION_QUEEN);
@@ -254,7 +253,7 @@ public:
             }
             if ((d == UP && (rank_2 & origin)) || (d == DOWN && (rank_7 & origin))) {
                 const bitboard fwd2 = shift<d>(fwd);
-                if (empty & fwd2)
+                if (~any_piece & fwd2)
                     if (e == NON_EVASIVE || (block_mask & fwd2))
                         add_move(origin_sq, get_square(fwd2));  // moves.emplace_back(origin_sq, get_square(fwd2));
             }
@@ -288,7 +287,6 @@ public:
                     add_move(origin_sq, dest, special_move::PROMOTION_BISHOP);
                     add_move(origin_sq, dest, special_move::PROMOTION_KNIGHT);
                 } else {
-                    //moves.emplace_back(origin_sq, dest);
                     add_move(origin_sq, dest);
                 }
             }
@@ -334,9 +332,20 @@ public:
         }
     }
 
-    inline void add_move(square from, square to, special_move special = NOT_SPECIAL) {
-        //moves.emplace_back(from, to, special);
+    inline void add_move(square from, square to, special_move special) {
+#if USE_ARRAY
         *last_move++ = get_move(from, to, special);
+#else
+        moves.push_back(get_move(from, to, special));
+#endif
+    }
+
+    inline void add_move(square from, square to) {
+#if USE_ARRAY
+        *last_move++ = get_move(from, to);
+#else
+        moves.push_back(get_move(from, to));
+#endif
     }
 };
 
@@ -358,7 +367,9 @@ inline std::vector<move>& move_gen::generate() {
         if (us == WHITE) castle_moves<WHITE>();
         else castle_moves<BLACK>();
     }
+#if USE_ARRAY
     moves.assign(moves_array, last_move);
+#endif
     return moves;
 }
 

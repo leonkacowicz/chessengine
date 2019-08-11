@@ -6,7 +6,7 @@
 #include "color.h"
 #include "board.h"
 #include "move.h"
-
+#include "magic_bitboard.h"
 
 using namespace chess::core;
 using std::string;
@@ -15,36 +15,16 @@ using std::cout;
 using std::endl;
 
 bool board::under_check(color c) const {
-
-    bitboard king = get_bb(king_pos[c]);
-    if (king == 0) return false;
-    // checks if attacked by rook or queen in horizontal or vertical directions
-    bitboard opponent_piece = piece_of_color[opposite(c)];
-    bitboard attacker = (piece_of_type[ROOK] | piece_of_type[QUEEN]) & opponent_piece;
-    if (file[get_file(king_pos[c])] & attacker) {
-        if (shift_attacks<UP>(king, rank_8_i) & attacker) return true;
-        if (shift_attacks<DOWN>(king, rank_1_i) & attacker) return true;
-    }
-    if (rank[get_rank(king_pos[c])] & attacker) {
-        if (shift_attacks<LEFT>(king, file_a_i) & attacker) return true;
-        if (shift_attacks<RIGHT>(king, file_h_i) & attacker) return true;
-    }
-
-    // checks if attacked by bishop or queen in diagonal directions
-    attacker = (piece_of_type[BISHOP] | piece_of_type[QUEEN]) & opponent_piece;
-    if (shift_attacks<UP_LEFT>(king, file_a_i_rank_8_i) & attacker) return true;
-    if (shift_attacks<UP_RIGHT>(king, file_h_i_rank_8_i) & attacker) return true;
-    if (shift_attacks<DOWN_LEFT>(king, file_a_i_rank_1_i) & attacker) return true;
-    if (shift_attacks<DOWN_RIGHT>(king, file_h_i_rank_1_i) & attacker) return true;
-
-    // check if attacked by knight
-    if ((knight_attacks(king) & piece_of_type[KNIGHT] & opponent_piece) != 0) return true;
-
-    // check if attacked by king
-    if ((king_attacks(king) & get_bb(king_pos[opposite(c)]))) return true;
-
-    // calls pawn_attacks pretending king is pawn, and if it were a pawn, then if it attacks a pawn, it means that it is also attacked by that pawn
-    return pawn_attacks_bb[c][king_pos[c]] & (piece_of_type[PAWN] & opponent_piece);
+    square sq = king_pos[c];
+    bitboard king = get_bb(sq);
+    bitboard their_piece = piece_of_color[opposite(c)];
+    bitboard any_piece = piece_of_color[BLACK] | piece_of_color[WHITE];
+    if (knight_attacks(sq) & their_piece & piece_of_type[KNIGHT]) return true;
+    if (pawn_attacks_bb[c][sq] & their_piece & piece_of_type[PAWN]) return true;
+    if (king_attacks(sq) & get_bb(king_pos[opposite(c)])) return true;
+    if (attacks_from_rook(sq, any_piece ^ king) & their_piece & (piece_of_type[ROOK] | piece_of_type[QUEEN])) return true;
+    if (attacks_from_bishop(sq, any_piece ^ king) & their_piece & (piece_of_type[BISHOP] | piece_of_type[QUEEN])) return true;
+    return false;
 }
 
 string board::to_string() const {
@@ -539,7 +519,6 @@ std::string board::move_in_pgn(const move m, const std::vector<move>& legal_move
         if (move_type(m) == CASTLE_KING_SIDE_WHITE || move_type(m) == CASTLE_KING_SIDE_BLACK) return "O-O";
         if (move_type(m) == CASTLE_QUEEN_SIDE_WHITE || move_type(m) == CASTLE_QUEEN_SIDE_BLACK) return "O-O-O";
         ss << move_dest(m);
-        return ss.str();
     }
 
     bool is_capture = (piece_of_color[opposite(c)] & get_bb(move_dest(m))) || (p == PAWN && get_file(move_origin(m)) != get_file(move_dest(m)));

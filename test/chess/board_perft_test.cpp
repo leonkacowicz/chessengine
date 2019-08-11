@@ -50,7 +50,7 @@ int perft(const board& b, int depth) {
     int n = 0;
     //auto moves = b.get_legal_moves(b.side_to_play);
     auto moves = move_gen(b).generate();
-    //if (depth == 1) return moves.size();
+    if (depth == 1) return moves.size();
     if (depth == 0) return 1;
 
     for (move m : moves) {
@@ -83,7 +83,7 @@ TEST(board_test, perft_test_1) {
     ASSERT_EQ(perft<true>(b, 3), 8902);
     ASSERT_EQ(perft<true>(b, 4), 197281);
     EXPECT_EQ(perft<true>(b, 5), 4865609);
-//    ASSERT_EQ(perft<true>(b, 6), 119'060'324);
+    ASSERT_EQ(perft<true>(b, 6), 119'060'324);
 }
 
 TEST(board_test, perft_test_1_c2c3) {
@@ -133,7 +133,7 @@ TEST(board_test, perft_test_2) {
     ASSERT_EQ(perft<true>(b, 2), 2039);
     ASSERT_EQ(perft<true>(b, 3), 97862);
     ASSERT_EQ(perft<true>(b, 4), 4085603);
-    //ASSERT_EQ(perft<true>(b, 5), 193690690);
+    ASSERT_EQ(perft<true>(b, 5), 193690690);
 }
 
 TEST(board_test, perft_test_3) {
