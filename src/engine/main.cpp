@@ -2,6 +2,7 @@
 #include <string>
 #include <algorithm>
 #include <board.h>
+#include <magic_bitboard.h>
 #include "engine.h"
 
 using std::stringstream;
@@ -10,6 +11,8 @@ using std::string;
 int main()
 {
     chess::core::init_bitboards();
+    chess::core::init_magic_bitboards();
+
     engine e;
     board b;
     b.set_initial_position();

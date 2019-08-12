@@ -11,7 +11,7 @@
 #include "zobrist.h"
 #include "transposition_table.h"
 
-transposition_table<1048576> transp;
+transposition_table<10485760> transp;
 //std::unordered_map<uint64_t, node> transp;
 
 void log_score(int val, std::vector<move>& variation, int depth, int nodes) {
@@ -23,7 +23,7 @@ void log_score(int val, std::vector<move>& variation, int depth, int nodes) {
     }
 
     std::cout << " pv";
-    for (int i = 0; i < depth; i++) {
+    for (int i = 0; i < variation.size(); i++) {
         std::cout << " " << to_long_move(variation[i]);
     }
     std::cout << std::endl;
@@ -73,18 +73,28 @@ int search(const board& b, int depth, int alpha, int beta, std::vector<move>* va
 
     node* n;
     if (transp.load(hash, &n)) {
-        if (n->type == EXACT) {
-            if (is_pv && variation != nullptr)
+        if (n->upper_bound == n->lower_bound) {
+            if (is_pv && variation != nullptr && !n->variation.empty()) {
                 variation->insert(variation->end(), n->variation.begin(), n->variation.end());
-            return n->value;
-        } else if (n->type == BETA && n->value >= beta) {
-            return n->value;
+                if(!variation->back()) {
+                    std::cout << to_long_move(variation->back()) << std::endl;
+                    assert(false);
+                }
+            }
+            return n->lower_bound;
         }
+        else if (!is_pv && n->lower_bound >= beta) {
+            return n->lower_bound;
+        } else if (!is_pv && n->upper_bound <= alpha) {
+            return n->upper_bound;
+        }
+//        alpha = std::max(alpha, n->lower_bound);
+//        beta = std::min(beta, n->upper_bound);
     }
 
     if (depth == 0) {
         int val = qsearch(b, alpha, beta);
-        transp.save(hash, val, EXACT, nullptr);
+        transp.save(hash, val, val, nullptr);
         return val;
     }
 
@@ -93,6 +103,7 @@ int search(const board& b, int depth, int alpha, int beta, std::vector<move>* va
     bool first = true;
     std::vector<std::vector<move>> variations;
     int best_idx = -1;
+    int best = -INF;
     for (int i = 0; i < moves.size(); i++) {
         move m = moves[i];
         board bnew = b; bnew.make_move(m);
@@ -112,27 +123,31 @@ int search(const board& b, int depth, int alpha, int beta, std::vector<move>* va
                 continue;
             }
         }
-
+        best = std::max(best, val);
         if (val > alpha) {
             if (val >= beta) {
-                transp.save(hash, val, BETA, nullptr);
+                transp.save(hash, val, INF, nullptr);
                 return beta;
             }
             alpha = val;
             best_idx = i;
+            best = val;
         }
     }
     if (best_idx >= 0) {
-        if (is_pv && variation != nullptr)
+        if (is_pv && variation != nullptr) {
             variation->insert(variation->end(), variations[best_idx].begin(), variations[best_idx].end());
-        transp.save(hash, alpha, EXACT, &variations[best_idx]);
+        }
+        transp.save(hash, alpha, alpha, &variations[best_idx]);
+    } else if (best > -INF) {
+        transp.save(hash, -INF, best, nullptr);
     }
     return alpha;
 }
 
 int search_widen(const board& b, int depth, int val, std::vector<move>* variation, const std::vector<move>* prev_depth_var) {
-    int alpha = val - 25;
-    int beta = val + 25;
+    int alpha = val - 50;
+    int beta = val + 50;
     std::vector<move> new_variation;
     int tmp = search<true>(b, depth, alpha, beta, &new_variation, prev_depth_var);
     if (tmp <= alpha || tmp >= beta)
@@ -143,7 +158,7 @@ int search_widen(const board& b, int depth, int val, std::vector<move>* variatio
 }
 
 move engine::search_iterate(const board& b) {
-    const int max_depth = 8;
+    const int max_depth = 6;
     auto legal_moves = move_gen(b).generate();
     if (legal_moves.empty()) return null_move;
 

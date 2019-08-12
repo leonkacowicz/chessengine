@@ -1,5 +1,6 @@
 #include <iostream>
 #include <bitboard.h>
+#include <magic_bitboard.h>
 #include "process.h"
 #include "player.h"
 #include "arbiter.h"
@@ -10,6 +11,7 @@ void print_usage();
 
 int main(int argc, char ** argv) {
     chess::core::init_bitboards();
+    chess::core::init_magic_bitboards();
 
     if (argc != 5) {
         print_usage();

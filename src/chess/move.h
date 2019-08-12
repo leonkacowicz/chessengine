@@ -1,6 +1,7 @@
 #ifndef CHESSENGINE_MOVE_H
 #define CHESSENGINE_MOVE_H
 
+#include <cassert>
 #include <string>
 #include <sstream>
 #include "square.h"
@@ -61,6 +62,7 @@ using namespace chess::core;
             return os;
         }
         inline std::string to_long_move(move m) {
+            assert(move_origin(m) != move_dest(m));
             auto special = move_type(m);
             if (special == NULL_MOVE) return "(none)";
             std::stringstream ss;
@@ -72,40 +74,5 @@ using namespace chess::core;
             return ss.str();
         }
 
-//    }
-//}
-
-//class move {
-//private:
-//
-//public:
-//    square origin;
-//    square destination;
-//    char special; // 0, n, r, b, q
-//    move() : origin(square()), destination(square()), special(NULL_MOVE) {};
-//    constexpr move(square origin, square destination, special_move special = NOT_SPECIAL)
-//        : origin(origin), destination(destination), special(special) {};
-//
-//    constexpr move(const char* origin, const char* dest, special_move special = NOT_SPECIAL) :
-//        origin(get_square(origin)), destination(get_square(dest)), special(special) {}
-//
-//    constexpr move(square origin, const char* dest, special_move special = NOT_SPECIAL) :
-//        origin(origin), destination(get_square(dest)), special(special) {}
-//
-//
-//    constexpr bool operator==(const move& rhs) const {
-//        return destination == rhs.destination && origin == rhs.origin && special == rhs.special;
-//    }
-//    std::string to_long_move() const {
-//        if (special == NULL_MOVE) return "(none)";
-//        std::stringstream ss;
-//        ss << origin << destination;
-//        if (special == PROMOTION_QUEEN) ss << 'q';
-//        if (special == PROMOTION_ROOK) ss << 'r';
-//        if (special == PROMOTION_BISHOP) ss << 'b';
-//        if (special == PROMOTION_KNIGHT) ss << 'n';
-//        return ss.str();
-//    }
-//};
 
 #endif //CHESSENGINE_MOVE_H

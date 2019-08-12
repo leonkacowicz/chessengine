@@ -9,14 +9,10 @@
 #include <vector>
 #include <move.h>
 
-enum node_type {
-    EXACT, ALPHA, BETA
-};
-
 struct node {
     uint64_t hash;
-    int value;
-    node_type type;
+    int lower_bound;
+    int upper_bound;
     std::vector<move> variation;
 };
 
@@ -25,10 +21,10 @@ class transposition_table {
     node nodes[size];
 
 public:
-    void save(uint64_t hash, int value, node_type type, std::vector<move>* variation) {
+    void save(uint64_t hash, int lower_bound, int upper_bound, std::vector<move>* variation) {
         int idx = hash % size;
-        nodes[idx].value = value;
-        nodes[idx].type = type;
+        nodes[idx].lower_bound = lower_bound;
+        nodes[idx].upper_bound = upper_bound;
         nodes[idx].hash = hash;
         if (variation == nullptr)
             nodes[idx].variation.clear();
