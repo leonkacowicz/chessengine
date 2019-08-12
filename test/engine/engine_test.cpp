@@ -12,7 +12,7 @@ TEST(engine_test, engine_call) {
     board b;
     b.set_initial_position();
     engine e;
-    for (int i = 1; i < 100; i++) {
+    for (int i = 1; i < 2; i++) {
         std::cout << i << ".\n\n";
         auto m = e.search_iterate(b);
         if (move_type(m) == NULL_MOVE) break;

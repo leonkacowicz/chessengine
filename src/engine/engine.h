@@ -12,17 +12,6 @@
 #include "evaluator.h"
 #include "zobrist.h"
 
-enum node_type {
-    EXACT, ALPHA, BETA
-};
-
-struct node {
-    int value;
-    node_type type;
-    std::vector<move> variation;
-};
-
-
 class engine {
 public:
     engine();

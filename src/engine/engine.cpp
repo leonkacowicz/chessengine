@@ -9,7 +9,10 @@
 #include "engine.h"
 #include "evaluator.h"
 #include "zobrist.h"
-std::unordered_map<uint64_t, node> transp;
+#include "transposition_table.h"
+
+transposition_table<1048576> transp;
+//std::unordered_map<uint64_t, node> transp;
 
 void log_score(int val, std::vector<move>& variation, int depth, int nodes) {
     auto mate = 32000 - std::abs(val);
@@ -61,13 +64,29 @@ void bring_last_best_move_to_front(std::vector<move>* moves, const std::vector<m
 
 template<bool is_pv>
 int search(const board& b, int depth, int alpha, int beta, std::vector<move>* variation, const std::vector<move>* prev_depth_var) {
+    auto hash = zobrist::hash(b, depth);
     auto moves = move_gen(b).generate();
     if (moves.empty()) {
         if (b.under_check(b.side_to_play)) return b.side_to_play == WHITE ? -MATE : MATE;
         else return 0;
     }
 
-    if (depth == 0) return qsearch(b, alpha, beta);
+    node* n;
+    if (transp.load(hash, &n)) {
+        if (n->type == EXACT) {
+            if (is_pv && variation != nullptr)
+                variation->insert(variation->end(), n->variation.begin(), n->variation.end());
+            return n->value;
+        } else if (n->type == BETA && n->value >= beta) {
+            return n->value;
+        }
+    }
+
+    if (depth == 0) {
+        int val = qsearch(b, alpha, beta);
+        transp.save(hash, val, EXACT, nullptr);
+        return val;
+    }
 
     bring_last_best_move_to_front(&moves, prev_depth_var);
 
@@ -96,20 +115,24 @@ int search(const board& b, int depth, int alpha, int beta, std::vector<move>* va
 
         if (val > alpha) {
             if (val >= beta) {
+                transp.save(hash, val, BETA, nullptr);
                 return beta;
             }
             alpha = val;
             best_idx = i;
         }
     }
-    if (is_pv && variation != nullptr && best_idx >= 0)
-        variation->insert(variation->end(), variations[best_idx].begin(), variations[best_idx].end());
+    if (best_idx >= 0) {
+        if (is_pv && variation != nullptr)
+            variation->insert(variation->end(), variations[best_idx].begin(), variations[best_idx].end());
+        transp.save(hash, alpha, EXACT, &variations[best_idx]);
+    }
     return alpha;
 }
 
 int search_widen(const board& b, int depth, int val, std::vector<move>* variation, const std::vector<move>* prev_depth_var) {
-    int alpha = val - 50;
-    int beta = val + 50;
+    int alpha = val - 25;
+    int beta = val + 25;
     std::vector<move> new_variation;
     int tmp = search<true>(b, depth, alpha, beta, &new_variation, prev_depth_var);
     if (tmp <= alpha || tmp >= beta)
@@ -139,5 +162,4 @@ move engine::search_iterate(const board& b) {
 
 engine::engine() {
     zobrist::init();
-    transp.clear();
 }
