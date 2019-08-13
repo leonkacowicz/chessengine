@@ -11,6 +11,7 @@
 
 struct node {
     uint64_t hash;
+    int depth;
     int lower_bound;
     int upper_bound;
     std::vector<move> variation;
@@ -21,11 +22,12 @@ class transposition_table {
     node nodes[size];
 
 public:
-    void save(uint64_t hash, int lower_bound, int upper_bound, std::vector<move>* variation) {
+    void save(uint64_t hash, int depth, int lower_bound, int upper_bound, std::vector<move>* variation) {
         int idx = hash % size;
         nodes[idx].lower_bound = lower_bound;
         nodes[idx].upper_bound = upper_bound;
         nodes[idx].hash = hash;
+        nodes[idx].depth = depth;
         if (variation == nullptr)
             nodes[idx].variation.clear();
         else nodes[idx].variation.assign(variation->begin(), variation->end());

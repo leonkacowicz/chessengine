@@ -52,19 +52,21 @@ int qsearch(const board& b, int alpha, int beta, int seldepth = 0) {
     return alpha;
 }
 
-void bring_last_best_move_to_front(std::vector<move>* moves, const std::vector<move>* prev_depth_var) {
+bool bring_last_best_move_to_front(std::vector<move>* moves, const std::vector<move>* prev_depth_var) {
     if (prev_depth_var != nullptr && !prev_depth_var->empty()) {
         auto last_best_move_pos = std::find(moves->begin(), moves->end(), (*prev_depth_var)[0]);
         if (last_best_move_pos != moves->end()) {
             moves->erase(last_best_move_pos);
             moves->insert(moves->begin(), (*prev_depth_var)[0]);
+            return true;
         }
     }
+    return false;
 }
 
 template<bool is_pv>
 int search(const board& b, int depth, int alpha, int beta, std::vector<move>* variation, const std::vector<move>* prev_depth_var) {
-    auto hash = zobrist::hash(b, depth);
+    auto hash = zobrist::hash(b, 0);
     auto moves = move_gen(b).generate();
     if (moves.empty()) {
         if (b.under_check(b.side_to_play)) return b.side_to_play == WHITE ? -MATE : MATE;
@@ -72,7 +74,7 @@ int search(const board& b, int depth, int alpha, int beta, std::vector<move>* va
     }
 
     node* n;
-    if (transp.load(hash, &n)) {
+    if (transp.load(hash, &n) && n->depth >= depth) {
         if (n->upper_bound == n->lower_bound) {
             if (is_pv && variation != nullptr && !n->variation.empty()) {
                 variation->insert(variation->end(), n->variation.begin(), n->variation.end());
@@ -88,17 +90,21 @@ int search(const board& b, int depth, int alpha, int beta, std::vector<move>* va
         } else if (!is_pv && n->upper_bound <= alpha) {
             return n->upper_bound;
         }
-//        alpha = std::max(alpha, n->lower_bound);
-//        beta = std::min(beta, n->upper_bound);
     }
 
     if (depth == 0) {
         int val = qsearch(b, alpha, beta);
-        transp.save(hash, val, val, nullptr);
+        transp.save(hash, depth, val, val, nullptr);
         return val;
     }
 
-    bring_last_best_move_to_front(&moves, prev_depth_var);
+    std::vector<move> var;
+    if (!bring_last_best_move_to_front(&moves, prev_depth_var) && depth > 5) {
+//        // do a search of depth = depth - 1 to have a guess on what to try first
+        search<true>(b, depth - 1, -INF, INF, &var, nullptr);
+        bring_last_best_move_to_front(&moves, &var);
+        variation = &var;
+    }
 
     bool first = true;
     std::vector<std::vector<move>> variations;
@@ -116,6 +122,7 @@ int search(const board& b, int depth, int alpha, int beta, std::vector<move>* va
             if (prev_depth_var != nullptr && !prev_depth_var->empty()) prev_depth_var_next.assign(prev_depth_var->begin() + 1, prev_depth_var->end());
             val = -search<true>(bnew, depth - 1, -beta, -alpha, &(variations.back()), &prev_depth_var_next);
             first = false;
+
         } else {
             if (-search<false>(bnew, depth - 1, -alpha - 1, -alpha, nullptr, nullptr) > alpha) {
                 val = -search<true>(bnew, depth - 1, -beta, -alpha, &(variations.back()), nullptr);
@@ -126,7 +133,7 @@ int search(const board& b, int depth, int alpha, int beta, std::vector<move>* va
         best = std::max(best, val);
         if (val > alpha) {
             if (val >= beta) {
-                transp.save(hash, val, INF, nullptr);
+                transp.save(hash, depth, val, INF, nullptr);
                 return beta;
             }
             alpha = val;
@@ -138,9 +145,9 @@ int search(const board& b, int depth, int alpha, int beta, std::vector<move>* va
         if (is_pv && variation != nullptr) {
             variation->insert(variation->end(), variations[best_idx].begin(), variations[best_idx].end());
         }
-        transp.save(hash, alpha, alpha, &variations[best_idx]);
+        transp.save(hash, depth, alpha, alpha, &variations[best_idx]);
     } else if (best > -INF) {
-        transp.save(hash, -INF, best, nullptr);
+        transp.save(hash, depth, -INF, best, nullptr);
     }
     return alpha;
 }
@@ -158,7 +165,7 @@ int search_widen(const board& b, int depth, int val, std::vector<move>* variatio
 }
 
 move engine::search_iterate(const board& b) {
-    const int max_depth = 6;
+    const int max_depth = 8;
     auto legal_moves = move_gen(b).generate();
     if (legal_moves.empty()) return null_move;
 
