@@ -13,7 +13,7 @@ enum evasiveness {
     EVASIVE, NON_EVASIVE
 };
 
-#define USE_ARRAY true
+#define USE_ARRAY false
 
 class move_gen {
     const board& b;
@@ -368,7 +368,7 @@ inline std::vector<move>& move_gen::generate() {
         else castle_moves<BLACK>();
     }
 #if USE_ARRAY
-    moves.assign(moves_array, last_move);
+    moves.insert(moves.begin(), moves_array, last_move);
 #endif
     return moves;
 }

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <board.h>
 #include "engine.h"
+#include "mcts.h"
 
 using std::stringstream;
 using std::string;
@@ -52,7 +53,8 @@ int main()
                 std::cerr << "no legal move found to be searched" << std::endl;
                 std::cout << "bestmove (none)" << std::endl;
             } else {
-                auto selected_move = e.get_move(b);
+                //auto selected_move = e.get_move(b);
+                auto selected_move = mcts(b).get_best_move(6);
                 std::cout << "bestmove " << to_long_move(selected_move) << std::endl;
             }
         } else if (word == "print") {
