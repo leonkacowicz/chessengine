@@ -7,15 +7,16 @@
 #include <engine.h>
 #include <zobrist.h>
 #include <fen.h>
+#include <pvs.h>
 
 TEST(engine_test, engine_call) {
     board b;
     b.set_initial_position();
-    b.make_move(SQ_E2, SQ_E4);
-    engine e;
+
     for (int i = 1; i < 200; i++) {
         std::cout << i << ".\n\n";
-        auto m = e.search_iterate(b);
+        pvs e(b);
+        auto m = e.search_move(5);
         if (move_type(m) == NULL_MOVE) break;
         b.make_move(m);
         b.print();
