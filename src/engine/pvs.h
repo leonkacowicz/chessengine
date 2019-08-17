@@ -9,6 +9,7 @@
 #include <board.h>
 #include <move_gen.h>
 #include <algorithm>
+#include <memory>
 #include "evaluator.h"
 
 enum search_type {
@@ -23,7 +24,8 @@ struct pvs_node {
     move move_done;
     pvs_node* parent = nullptr;
     pvs_node* next = nullptr;
-    std::vector<pvs_node> children;
+    int beta_cutoffs = 0;
+    std::vector<std::unique_ptr<pvs_node>> children;
 
     pvs_node(const board& b) : position(b) {}
 
@@ -83,10 +85,9 @@ public:
         for (int i = 0; i < moves.size(); i++) {
             board bnew = node->position;
             bnew.make_move(moves[i]);
-            pvs_node child(bnew);
-            child.move_done = moves[i];
-            child.parent = node;
-            node->children.push_back(child);
+            node->children.push_back(std::make_unique<pvs_node>(bnew));
+            node->children.back()->move_done = moves[i];
+            node->children.back()->parent = node;
         }
     }
 
@@ -115,22 +116,25 @@ public:
             int val;
             node->lower_bound = -INF;
             node->upper_bound = INF;
-
+            node->beta_cutoffs = 0;
             for (int i = 0; i < node->children.size(); i++) {
-                if (type == QUIESCENCE && move_is_quiet(node->children[i])) continue;
+                if (type == QUIESCENCE && move_is_quiet(*node->children[i])) continue;
                 if (best == -INF || type == QUIESCENCE) {
-                    val = -search<type>(&(node->children[i]), depth - 1, -beta, -alpha);
+                    val = -search<type>(node->children[i].get(), depth - 1, -beta, -alpha);
                 } else {
-                    val = -search<NON_PV>(&node->children[i], depth - 1, -alpha - 1, -alpha);
+                    val = -search<NON_PV>(node->children[i].get(), depth - 1, -alpha - 1, -alpha);
                     if (val > alpha)
-                        val = -search<PV>(&node->children[i], depth - 1, -beta, -alpha);
+                        val = -search<PV>(node->children[i].get(), depth - 1, -beta, -alpha);
                 }
+                node->beta_cutoffs += node->children[i]->beta_cutoffs;
                 if (val > best) {
                     best = val;
                     if (best > alpha) {
                         alpha = best;
                         if (alpha >= beta) {
                             node->upper_bound = std::min(node->upper_bound, beta);
+                            node->beta_cutoffs += 1;
+                            node->children.clear();
                             return beta;
                         }
                     }
@@ -140,18 +144,26 @@ public:
             }
             node->upper_bound = alpha;
             if (best_index > -1) {
-                node->next = &(node->children[best_index]);
+                node->next = node->children[best_index].get();
             }
-            //std::sort(node->children.begin(), node->children.end());
+            std::sort(node->children.begin(), node->children.end());
             return alpha;
         }
+    }
+
+    int tree_size(pvs_node* tree) {
+        if (tree->children.empty()) return 1;
+        int size = 0;
+        for (int i = 0; i < tree->children.size(); i++) size += tree_size(tree->children[i].get());
+        return size;
     }
 
     move search_move(int depth) {
         for (int i = 1; i <= depth; i++) {
             search<PV>(&root, i);
+            printf("%d\n", tree_size(&root));
         }
-        return root.children[0].move_done;
+        return root.children[0]->move_done;
     }
 };
 
