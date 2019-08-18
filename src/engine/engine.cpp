@@ -30,7 +30,8 @@ void log_score(int val, std::vector<move>& variation, int depth, int nodes) {
 }
 
 int qsearch(const board& b, int alpha, int beta, int seldepth = 0) {
-    auto moves = move_gen(b).generate();
+    auto gen = move_gen(b);
+    auto& moves = gen.generate();
     if (moves.empty()) {
         if (b.under_check(b.side_to_play)) return b.side_to_play == WHITE ? -MATE : MATE;
         else return 0;
@@ -64,17 +65,18 @@ bool bring_last_best_move_to_front(std::vector<move>* moves, const std::vector<m
     return false;
 }
 
-template<bool is_pv>
+template<bool is_pv, bool root>
 int search(const board& b, int depth, int alpha, int beta, std::vector<move>* variation, const std::vector<move>* prev_depth_var) {
     auto hash = zobrist::hash(b, 0);
-    auto moves = move_gen(b).generate();
+    auto gen = move_gen(b);
+    auto& moves = gen.generate();
     if (moves.empty()) {
         if (b.under_check(b.side_to_play)) return b.side_to_play == WHITE ? -MATE : MATE;
         else return 0;
     }
 
     node* n;
-    if (transp.load(hash, &n) && n->depth >= depth) {
+    if (transp.load(hash, depth, &n)) {
         if (n->upper_bound == n->lower_bound) {
             if (is_pv && variation != nullptr && !n->variation.empty()) {
                 variation->insert(variation->end(), n->variation.begin(), n->variation.end());
@@ -98,13 +100,7 @@ int search(const board& b, int depth, int alpha, int beta, std::vector<move>* va
         return val;
     }
 
-    std::vector<move> var;
-    if (!bring_last_best_move_to_front(&moves, prev_depth_var) && depth > 5) {
-//        // do a search of depth = depth - 1 to have a guess on what to try first
-        search<true>(b, depth - 1, -INF, INF, &var, nullptr);
-        bring_last_best_move_to_front(&moves, &var);
-        variation = &var;
-    }
+    bring_last_best_move_to_front(&moves, prev_depth_var);
 
     bool first = true;
     std::vector<std::vector<move>> variations;
@@ -118,31 +114,38 @@ int search(const board& b, int depth, int alpha, int beta, std::vector<move>* va
 
         int val;
         if (first) {
-            std::vector<move> prev_depth_var_next;
-            if (prev_depth_var != nullptr && !prev_depth_var->empty()) prev_depth_var_next.assign(prev_depth_var->begin() + 1, prev_depth_var->end());
-            val = -search<true>(bnew, depth - 1, -beta, -alpha, &(variations.back()), &prev_depth_var_next);
+            val = -search<true, false>(bnew, depth - 1, -beta, -alpha, &(variations.back()), nullptr);
             first = false;
-
         } else {
-            if (-search<false>(bnew, depth - 1, -alpha - 1, -alpha, nullptr, nullptr) > alpha) {
-                val = -search<true>(bnew, depth - 1, -beta, -alpha, &(variations.back()), nullptr);
+            if (-search<false, false>(bnew, depth - 1, -alpha - 1, -alpha, nullptr, nullptr) > alpha) {
+                val = -search<true, false>(bnew, depth - 1, -beta, -alpha, &(variations.back()), nullptr);
             } else {
                 continue;
             }
         }
+        if (val > MATE - 100) {
+            val--;
+        } else if (val < -MATE + 100) {
+            val++;
+        }
+
         best = std::max(best, val);
         if (val > alpha) {
             if (val >= beta) {
-                transp.save(hash, depth, val, INF, nullptr);
+                if (variation != nullptr)
+                    variation->insert(variation->end(), variations[i].begin(), variations[i].end());
+                transp.save(hash, depth, val, INF, variation);
                 return beta;
             }
             alpha = val;
             best_idx = i;
             best = val;
+            if (root && variation != nullptr)
+                log_score(alpha, variations[i], depth, 0);
         }
     }
     if (best_idx >= 0) {
-        if (is_pv && variation != nullptr) {
+        if (variation != nullptr) {
             variation->insert(variation->end(), variations[best_idx].begin(), variations[best_idx].end());
         }
         transp.save(hash, depth, alpha, alpha, &variations[best_idx]);
@@ -156,7 +159,7 @@ int search_widen(const board& b, int depth, int val, std::vector<move>* variatio
     int alpha = val - 50;
     int beta = val + 50;
     std::vector<move> new_variation;
-    int tmp = search<true>(b, depth, alpha, beta, &new_variation, prev_depth_var);
+    int tmp = search<true, true>(b, depth, alpha, beta, &new_variation, prev_depth_var);
     if (tmp <= alpha || tmp >= beta)
         return search_widen(b, depth, tmp, variation, prev_depth_var);
 
@@ -172,11 +175,10 @@ move engine::search_iterate(const board& b) {
     std::vector<move> seq[max_depth + 1];
     int cache_hit = 0;
     int total_nodes = 0;
-    int val = search<true>(b, 1, -INF, +INF, &seq[1], nullptr);
+    int val = search<true, true>(b, 1, -INF, +INF, &seq[1], nullptr);
     log_score(val, seq[1], 1, total_nodes);
     for (int depth = 2; depth <= max_depth; depth++) {
         val = search_widen(b, depth, val, &seq[depth], &seq[depth - 1]);
-        std::cout << "info cachehit " << cache_hit << std::endl;
         log_score(val, seq[depth], depth, total_nodes);
     }
     return seq[max_depth][0];

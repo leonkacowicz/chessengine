@@ -24,18 +24,21 @@ class transposition_table {
 public:
     void save(uint64_t hash, int depth, int lower_bound, int upper_bound, std::vector<move>* variation) {
         int idx = hash % size;
-        nodes[idx].lower_bound = lower_bound;
-        nodes[idx].upper_bound = upper_bound;
-        nodes[idx].hash = hash;
-        nodes[idx].depth = depth;
+        auto& n = nodes[idx];
+        if (n.hash == hash && n.depth < depth) return;
+        if (n.depth == depth && n.lower_bound == n.upper_bound && lower_bound != upper_bound) return;
+        n.lower_bound = lower_bound;
+        n.upper_bound = upper_bound;
+        n.hash = hash;
+        n.depth = depth;
         if (variation == nullptr)
-            nodes[idx].variation.clear();
-        else nodes[idx].variation.assign(variation->begin(), variation->end());
+            n.variation.clear();
+        else n.variation.assign(variation->begin(), variation->end());
     }
 
-    bool load(uint64_t hash, node ** n) {
+    bool load(uint64_t hash, int depth, node ** n) {
         node& m = nodes[hash % size];
-        if (m.hash == hash) {
+        if (m.hash == hash && m.depth >= depth) {
             *n = &m;
             return true;
         } else {

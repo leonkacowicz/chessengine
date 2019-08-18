@@ -13,7 +13,7 @@ TEST(engine_test, engine_call) {
     b.set_initial_position();
     b.make_move(SQ_E2, SQ_E4);
     engine e;
-    for (int i = 1; i < 200; i++) {
+    for (int i = 1; i < 2; i++) {
         std::cout << i << ".\n\n";
         auto m = e.search_iterate(b);
         if (move_type(m) == NULL_MOVE) break;
