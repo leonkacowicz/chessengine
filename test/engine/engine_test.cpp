@@ -21,3 +21,12 @@ TEST(engine_test, engine_call) {
         b.print();
     }
 }
+
+TEST(engine_test, engine_should_find_mate_in_one) {
+    board b("6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - -");
+    engine e;
+    
+    move m = e.search_iterate(b);
+
+    ASSERT_EQ(m, get_move(SQ_D1, SQ_D8));
+}

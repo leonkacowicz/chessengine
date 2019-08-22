@@ -52,15 +52,6 @@ using namespace chess::core;
         }
         constexpr move null_move = get_move(SQ_NONE, SQ_NONE, NULL_MOVE);
 
-        inline std::ostream& operator<<(std::ostream& os, move m) {
-            auto special = move_type(m);
-            os << move_origin(m) << move_dest(m);
-            if (special == PROMOTION_QUEEN) return os << 'q';
-            if (special == PROMOTION_ROOK) return os << 'r';
-            if (special == PROMOTION_BISHOP) return os << 'b';
-            if (special == PROMOTION_KNIGHT) return os << 'n';
-            return os;
-        }
         inline std::string to_long_move(move m) {
             assert(move_origin(m) != move_dest(m));
             auto special = move_type(m);

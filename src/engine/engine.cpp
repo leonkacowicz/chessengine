@@ -17,7 +17,11 @@ transposition_table<10485760> transp;
 void log_score(int val, std::vector<move>& variation, int depth, int nodes) {
     auto mate = 32000 - std::abs(val);
     if (mate < 30) {
-        std::cout << "info depth " << depth << " score mate " << " nodes " << nodes << (val < 0 ? "-" : "") << mate;
+        if (val < 0)
+            std::cout << "info depth " << depth << " score mate -" << mate << " nodes " << nodes << (val < 0 ? "-" : "") << mate;
+        else
+            std::cout << "info depth " << depth << " score mate " << mate << " nodes " << nodes << (val < 0 ? "-" : "") << mate;
+
     } else {
         std::cout << "info depth " << depth << " score cp " << val << " nodes " << nodes ;
     }
@@ -33,7 +37,7 @@ int qsearch(const board& b, int alpha, int beta, int seldepth = 0) {
     auto gen = move_gen(b);
     auto& moves = gen.generate();
     if (moves.empty()) {
-        if (b.under_check(b.side_to_play)) return b.side_to_play == WHITE ? -MATE : MATE;
+        if (b.under_check(b.side_to_play)) return b.side_to_play == WHITE ? MATE : -MATE;
         else return 0;
     }
     int val = evaluator::evaluate(b);
@@ -71,7 +75,7 @@ int search(const board& b, int depth, int alpha, int beta, std::vector<move>* va
     auto gen = move_gen(b);
     auto& moves = gen.generate();
     if (moves.empty()) {
-        if (b.under_check(b.side_to_play)) return b.side_to_play == WHITE ? -MATE : MATE;
+        if (b.under_check(b.side_to_play)) return b.side_to_play == WHITE ? MATE : -MATE;
         else return 0;
     }
 
