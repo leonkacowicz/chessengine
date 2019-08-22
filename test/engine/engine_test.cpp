@@ -30,3 +30,12 @@ TEST(engine_test, engine_should_find_mate_in_one) {
 
     ASSERT_EQ(m, get_move(SQ_D1, SQ_D8));
 }
+
+TEST(engine_test, engine_should_find_mate_in_one_b) {
+    board b("r1qr1b2/1R3pkp/3p2pN/ppnPp1Q1/bn2P3/4P2P/PBBP2P1/5RK1 w - e6");
+    engine e;
+
+    move m = e.search_iterate(b);
+
+    ASSERT_EQ(m, get_move(SQ_D5, SQ_E6));
+}

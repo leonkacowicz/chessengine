@@ -18,9 +18,9 @@ void log_score(int val, std::vector<move>& variation, int depth, int nodes) {
     auto mate = 32000 - std::abs(val);
     if (mate < 30) {
         if (val < 0)
-            std::cout << "info depth " << depth << " score mate -" << mate << " nodes " << nodes << (val < 0 ? "-" : "") << mate;
+            std::cout << "info depth " << depth << " score mate -" << mate << " nodes " << nodes << (val < 0 ? "-" : "");
         else
-            std::cout << "info depth " << depth << " score mate " << mate << " nodes " << nodes << (val < 0 ? "-" : "") << mate;
+            std::cout << "info depth " << depth << " score mate " << mate << " nodes " << nodes << (val < 0 ? "-" : "");
 
     } else {
         std::cout << "info depth " << depth << " score cp " << val << " nodes " << nodes ;
@@ -71,7 +71,6 @@ bool bring_last_best_move_to_front(std::vector<move>* moves, const std::vector<m
 
 template<bool is_pv, bool root>
 int search(const board& b, int depth, int alpha, int beta, std::vector<move>* variation, const std::vector<move>* prev_depth_var) {
-    auto hash = zobrist::hash(b, 0);
     auto gen = move_gen(b);
     auto& moves = gen.generate();
     if (moves.empty()) {
@@ -79,6 +78,7 @@ int search(const board& b, int depth, int alpha, int beta, std::vector<move>* va
         else return 0;
     }
 
+    auto hash = zobrist::hash(b, 0);
     node* n;
     if (transp.load(hash, depth, &n)) {
         if (n->upper_bound == n->lower_bound) {
@@ -146,6 +146,8 @@ int search(const board& b, int depth, int alpha, int beta, std::vector<move>* va
             best = val;
             if (root && variation != nullptr)
                 log_score(alpha, variations[i], depth, 0);
+
+            if (val >= MATE - 1) break; // no point in searching
         }
     }
     if (best_idx >= 0) {
