@@ -9,37 +9,37 @@
 #include <vector>
 #include <move.h>
 
-struct node {
+enum tt_node_type {
+    EXACT, ALPHA, BETA
+};
+
+struct tt_node {
     uint64_t hash;
     int depth;
-    int lower_bound;
-    int upper_bound;
-    std::vector<move> variation;
+    int value;
+    tt_node_type type;
+    move bestmove;
 };
 
 template<size_t size>
 class transposition_table {
-    node nodes[size];
+    tt_node nodes[size];
 
 public:
-    void save(uint64_t hash, int depth, int lower_bound, int upper_bound, std::vector<move>* variation) {
-        int idx = hash % size;
-        auto& n = nodes[idx];
-        if (n.hash == hash && n.depth < depth) return;
-        if (n.depth == depth && n.lower_bound == n.upper_bound && lower_bound != upper_bound) return;
-        n.lower_bound = lower_bound;
-        n.upper_bound = upper_bound;
+    void save(uint64_t hash, int depth, int value, tt_node_type type, move bestmove) {
+        auto& n = nodes[hash % size];
+        if (n.hash == hash && n.depth > depth) return;
         n.hash = hash;
         n.depth = depth;
-        if (variation == nullptr)
-            n.variation.clear();
-        else n.variation.assign(variation->begin(), variation->end());
+        n.value = value;
+        n.type = type;
+        n.bestmove = bestmove;
     }
 
-    bool load(uint64_t hash, int depth, node ** n) {
-        node& m = nodes[hash % size];
+    bool load(uint64_t hash, int depth, tt_node * n) {
+        tt_node& m = nodes[hash % size];
         if (m.hash == hash && m.depth >= depth) {
-            *n = &m;
+            *n = m;
             return true;
         } else {
             return false;
