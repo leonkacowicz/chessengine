@@ -39,3 +39,21 @@ TEST(engine_test, engine_should_find_mate_in_one_b) {
 
     ASSERT_EQ(m, get_move(SQ_D5, SQ_E6));
 }
+
+TEST(engine_test, engine_should_find_mate_in_3ply) {
+    board b("r1qr1b2/1R3pkp/3p2pN/ppnPp1Q1/bn2P3/4P2P/PBBP2P1/5RK1 w - -");
+    engine e;
+
+    move m = e.search_iterate(b);
+
+    ASSERT_EQ(m, get_move(SQ_F1, SQ_F7));
+}
+
+TEST(engine_test, engine_should_find_mate_in_5ply) {
+    board b("r1qr1b2/1R3pkp/3p2pN/ppnPp1Q1/bn2P3/4P2P/PBBP1PP1/5RK1 w - - 0 1");
+    engine e;
+
+    move m = e.search_iterate(b);
+
+    ASSERT_EQ(m, get_move(SQ_B7, SQ_F7));
+}
