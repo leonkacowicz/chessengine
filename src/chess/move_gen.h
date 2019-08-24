@@ -60,7 +60,6 @@ public:
         square sq;
         while (attacks) {
             sq = pop_lsb(&attacks);
-            bitboard bb = get_bb(sq);
             if (!square_attacked(sq)) {
                 add_move(b.king_pos[us], sq);
             }
@@ -179,44 +178,6 @@ public:
             }
         }
     }
-//
-//    void rook_attacks(const bitboard origin) {
-//        square origin_sq = get_square(origin);
-//        bitboard attacks = attacks_from_rook(origin_sq, any_piece ^ king);
-//        attacked |= attacks;
-//        if (attacks & king) {
-//            // under check
-//            num_checkers++;
-//            checkers |= origin;
-//            block_mask |= line_segment[origin_sq][b.king_pos[us]];
-//        } else {
-//            bitboard path = piece_attacks_bb[ROOK][origin_sq] & line_segment[origin_sq][b.king_pos[us]];
-//            bitboard blockers = path & any_piece;
-//            if (num_squares(blockers) == 1) {
-//                // only 1 piece blocking the attack, therefore it's pinned
-//                pinned |= blockers;
-//            }
-//        }
-//    }
-//
-//    void bishop_attacks(const bitboard origin) {
-//        square origin_sq = get_square(origin);
-//        bitboard attacks = attacks_from_bishop(origin_sq, any_piece ^ king);
-//        attacked |= attacks;
-//        if (attacks & king) {
-//            // under check
-//            num_checkers++;
-//            checkers |= origin;
-//            block_mask |= line_segment[origin_sq][b.king_pos[us]];
-//        } else {
-//            bitboard path = attacks_from_bishop(origin_sq, 0) & line_segment[origin_sq][b.king_pos[us]];
-//            bitboard blockers = path & any_piece;
-//            if (num_squares(blockers) == 1) {
-//                // only 1 piece blocking the attack, therefore it's pinned
-//                pinned |= blockers;
-//            }
-//        }
-//    }
 
     template <evasiveness e>
     void knight_moves(bitboard origin) {
