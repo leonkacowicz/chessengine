@@ -50,6 +50,19 @@ public:
             return false;
         }
     }
+
+    bool load(uint64_t hash, int depth, int alpha, int beta, tt_node * n) {
+        tt_node& m = nodes[hash % size];
+        if (m.hash == hash && m.depth >= depth) {
+            *n = m;
+
+            if (m.type == EXACT) return true;
+            if (m.type == ALPHA && m.value <= alpha) return true;
+            if (m.type == BETA && m.value >= beta) return true;
+
+        }
+        return false;
+    }
 };
 
 

@@ -39,11 +39,9 @@ public:
 
     void set_killer_move(move m, int ply);
 
-    int qsearch(const board& board, int alpha, int beta);
-
-    void log_score(int val);
-
     void log_score(const board& b, int val);
+
+    int qsearch(const board& b, int ply, int alpha, int beta);
 };
 
 
