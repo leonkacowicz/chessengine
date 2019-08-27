@@ -37,20 +37,21 @@ int engine::search_widen(const board& b, int depth, int val) {
 int engine::search_root(const board& b, int depth, int alpha, int beta) {
 
     uint64_t hash = zobrist::hash(b, 0);
-    auto legal_moves = move_gen(b).generate();
+    auto legal_moves = get_move_scores(b, 0, move_gen(b).generate(), bestmove);
     int val;
     int best = -1;
     int bestval = -INF;
     for (int i = 0; i < legal_moves.size(); i++) {
-        sort_moves(b.side_to_play, legal_moves, i, bestmove);
+        sort_moves(legal_moves, i);
         board bnew = b;
-        bnew.make_move(legal_moves[i]);
+        move m = legal_moves[i].first;
+        bnew.make_move(m);
         if (best == -1) {
-            val = -search<true>(bnew, depth - 1, -beta, -alpha);
+            val = -search<true>(bnew, depth - 1, 1, -beta, -alpha);
         } else {
-            val = -search<false>(bnew, depth - 1, -alpha - 1, -alpha);
-            if (val > alpha)
-                val = -search<true>(bnew, depth - 1, -beta, -alpha);
+            int tmp = -search<false>(bnew, depth - 1, 1, -alpha - 1, -alpha);
+            if (tmp > alpha)
+                val = -search<true>(bnew, depth - 1, 1, -beta, -alpha);
             else
                 continue;
         }
@@ -60,28 +61,26 @@ int engine::search_root(const board& b, int depth, int alpha, int beta) {
         }
         if (val > alpha) {
             best = i;
-            bestmove = legal_moves[i];
-            if (val >= beta) {
-                tt.save(hash, depth, beta, BETA, legal_moves[i]);
+            bestmove = m;
+            if (val > beta) {
+                tt.save(hash, depth, beta, BETA, m);
                 log_score(b, beta);
                 return beta;
             }
 
             alpha = val;
-            tt.save(hash, depth, alpha, ALPHA, legal_moves[i]);
+            tt.save(hash, depth, alpha, ALPHA, m);
             log_score(b, alpha);
         }
     }
     assert(best > -1);
-    tt.save(hash, depth, alpha, EXACT, legal_moves[best]);
+    tt.save(hash, depth, alpha, EXACT, bestmove);
     return alpha;
 }
 
 template<bool is_pv>
-int engine::search(const board& b, int depth, int alpha, int beta) {
-
+int engine::search(const board& b, int depth, int ply, int alpha, int beta) {
     uint64_t hash = zobrist::hash(b, 0);
-    int ply = current_depth - depth;
     int mate_value = MATE - ply;
 
     if (alpha < -mate_value) alpha = -mate_value;
@@ -90,105 +89,124 @@ int engine::search(const board& b, int depth, int alpha, int beta) {
 
     tt_node node;
     move tt_move = null_move;
+    int val;
     if (tt.load(hash, depth, alpha, beta, &node)) {
         tt_move = node.bestmove;
-        if (!is_pv || (alpha < node.value && node.value < beta)) {
-            if (std::abs(node.value) > MATE - max_depth) {
-                int val;
-                if (node.value > 0) val = node.value - ply;
-                else val = node.value + ply;
-                assert(val >= -INF);
-                return val;
-            } else {
-                return node.value;
+        val = node.value;
+        if (!is_pv || (alpha < val && val < beta)) {
+            if (std::abs(val) > MATE - 100) {
+                if (val > 0) val = val - ply;
+                else val = val + ply;
             }
+            return val;
         }
     }
 
     bool in_check = b.under_check(b.side_to_play);
+    if (in_check) depth++;
     if (depth <= 0 && !in_check)
         return qsearch(b, ply, alpha, beta);
 
-    int val;
-    auto legal_moves = move_gen(b).generate();
+    nodes++;
 
-
+    auto legal_moves = get_move_scores(b, ply, move_gen(b).generate(), tt_move);
     if (legal_moves.empty()) {
         val = 0;
         if (in_check) {
             val = -MATE + ply;
-            assert(val >= -INF);
+            tt.save(hash, INF, -MATE, EXACT, null_move);
+        } else {
+            tt.save(hash, INF, 0, EXACT, null_move);
         }
-        tt.save(hash, INF, val, EXACT, null_move);
         return val;
     }
 
-    sort_moves(b.side_to_play, legal_moves, 0, tt_move);
     bool raised_alpha = false;
     int best = -1;
     int bestval = -INF;
     tt_node_type new_tt_node_type = ALPHA;
     for (int i = 0; i < legal_moves.size(); i++) {
-        // sort moves here after we have a score per move
+        sort_moves(legal_moves, i);
         board bnew = b;
-        move m = legal_moves[i];
+        move m = legal_moves[i].first;
         bnew.make_move(m);
 
         if (!raised_alpha) {
-            val = -search<is_pv>(bnew, depth - 1, -beta, -alpha);
-            assert(val >= -INF);
+            val = -search<is_pv>(bnew, depth - 1, ply + 1, -beta, -alpha);
         } else {
-            val = -search<false>(bnew, depth - 1, -alpha - 1, -alpha);
-            assert(val >= -INF);
-            if (val > alpha)
-                val = -search<true>(bnew, depth - 1, -beta, -alpha);
-            else
-                continue;
-            assert(val >= -INF);
+            int tmp = -search<false>(bnew, depth - 1, ply + 1, -alpha - 1, -alpha);
+            if (tmp > alpha)
+                val = -search<true>(bnew, depth - 1, ply + 1, -beta, -alpha);
+            else continue;
         }
-
         if (val > bestval) {
             bestval = val;
             best = i;
         }
-
         if (val > alpha) {
             best = i;
-
             if (val >= beta) {
-
                 square dest = move_dest(m);
                 if (b.piece_at(get_bb(dest)) == NO_PIECE && dest != b.en_passant && move_type(m) < PROMOTION_QUEEN) {
+                    history[b.side_to_play][move_origin(m)][move_dest(m)] += depth * depth;
                     set_killer_move(m, ply);
                 }
-
                 new_tt_node_type = BETA;
                 alpha = beta;
                 break;
-
             }
-
             raised_alpha = true;
+            new_tt_node_type = EXACT;
             alpha = val;
         }
     }
-    assert(best > -1);
-    assert(alpha >= -INF);
-    tt.save(hash, depth, alpha, new_tt_node_type, legal_moves[best]);
+    if (alpha > MATE - 100) {
+        tt.save(hash, depth, alpha + ply, new_tt_node_type, legal_moves[best].first);
+    } else if (alpha < -MATE + 100) {
+        tt.save(hash, depth, alpha - ply, new_tt_node_type, legal_moves[best].first);
+    } else {
+        tt.save(hash, depth, alpha, new_tt_node_type, legal_moves[best].first);
+    }
     return alpha;
 }
 
-void engine::sort_moves(color c, std::vector<move>& moves, int first, move tt_move) {
+std::vector<std::pair<move, int>> engine::get_move_scores(const board& b, int ply, const std::vector<move>& moves, const move tt_move) {
+    std::vector<std::pair<move, int>> ret;
+    for (auto m : moves) {
+        int score = history[b.side_to_play][move_origin(m)][move_dest(m)];
+        board bnew = b;
+        bnew.make_move(m);
+        if (bnew.under_check(bnew.side_to_play)) score += 400000000;
+        piece captured = b.piece_at(get_bb(move_dest(m)));
+        if (captured != NO_PIECE || (b.piece_at(get_bb(move_origin(m))) == PAWN && move_dest(m) == b.en_passant)) {
+            score += 100000100;
+            if (captured == QUEEN) score += 800;
+            else if (captured == ROOK) score += 400;
+            else if (captured == BISHOP) score += 235;
+            else if (captured == KNIGHT) score += 225;
+        }
+        if (b.piece_at(get_bb(move_origin(m))) == PAWN && (get_rank(move_dest(m)) % 8) == 0) score += 90000000;
+        if (m == tt_move) score += 200000000;
+        if (killers.size() > ply) {
+            if (killers[ply].first == m) score += 80000000;
+            if (killers[ply].second == m) score += 79999999;
+        }
+        ret.emplace_back(m, score);
+    }
+    return ret;
+}
+
+void engine::sort_moves(std::vector<std::pair<move, int>>& moves, int first) {
     int high = first;
     int high_value = -INF;
     for (int i = first; i < moves.size(); i++) {
-        if (moves[i] == tt_move) {
+        if (moves[i].second > high_value) {
             high = i;
-            break;
+            high_value = moves[i].second;
         }
     }
     if (high > first) {
-        move tmp = moves[first];
+        auto tmp = moves[first];
         moves[first] = moves[high];
         moves[high] = tmp;
     }
@@ -199,26 +217,26 @@ engine::engine() {
 }
 
 void engine::set_killer_move(move m, int ply) {
-//    if (killers.size() <= ply) {
-//        killers.resize(ply, std::make_pair(null_move, null_move));
-//    }
-//
-//    if (killers[ply].first != m) {
-//        killers[ply].second = killers[ply].first;
-//        killers[ply].first = m;
-//    }
+    if (killers.size() <= ply) {
+        killers.resize(ply + 1, std::make_pair(null_move, null_move));
+    }
+
+    if (killers[ply].first != m) {
+        killers[ply].second = killers[ply].first;
+        killers[ply].first = m;
+    }
 }
 
 int engine::qsearch(const board& b, int ply, int alpha, int beta) {
     nodes++;
-
+    qnodes++;
     uint64_t hash = zobrist::hash(b, 0);
     tt_node node;
     move tt_move = null_move;
     int val;
-    if (tt.load(hash, 0, alpha, beta, &node)) {
+    if (tt.load(hash, 0, &node)) {
         val = node.value;
-        //tt_move = node.bestmove;
+        tt_move = node.bestmove;
     } else {
         val = evaluator::evaluate(b);
         if (b.side_to_play == BLACK) val = -val;
@@ -228,51 +246,49 @@ int engine::qsearch(const board& b, int ply, int alpha, int beta) {
     if (val >= beta) return beta;
     if (val > alpha) alpha = val;
 
-    auto legal_moves = move_gen(b).generate();
-
+    auto legal_moves = get_move_scores(b, ply, move_gen(b).generate(), tt_move);
     if (legal_moves.empty()) {
         val = 0;
         if (b.under_check(b.side_to_play)) {
             val = -MATE + ply;
-            assert(val >= -INF);
+            tt.save(hash, 1000, -MATE, EXACT, tt_move);
+        } else {
+            tt.save(hash, 1000, 0, EXACT, tt_move);
         }
-        tt.save(hash, 1000, val, EXACT, null_move); // depth = 1000 means this evaluation is absolute, not depth dependent
         return val;
     }
 
-    sort_moves(b.side_to_play, legal_moves, 0, tt_move);
-
     for (int i = 0; i < legal_moves.size(); i++) {
-        move m = legal_moves[i];
-        if (b.piece_at(get_bb(move_dest(m))) != NO_PIECE || move_type(m) >= PROMOTION_QUEEN || move_dest(m) == b.en_passant) {
+        sort_moves(legal_moves, i);
+        move m = legal_moves[i].first;
+        if (b.piece_at(get_bb(move_dest(m))) != NO_PIECE || move_type(m) >= PROMOTION_QUEEN || (move_dest(m) == b.en_passant && b.piece_at(get_bb(move_origin(m))) == PAWN)) {
             board bnew = b;
             bnew.make_move(m);
             val = -qsearch(bnew, ply + 1, -beta, -alpha);
-
             if (val > alpha) {
                 if (val >= beta) return beta;
                 alpha = val;
             }
         }
     }
-    assert(alpha >= -INF);
     return alpha;
 }
 
 void engine::log_score(const board& b, int val) {
     int mate = MATE - std::abs(val);
+    std::cout << "info depth " << current_depth;
     if (mate < 30) {
         if (val < 0)
-            std::cout << "info depth " << current_depth << " score mate -" << mate << " nodes " << nodes << (val < 0 ? "-" : "");
+            std::cout << " score mate -" << mate;
         else
-            std::cout << "info depth " << current_depth << " score mate " << mate << " nodes " << nodes << (val < 0 ? "-" : "");
+            std::cout << " score mate " << mate;
 
     } else {
-        std::cout << "info depth " << current_depth << " score cp " << val << " nodes " << nodes ;
+        std::cout << " score cp " << val;
     }
-
+    std::cout << " nodes " << nodes;
+    std::cout << " qnodes " << qnodes;
     std::cout << " pv " << to_long_move(bestmove);
-
     tt_node node{};
     board b2 = b;
     b2.make_move(bestmove);

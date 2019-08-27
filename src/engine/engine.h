@@ -14,14 +14,15 @@
 #include "transposition_table.h"
 
 class engine {
-    static constexpr int max_depth = 8;
+    static constexpr int max_depth = 7;
 
     std::vector<std::pair<move, move>> killers;
     int nodes = 0;
+    int qnodes = 0;
     int current_depth = -1;
     int cache_hit_count = 0;
     int history[2][64][64];
-    transposition_table<100000000> tt;
+    transposition_table<1000000> tt;
     move bestmove;
 
 public:
@@ -33,15 +34,18 @@ public:
     int search_root(const board& b, int depth, int alpha, int beta);
 
     template<bool is_pv>
-    int search(const board& b, int depth, int alpha, int beta);
-
-    void sort_moves(color c, std::vector<move>& moves, int first, move tt_move);
+    int search(const board& b, int depth, int ply, int alpha, int beta);
 
     void set_killer_move(move m, int ply);
 
     void log_score(const board& b, int val);
 
     int qsearch(const board& b, int ply, int alpha, int beta);
+
+    std::vector<std::pair<move, int>>
+    get_move_scores(const board& b, int ply, const std::vector<move>& moves, const move tt_move);
+
+    void sort_moves(std::vector<std::pair<move, int>>& moves, int first);
 };
 
 

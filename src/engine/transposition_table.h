@@ -21,7 +21,7 @@ struct tt_node {
     move bestmove;
 };
 
-template<int size>
+template<uint64_t size>
 class transposition_table {
     std::vector<tt_node> nodes;
 
@@ -41,25 +41,32 @@ public:
         n.bestmove = bestmove;
     }
 
-    bool load(uint64_t hash, int depth, tt_node * n) {
+    bool load(uint64_t hash, int depth, tt_node* n) {
         tt_node& m = nodes[hash % size];
-        if (m.hash == hash && m.depth >= depth) {
+        if (m.hash == hash) {
             *n = m;
-            return true;
-        } else {
-            return false;
+            if (m.depth >= depth) {
+                return true;
+            }
         }
+        return false;
     }
 
-    bool load(uint64_t hash, int depth, int alpha, int beta, tt_node * n) {
+    bool load(uint64_t hash, int depth, int alpha, int beta, tt_node* n) {
         tt_node& m = nodes[hash % size];
-        if (m.hash == hash && m.depth >= depth) {
+        if (m.hash == hash) {
             *n = m;
-
-            if (m.type == EXACT) return true;
-            if (m.type == ALPHA && m.value <= alpha) return true;
-            if (m.type == BETA && m.value >= beta) return true;
-
+            if (m.depth >= depth) {
+                if (m.type == EXACT) return true;
+                if (m.type == ALPHA && m.value <= alpha) {
+                    n->value = alpha;
+                    return true;
+                }
+                if (m.type == BETA && m.value >= beta) {
+                    n->value = beta;
+                    return true;
+                }
+            }
         }
         return false;
     }
