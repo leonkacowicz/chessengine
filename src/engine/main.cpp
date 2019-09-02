@@ -12,6 +12,7 @@ int main()
 {
     chess::core::init_bitboards();
     chess::core::init_magic_bitboards();
+    zobrist::init();
 
     engine e;
     board b;

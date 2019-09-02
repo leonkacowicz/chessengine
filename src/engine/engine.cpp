@@ -16,6 +16,18 @@ move engine::search_iterate(const board& b) {
     auto legal_moves = move_gen(b).generate();
     if (legal_moves.empty()) return null_move;
 
+    for (int c = 0; c < 2; c++)
+        for (int i = 0; i < 64; i++)
+            for (int j = 0; j < 64; j++)
+                history[c][i][j] /= 8;
+    nodes = 0;
+    qnodes = 0;
+    cache_hit_count = 0;
+    // assuming last search was last played move, we can shift the killer move list one ply to the left and hope it will be still valid
+    for (int i = 0; i < killers.size() - 1 && killers.size() > 0; i++) {
+        killers[i] = killers[i + 1];
+    }
+
     bestmove = legal_moves[0];
     current_depth = 1;
     int val = search_root(b, current_depth, -INF, +INF);
@@ -37,6 +49,10 @@ int engine::search_widen(const board& b, int depth, int val) {
 int engine::search_root(const board& b, int depth, int alpha, int beta) {
 
     uint64_t hash = zobrist::hash(b, 0);
+    tt_node node;
+    if (tt.load(hash, depth, alpha, beta, &node)) {
+        bestmove = node.bestmove;
+    }
     auto legal_moves = get_move_scores(b, 0, move_gen(b).generate(), bestmove);
     int val;
     int best = -1;
@@ -91,6 +107,7 @@ int engine::search(const board& b, int depth, int ply, int alpha, int beta) {
     move tt_move = null_move;
     int val;
     if (tt.load(hash, depth, alpha, beta, &node)) {
+        cache_hit_count++;
         tt_move = node.bestmove;
         val = node.value;
         if (!is_pv || (alpha < val && val < beta)) {
@@ -213,7 +230,10 @@ void engine::sort_moves(std::vector<std::pair<move, int>>& moves, int first) {
 }
 
 engine::engine() {
-
+    for (int c = 0; c < 2; c++)
+        for (int i = 0; i < 64; i++)
+            for (int j = 0; j < 64; j++)
+                history[c][i][j] = 0;
 }
 
 void engine::set_killer_move(move m, int ply) {
@@ -288,6 +308,7 @@ void engine::log_score(const board& b, int val) {
     }
     std::cout << " nodes " << nodes;
     std::cout << " qnodes " << qnodes;
+    std::cout << " tthit " << cache_hit_count;
     std::cout << " pv " << to_long_move(bestmove);
     tt_node node{};
     board b2 = b;

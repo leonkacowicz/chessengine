@@ -518,7 +518,6 @@ std::string board::move_in_pgn(const move m, const std::vector<move>& legal_move
     if (p == KING) {
         if (move_type(m) == CASTLE_KING_SIDE_WHITE || move_type(m) == CASTLE_KING_SIDE_BLACK) return "O-O";
         if (move_type(m) == CASTLE_QUEEN_SIDE_WHITE || move_type(m) == CASTLE_QUEEN_SIDE_BLACK) return "O-O-O";
-        ss << move_dest(m);
     }
 
     bool is_capture = (piece_of_color[opposite(c)] & get_bb(move_dest(m))) || (p == PAWN && get_file(move_origin(m)) != get_file(move_dest(m)));
