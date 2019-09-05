@@ -14,7 +14,7 @@
 #include "transposition_table.h"
 
 class engine {
-    static constexpr int max_depth = 7;
+    static constexpr int max_depth = 10;
 
     std::vector<std::pair<move, move>> killers;
     int nodes = 0;
@@ -24,6 +24,7 @@ class engine {
     int history[2][64][64];
     transposition_table<100000000> tt;
     move bestmove;
+    bool can_do_null_move = true;
 
 public:
     engine();

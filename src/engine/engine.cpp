@@ -138,6 +138,34 @@ int engine::search(const board& b, int depth, int ply, int alpha, int beta) {
         return val;
     }
 
+    if (depth < 3
+        && !is_pv
+        && !in_check
+        && abs(beta - 1) > -MATE + 100)
+    {
+        int static_eval = evaluator::evaluate(b) * (b.side_to_play == BLACK ? -1 : 1);
+
+        int eval_margin = 120 * depth;
+        if (static_eval - eval_margin >= beta)
+            return static_eval - eval_margin;
+    }
+
+
+    if (!is_pv && !in_check && depth > 2 && can_do_null_move && evaluator::evaluate(b) * (b.side_to_play == BLACK ? -1 : 1) >= beta) {
+        board bnew = b;
+        bnew.side_to_play = opposite(b.side_to_play); // null move
+        can_do_null_move = false;
+        int nmval;
+        if (depth > 6)
+            nmval = -search<is_pv>(bnew, depth - 4, ply + 1, -beta, -beta + 1);
+        else
+            nmval = -search<is_pv>(bnew, depth - 3, ply + 1, -beta, -beta + 1);
+        can_do_null_move = true;
+
+        if (nmval >= beta) return beta;
+    }
+
+
     bool raised_alpha = false;
     int best = -1;
     int bestval = -INF;
