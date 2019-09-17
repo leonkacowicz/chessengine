@@ -9,6 +9,7 @@
 #include <move.h>
 #include <board.h>
 #include <unordered_map>
+#include <chrono>
 #include "evaluator.h"
 #include "zobrist.h"
 #include "transposition_table.h"
@@ -25,9 +26,13 @@ class engine {
     transposition_table<100000000> tt;
     move bestmove;
     bool can_do_null_move = true;
+    bool time_over = false;
 
 public:
     engine();
+
+    move timed_search(const board& b, const std::chrono::milliseconds& time);
+
     move search_iterate(const board& b);
 
     int search_widen(const board& b, int depth, int val);

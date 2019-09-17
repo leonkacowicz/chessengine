@@ -5,6 +5,8 @@
 #include <deque>
 #include <algorithm>
 #include <move_gen.h>
+#include <thread>
+#include <mutex>
 
 #include "engine.h"
 #include "evaluator.h"
@@ -13,6 +15,7 @@
 
 move engine::search_iterate(const board& b) {
 
+    time_over = false;
     auto legal_moves = move_gen(b).generate();
     if (legal_moves.empty()) return null_move;
 
@@ -47,7 +50,7 @@ int engine::search_widen(const board& b, int depth, int val) {
 }
 
 int engine::search_root(const board& b, int depth, int alpha, int beta) {
-
+    if (time_over) return 0;
     uint64_t hash = zobrist::hash(b, 0);
     tt_node node;
     if (tt.load(hash, depth, alpha, beta, &node)) {
@@ -66,10 +69,12 @@ int engine::search_root(const board& b, int depth, int alpha, int beta) {
             val = -search<true>(bnew, depth - 1, 1, -beta, -alpha);
         } else {
             int tmp = -search<false>(bnew, depth - 1, 1, -alpha - 1, -alpha);
-            if (tmp > alpha)
+            if (time_over) return 0;
+            if (tmp > alpha) {
                 val = -search<true>(bnew, depth - 1, 1, -beta, -alpha);
-            else
-                continue;
+                if (time_over) return 0;
+            }
+            else continue;
         }
         if (val > bestval) {
             bestval = val;
@@ -96,6 +101,7 @@ int engine::search_root(const board& b, int depth, int alpha, int beta) {
 
 template<bool is_pv>
 int engine::search(const board& b, int depth, int ply, int alpha, int beta) {
+    if (time_over) return 0;
     uint64_t hash = zobrist::hash(b, 0);
     int mate_value = MATE - ply;
 
@@ -162,6 +168,7 @@ int engine::search(const board& b, int depth, int ply, int alpha, int beta) {
             nmval = -search<is_pv>(bnew, depth - 3, ply + 1, -beta, -beta + 1);
         can_do_null_move = true;
 
+        if (time_over) return 0;
         if (nmval >= beta) return beta;
     }
 
@@ -178,10 +185,14 @@ int engine::search(const board& b, int depth, int ply, int alpha, int beta) {
 
         if (!raised_alpha) {
             val = -search<is_pv>(bnew, depth - 1, ply + 1, -beta, -alpha);
+            if (time_over) return 0;
         } else {
             int tmp = -search<false>(bnew, depth - 1, ply + 1, -alpha - 1, -alpha);
-            if (tmp > alpha)
+            if (time_over) return 0;
+            if (tmp > alpha) {
                 val = -search<true>(bnew, depth - 1, ply + 1, -beta, -alpha);
+                if (time_over) return 0;
+            }
             else continue;
         }
         if (val > bestval) {
@@ -276,6 +287,7 @@ void engine::set_killer_move(move m, int ply) {
 }
 
 int engine::qsearch(const board& b, int ply, int alpha, int beta) {
+    if (time_over) return 0;
     nodes++;
     qnodes++;
     uint64_t hash = zobrist::hash(b, 0);
@@ -313,6 +325,7 @@ int engine::qsearch(const board& b, int ply, int alpha, int beta) {
             board bnew = b;
             bnew.make_move(m);
             val = -qsearch(bnew, ply + 1, -beta, -alpha);
+            if (time_over) return 0;
             if (val > alpha) {
                 if (val >= beta) return beta;
                 alpha = val;
@@ -353,5 +366,21 @@ void engine::log_score(const board& b, int val) {
     }
 
     std::cout << std::endl;
+}
+
+move engine::timed_search(const board& b, const std::chrono::milliseconds& time) {
+    std::timed_mutex mutex;
+    mutex.lock();
+    time_over = false;
+    std::thread thr([&] () {
+        search_iterate(b);
+        mutex.unlock();
+    });
+    if (!mutex.try_lock_for(time)) {
+        std::cerr << "Timeout" << std::endl;
+        time_over = true;
+    }
+    thr.join();
+    return bestmove;
 }
 
