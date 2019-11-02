@@ -28,8 +28,10 @@ class engine {
     bool can_do_null_move = true;
     bool time_over = false;
 
+    evaluator& eval;
+
 public:
-    engine();
+    engine(evaluator& e);
 
     move timed_search(const board& b, const std::chrono::milliseconds& time);
 

@@ -5,6 +5,7 @@
 #include <magic_bitboard.h>
 #include "engine.h"
 #include "uci.h"
+#include "static_evaluator.h"
 
 using std::stringstream;
 using std::string;
@@ -62,7 +63,8 @@ int main()
     chess::core::init_magic_bitboards();
     zobrist::init();
 
-    engine e;
+    static_evaluator eval;
+    engine e(eval);
     board b;
     b.set_initial_position();
     while (!std::cin.eof()) {

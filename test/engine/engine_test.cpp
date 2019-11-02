@@ -7,12 +7,14 @@
 #include <engine.h>
 #include <zobrist.h>
 #include <fen.h>
+#include <static_evaluator.h>
 
 TEST(engine_test, engine_call) {
     board b;
     b.set_initial_position();
     b.make_move(SQ_E2, SQ_E4);
-    engine e;
+    static_evaluator eval;
+    engine e(eval);
     for (int i = 1; i < 2; i++) {
         std::cout << i << ".\n\n";
         auto m = e.search_iterate(b);
@@ -24,7 +26,8 @@ TEST(engine_test, engine_call) {
 
 TEST(engine_test, engine_should_find_mate_in_one) {
     board b("6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - -");
-    engine e;
+    static_evaluator eval;
+    engine e(eval);
     
     move m = e.search_iterate(b);
 
@@ -33,7 +36,8 @@ TEST(engine_test, engine_should_find_mate_in_one) {
 
 TEST(engine_test, engine_should_find_mate_in_one_b) {
     board b("r1qr1b2/1R3pkp/3p2pN/ppnPp1Q1/bn2P3/4P2P/PBBP2P1/5RK1 w - e6");
-    engine e;
+    static_evaluator eval;
+    engine e(eval);
 
     move m = e.search_iterate(b);
 
@@ -42,7 +46,8 @@ TEST(engine_test, engine_should_find_mate_in_one_b) {
 
 TEST(engine_test, engine_should_find_mate_in_3ply) {
     board b("r1qr1b2/1R3pkp/3p2pN/ppnPp1Q1/bn2P3/4P2P/PBBP2P1/5RK1 w - -");
-    engine e;
+    static_evaluator eval;
+    engine e(eval);
 
     move m = e.search_iterate(b);
 
@@ -51,7 +56,8 @@ TEST(engine_test, engine_should_find_mate_in_3ply) {
 
 TEST(engine_test, engine_should_find_mate_in_5ply) {
     board b("r1qr1b2/1R3pkp/3p2pN/ppnPp1Q1/bn2P3/4P2P/PBBP1PP1/5RK1 w - - 0 1");
-    engine e;
+    static_evaluator eval;
+    engine e(eval);
 
     move m = e.search_iterate(b);
 

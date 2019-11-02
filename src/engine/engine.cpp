@@ -149,7 +149,7 @@ int engine::search(const board& b, int depth, int ply, int alpha, int beta) {
         && !in_check
         && abs(beta - 1) > -MATE + 100)
     {
-        int static_eval = evaluator::evaluate(b) * (b.side_to_play == BLACK ? -1 : 1);
+        int static_eval = eval.eval(b) * (b.side_to_play == BLACK ? -1 : 1);
 
         int eval_margin = 120 * depth;
         if (static_eval - eval_margin >= beta)
@@ -157,7 +157,7 @@ int engine::search(const board& b, int depth, int ply, int alpha, int beta) {
     }
 
 
-    if (!is_pv && !in_check && depth > 2 && can_do_null_move && evaluator::evaluate(b) * (b.side_to_play == BLACK ? -1 : 1) >= beta) {
+    if (!is_pv && !in_check && depth > 2 && can_do_null_move && eval.eval(b) * (b.side_to_play == BLACK ? -1 : 1) >= beta) {
         board bnew = b;
         bnew.side_to_play = opposite(b.side_to_play); // null move
         can_do_null_move = false;
@@ -268,7 +268,7 @@ void engine::sort_moves(std::vector<std::pair<move, int>>& moves, int first) {
     }
 }
 
-engine::engine() {
+engine::engine(evaluator& e) : eval(e) {
     for (int c = 0; c < 2; c++)
         for (int i = 0; i < 64; i++)
             for (int j = 0; j < 64; j++)
@@ -298,7 +298,7 @@ int engine::qsearch(const board& b, int ply, int alpha, int beta) {
         val = node.value;
         tt_move = node.bestmove;
     } else {
-        val = evaluator::evaluate(b);
+        val = eval.eval(b);
         if (b.side_to_play == BLACK) val = -val;
         tt.save(hash, 0, val, EXACT, tt_move);
     }

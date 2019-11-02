@@ -18,7 +18,7 @@ class evaluator {
 //    std::uniform_int_distribution<int> dis{0, 100};
 
 public:
-    static int evaluate(const board& b);
+    virtual int eval(const board& b);
 };
 
 
