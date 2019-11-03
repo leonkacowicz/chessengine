@@ -18,7 +18,7 @@ TEST(evaluator_test, test_single_matrix) {
     for (int i = 0; i < 831; i++) ss << " 0";
 
     nn_eval e(ss);
-    int evaluation = e.evaluate(b);
+    int evaluation = e.eval(b);
 
     EXPECT_EQ(evaluation, 5);
 }
@@ -34,8 +34,9 @@ TEST(evaluator_test, two_matrices) {
     ss << Eigen::MatrixXd::Random(5, 833);
     ss << "\n1 6\n";
     ss << Eigen::MatrixXd::Random(1, 6) * 1000;
+    std::cout << ss.str() << "\n\n=============\n";
     nn_eval e(ss);
-    int evaluation = e.evaluate(b);
+    int evaluation = e.eval(b);
 
     EXPECT_EQ(evaluation, 948);
 }
@@ -54,7 +55,7 @@ TEST(evaluator_test, three_matrices) {
     ss << "\n1 11\n";
     ss << Eigen::MatrixXd::Random(1, 11) * 1000;
     nn_eval e(ss);
-    int evaluation = e.evaluate(b);
+    int evaluation = e.eval(b);
 
     EXPECT_EQ(evaluation, -2590);
 }

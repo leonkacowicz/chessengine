@@ -25,10 +25,9 @@ nn_eval::nn_eval(std::istream& fin) {
     }
 }
 
-int nn_eval::evaluate(const board& b) {
+int nn_eval::eval(const board& b) {
 
     fill_input_vector(b);
-
 
     Eigen::VectorXd v(INPUT_SIZE + 1);
 
@@ -36,7 +35,7 @@ int nn_eval::evaluate(const board& b) {
 
     for (int i = 0; i < matrices.size() - 1; i++) {
         Eigen::VectorXd w(matrices[i].rows() + 1);
-        std::cout << "Multiplying:\n" << matrices[i] << std::endl;
+        DEBUG(std::cout << "Multiplying:\n" << matrices[i] << std::endl);
         w << 1, matrices[i] * v;
         DEBUG(std::cout << "by:\n" << v.transpose() << std::endl);
         DEBUG(std::cout << "yielding:\n" << w.transpose() << std::endl);

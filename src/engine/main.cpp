@@ -1,11 +1,14 @@
 #include <iostream>
 #include <string>
+#include <memory>
 #include <algorithm>
 #include <board.h>
 #include <magic_bitboard.h>
+#include <fstream>
 #include "engine.h"
 #include "uci.h"
 #include "static_evaluator.h"
+#include "nn_eval.h"
 
 using std::stringstream;
 using std::string;
@@ -63,8 +66,8 @@ int main()
     chess::core::init_magic_bitboards();
     zobrist::init();
 
-    static_evaluator eval;
-    engine e(eval);
+    std::unique_ptr<evaluator> eval;
+    std::unique_ptr<engine> eng;
     board b;
     b.set_initial_position();
     while (!std::cin.eof()) {
@@ -86,11 +89,17 @@ int main()
                 std::cerr << "no legal move found to be searched" << std::endl;
                 std::cout << "bestmove (none)" << std::endl;
             } else {
-                auto selected_move = e.timed_search(b, cmd.move_time);
+                std::cout << "info calculating move time for " << cmd.move_time.count() << "ms\n";
+                auto selected_move = eng->timed_search(b, cmd.move_time);
                 std::cout << "bestmove " << to_long_move(selected_move) << std::endl;
             }
         } else if (words[0] == "print") {
             b.print();
+        } else if (words[0] == "setoption" && words[1] == "name" && words[2] == "evaluator" && words[3] == "value") {
+            std::cout << "info using file " << words[4] << std::endl;
+            std::ifstream ifs(words[4]);
+            eval = std::make_unique<nn_eval>(ifs);
+            eng = std::make_unique<engine>(*eval.get());
         }
     }
     return 0;
