@@ -16,9 +16,9 @@ TEST(arbiter_test, arbiter_can_start_players) {
     player white(color::WHITE, white_in, white_out);
     player black(color::BLACK, black_in, black_out);
 
-    arbiter arb(white, black, 1000ms, 0ms);
+    arbiter arb(white, black, 1000ms, 0ms, true);
 
-    arb.start_players();
+    arb.start_players("", "");
     arb.start_game();
 
     std::string line;
@@ -45,7 +45,7 @@ TEST(arbiter_test, arbiter_passes_moves_from_one_player_another) {
     black_out << "bestmove a7a5" << std::endl;
     black_out << "bestmove (none)" << std::endl;
 
-    arbiter arb(white, black, 10000ms, 0ms);
+    arbiter arb(white, black, 10000ms, 0ms, true);
 
     arb.start_players();
     arb.start_game();
@@ -53,6 +53,7 @@ TEST(arbiter_test, arbiter_passes_moves_from_one_player_another) {
     std::string line;
     getline(white_in, line);
     EXPECT_STREQ(line.c_str(), "uci");
+    getline(white_in, line); // for empty options that are passed
     getline(white_in, line);
     EXPECT_STREQ(line.c_str(), "ucinewgame");
     getline(white_in, line);
@@ -70,6 +71,7 @@ TEST(arbiter_test, arbiter_passes_moves_from_one_player_another) {
     
     getline(black_in, line);
     EXPECT_STREQ(line.c_str(), "uci");
+    getline(black_in, line);
     getline(black_in, line);
     EXPECT_STREQ(line.c_str(), "ucinewgame");
     getline(black_in, line);

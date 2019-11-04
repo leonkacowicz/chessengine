@@ -16,7 +16,7 @@ public:
     color player_color;
     player(color c, std::ostream& in, std::istream& out): player_color(c), in(in), out(out) {}
 
-    void start_player() {
+    void start_player(const std::string & options) {
         in << "uci" << std::endl;
         std::string line;
         do {
@@ -24,6 +24,8 @@ public:
             if (!line.empty())
                 std::cout << "[DEBUG] [WHITE] " << line << std::endl;
         } while (line != "uciok");
+
+        in << options << std::endl;
     }
 
     void start_game() {
@@ -50,6 +52,10 @@ public:
             << " winc " << white_increment.count()
             << " binc " << black_increment.count()
             << std::endl;
+    }
+
+    void calculate_next_move(std::chrono::milliseconds movetime) {
+        in << "go movetime " << movetime.count() << std::endl;
     }
 
     std::string get_next_move() {
