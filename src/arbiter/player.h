@@ -16,13 +16,16 @@ public:
     color player_color;
     player(color c, std::ostream& in, std::istream& out): player_color(c), in(in), out(out) {}
 
+    #define LOG_DEBUG(x) std::cout << "[DEBUG] [" << (player_color == WHITE ? "WHITE" : "BLACK") << "] " << x << std::endl
+
     void start_player(const std::string & options) {
         in << "uci" << std::endl;
+        in.flush();
         std::string line;
         do {
             getline(out, line);
             if (!line.empty())
-                std::cout << "[DEBUG] [WHITE] " << line << std::endl;
+                LOG_DEBUG(line);
         } while (line != "uciok");
 
         in << options << std::endl;
@@ -52,10 +55,12 @@ public:
             << " winc " << white_increment.count()
             << " binc " << black_increment.count()
             << std::endl;
+        in.flush();
     }
 
     void calculate_next_move(std::chrono::milliseconds movetime) {
         in << "go movetime " << movetime.count() << std::endl;
+        in.flush();
     }
 
     std::string get_next_move() {
@@ -66,20 +71,21 @@ public:
             std::getline(out, line);
 
             /*if (line.substr(0, 5) == "info ") info = line;
-            else */if (!line.empty()) std::cout << "[DEBUG] [" << (player_color == 1 ? "BLACK" : "WHITE") << "] " << line << std::endl;
+            else */if (!line.empty()) LOG_DEBUG(line);
 
             if (line.substr(0, 9) == "bestmove ") {
-                std::cout << "[DEBUG] [" << (player_color == 1 ? "BLACK" : "WHITE") << "] " << info << std::endl;
-                std::cout << "[DEBUG] [" << (player_color == 1 ? "BLACK" : "WHITE") << "] Move: " << line << std::endl;
+                //std::cout << "[DEBUG] [" << (player_color == 1 ? "BLACK" : "WHITE") << "] " << info << std::endl;
+                LOG_DEBUG(info);
+                LOG_DEBUG("Move :" << line);
                 std::stringstream ss(line.substr(9));
                 std::string bestmove;
                 ss >> bestmove;
                 return bestmove;
             }
         }
-        std::cout << "[DEBUG] [" << (player_color == 1 ? "BLACK" : "WHITE") << "] " << info << std::endl;
-        std::cout << "[DEBUG] [" << (player_color == 1 ? "BLACK" : "WHITE") << "] " << line << std::endl;
-        std::cout << "[DEBUG] [" << (player_color == 1 ? "BLACK" : "WHITE") << "] =================EOF================" << std::endl;
+        LOG_DEBUG(info);
+        LOG_DEBUG(line);
+        LOG_DEBUG("=================EOF================");
         return "(none)";
     }
 

@@ -88,3 +88,49 @@ TEST(arbiter_test, arbiter_passes_moves_from_one_player_another) {
     EXPECT_STREQ(line.substr(0, 3).c_str(), "go ");
     std::cout << line;
 }
+
+TEST(arbiter_test, test_arbitraty_initial_pos_1) {
+
+    std::stringstream white_in, white_out, black_in, black_out;
+    player white(WHITE, white_in, white_out);
+    player black(BLACK, black_in, black_out);
+    game_settings settings;
+    settings.white_settings.initial_time = 30000ms;
+    settings.white_settings.time_increment = 0ms;
+    settings.white_settings.move_time = 0ms;
+    settings.initial_position = "startpos moves e2e4 e7e5";
+
+    arbiter arb(white, black, settings);
+    white_out << "uciok" << std::endl;
+    black_out << "uciok" << std::endl;
+
+    white_out << "bestmove (none)" << std::endl;
+    arb.start_players();
+    std::string line;
+    std::getline(white_in, line);
+    EXPECT_STREQ(line.c_str(), "uci");
+    arb.start_game();
+    std::getline(white_in, line); // for empty options that are passed
+    std::getline(white_in, line);
+    EXPECT_STREQ(line.c_str(), "ucinewgame");
+    std::getline(white_in, line);
+    EXPECT_STREQ(line.c_str(), "position startpos moves e2e4 e7e5");
+    std::getline(white_in, line);
+    EXPECT_STREQ(line.substr(0, 3).c_str(), "go ");
+}
+
+TEST(test_a, test_b) {
+    std::stringstream ss("asdf bcbc lelel");
+
+    std::string line;
+    std::cout << ss.good() << "\n";
+    ss >> line;
+    std::cout << line << "\n";
+    std::cout << ss.str().substr(line.size() + 1) << "\n";
+    std::cout << ss.good() << "\n";
+    ss >> line;
+    std::cout << line << "\n";
+    std::cout << ss.good() << "\n";
+    ss >> line;
+    std::cout << line << "\n";
+}

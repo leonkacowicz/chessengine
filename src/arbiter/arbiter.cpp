@@ -17,7 +17,8 @@ arbiter::arbiter(player& white_player,
         black_increment(settings.black_settings.time_increment),
         white_move_time(settings.white_settings.move_time),
         black_move_time(settings.black_settings.move_time),
-        verbose(settings.verbose) {
+        verbose(settings.verbose),
+        initial_pos(settings.initial_position) {
 }
 
 arbiter::arbiter(player& white_player,
@@ -33,7 +34,8 @@ arbiter::arbiter(player& white_player,
         black_increment(increment),
         white_move_time(0),
         black_move_time(0),
-        verbose(verbose) {
+        verbose(verbose),
+        initial_pos("startpos") {
 }
 
 void arbiter::start_players() {
@@ -63,11 +65,54 @@ void arbiter::start_players(const std::string & white_options, const std::string
     std::cout << "[DEBUG] Engines started" << std::endl;
 }
 
-auto equals(const std::string& s) {
+constexpr auto equals(const std::string& s) {
     return [&] (const move& m) { return to_long_move(m) == s; };
 }
 
+board arbiter::get_initial_board() {
+    std::stringstream str(initial_pos);
+    std::string token;
+    str >> token;
+    board b;
+    if (token.empty() || token == "startpos") {
+        b.set_initial_position();
+    } else if (token == "fen") {
+        std::stringstream fen;
+        for (int i = 0; i < 6; i++) {
+            if (str.good()) {
+                str >> token;
+                if (i > 0) fen << " ";
+                fen << token;
+            }
+        }
+
+        b = board(fen.str());
+    } else {
+        throw std::invalid_argument("initial position provided must start with 'startpos' or 'fen'");
+    }
+    if (str.good()) {
+        str >> token;
+        if (token == "moves") while (str.good()) {
+            str >> token;
+            auto legal_moves = b.get_legal_moves(b.side_to_play);
+            auto move_found = std::find_if(legal_moves.begin(), legal_moves.end(), equals(token));
+            if (move_found == legal_moves.end()) {
+                throw std::invalid_argument("initial position provided has illegal move: " + token);
+            }
+            pgn_moves.push_back(b.move_in_pgn(*move_found, legal_moves));
+            moves.push_back(token);
+            b.make_move(*move_found);
+        }
+    }
+    return b;
+}
+
 void arbiter::start_game() {
+
+    using namespace std::chrono_literals;
+    using std::chrono::duration_cast;
+    using std::chrono::milliseconds;
+    using std::chrono::seconds;
 
     white.start_game();
     black.start_game();
@@ -79,16 +124,15 @@ void arbiter::start_game() {
     white_mutexes.has_played.lock();
     black_mutexes.has_played.lock();
 
-    std::vector<std::string> pgn_moves;
-    board b;
-    b.set_initial_position();
+    board b = get_initial_board();
 
     int i = 0;
     bool player_won[2] = {false, false};
     int half_move_clock = 0;
     board last_positions[50];
     while(true) {
-        std::cout << ++i << std::endl;
+        ++i;
+        std::cout << i << std::endl;
         if (verbose) b.print();
         mutexes& current = b.side_to_play == WHITE ? white_mutexes : black_mutexes;
         auto& current_time = b.side_to_play == WHITE ? white_time : black_time;
@@ -114,7 +158,7 @@ void arbiter::start_game() {
         auto time_before_move = std::chrono::system_clock::now();
         current.time_to_play.unlock();
         std::cout << "Wait for player move for " << move_time.count() << "ms\n";
-        if (current.has_played.try_lock_for(move_time.count() > 0 ? move_time + std::chrono::milliseconds(10) : current_time)) {
+        if (current.has_played.try_lock_for(move_time.count() > 0 ? move_time + 10ms : current_time)) {
             // all good
         } else {
             player_won[opposite(b.side_to_play)] = true;
@@ -124,7 +168,7 @@ void arbiter::start_game() {
 
         auto time_after_move = std::chrono::system_clock::now();
         if (i > 2) {
-            auto move_duration = std::chrono::duration_cast<std::chrono::milliseconds>(time_after_move - time_before_move);
+            auto move_duration = duration_cast<milliseconds>(time_after_move - time_before_move);
             std::cout << side << " took " << move_duration.count() << "ms." << std::endl;
 
             if (move_time.count() == 0) {
@@ -132,13 +176,13 @@ void arbiter::start_game() {
                 current_time += increment;
 
                 std::cout << "White time: "
-                          << std::chrono::duration_cast<std::chrono::seconds>(white_time).count() / 60 << "m "
-                          << std::chrono::duration_cast<std::chrono::seconds>(white_time).count() % 60 << "s"
+                          << duration_cast<seconds>(white_time).count() / 60 << "m "
+                          << duration_cast<seconds>(white_time).count() % 60 << "s"
                           << std::endl;
 
                 std::cout << "Black time: "
-                          << std::chrono::duration_cast<std::chrono::seconds>(black_time).count() / 60 << "m"
-                          << std::chrono::duration_cast<std::chrono::seconds>(black_time).count() % 60 << "s"
+                          << duration_cast<seconds>(black_time).count() / 60 << "m"
+                          << duration_cast<seconds>(black_time).count() % 60 << "s"
                           << std::endl;
             }
         }
