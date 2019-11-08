@@ -2,7 +2,8 @@
 // Created by leon on 2019-07-31.
 //
 
-
+#include <vector>
+#include <algorithm>
 #include <board.h>
 #include <gtest/gtest.h>
 #include <move_gen.h>

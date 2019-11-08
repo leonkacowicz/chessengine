@@ -7,32 +7,16 @@
 #include <Eigen/Eigen>
 #include <iostream>
 #include <fstream>
+#include <boost/process.hpp>
+
+struct neuralnet {
+    std::vector<Eigen::MatrixXd> matrices;
+};
 
 int main() {
     auto M = Eigen::MatrixXf::Random(2, 3);
 
 
-
-    /*
-
-        while (true) {
-            forma n pares de jogadores sem reposição
-            para cada par, roda o jogo
-
-            se o jogo terminar em vitoria, colocar o vencedor no conjunto V e o perdedor no conjunto P
-            se o jogo terminar em empate, colocar ambos no conjunto E
-
-            formar N pares de jogadores sorteando
-                - do conjunto V com probabilidade 0.70,
-                - do conjunto E com probabilidade 0.25
-                - do conjunto P com probabilidade 0.05
-
-            para cada par, fazer o cruzamento dos genes, e salvar os novos individuos
-
-            se |P| >= N, deletar N jogadores aleatórios em P do disco
-            se não, deletar todos os jogadores de P, e N - |P| jogadores aleatórios de E
-        }
-     */
 //    std::ifstream file("test.txt");
 //
 //    for (int i = 0; i < 2; i++)
@@ -52,7 +36,22 @@ int main() {
     std::cout << w << std::endl;
     Eigen::ArrayXf ones(3);
     ones << 1, 1, 1;
-
     std::cout << (w.array() < 1).matrix().cast<double>() * 5.1 << std::endl;
 
+    boost::process::ipstream pipe_stream;
+    boost::process::opstream input;
+    boost::process::child ls("cat -n", boost::process::std_out > pipe_stream, boost::process::std_in < input);
+
+    input << "hello world\nhello!!";
+    input.flush();
+    input.close();
+    input.pipe().close();
+    std::string line;
+//    pipe_stream >> line;
+    while (pipe_stream.good() && std::getline(pipe_stream, line) && !line.empty()) {
+        std::cout << line << std::endl;
+    }
+//    std::cout << line << std::endl;
+    ls.wait();
+    std::cout << "finished\n";
 }

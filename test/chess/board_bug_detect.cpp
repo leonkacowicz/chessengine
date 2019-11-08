@@ -9,6 +9,7 @@
 #include <board.h>
 #include <fen.h>
 #include <move_gen.h>
+#include <random>
 
 TEST(board_test, bug_detector) {
     print_bb(0);
