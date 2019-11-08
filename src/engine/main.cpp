@@ -66,8 +66,8 @@ int main()
     chess::core::init_magic_bitboards();
     zobrist::init();
 
-    std::unique_ptr<evaluator> eval;
-    std::unique_ptr<engine> eng;
+    std::unique_ptr<evaluator> eval = std::make_unique<static_evaluator>();
+    std::unique_ptr<engine> eng = std::make_unique<engine>(*eval.get());
     board b;
     b.set_initial_position();
     while (!std::cin.eof()) {
@@ -77,6 +77,11 @@ int main()
 
         if (words[0] == "uci") {
             std::cout << "uciok" << std::endl;
+            std::cout.flush();
+            continue;
+        } else if (words[0] == "ready") {
+            std::cout << "readyok" << std::endl;
+            std::cout.flush();
             continue;
         } else if (words[0] == "position") {
             if (words[1] == "startpos") {
@@ -92,6 +97,7 @@ int main()
                 std::cout << "info calculating move time for " << cmd.move_time.count() << "ms\n";
                 auto selected_move = eng->timed_search(b, cmd.move_time);
                 std::cout << "bestmove " << to_long_move(selected_move) << std::endl;
+                std::cout.flush();
             }
         } else if (words[0] == "print") {
             b.print();
@@ -100,6 +106,7 @@ int main()
             std::ifstream ifs(words[4]);
             eval = std::make_unique<nn_eval>(ifs);
             eng = std::make_unique<engine>(*eval.get());
+            std::cout.flush();
         }
     }
     return 0;

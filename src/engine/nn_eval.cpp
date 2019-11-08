@@ -45,7 +45,7 @@ int nn_eval::eval(const board& b) {
     DEBUG(std::cout << "M: \n" << matrices.back() << std::endl);
     DEBUG(std::cout << "v: \n" << v.transpose() << std::endl);
 
-    return std::min(std::max(int((matrices.back() * v)[0]), -10000), 10000);
+    return std::min(std::max(int(10000 * (matrices.back() * v)[0]), -10000), 10000);
 }
 
 void nn_eval::fill_input_vector(const board& b) {
