@@ -1,14 +1,10 @@
 add_subdirectory(chess)
-
 add_subdirectory(engine)
-
-
 add_subdirectory(arbiter)
-
+add_subdirectory(engine_optimizer)
+add_subdirectory(neuralnet)
 
 include(ExternalProject)
-
-
 ExternalProject_Add(
         eigen_ext
         URL https://github.com/eigenteam/eigen-git-mirror/archive/master.zip
@@ -18,6 +14,3 @@ ExternalProject_Add(
         INSTALL_COMMAND ""
         LOG_DOWNLOAD ON
         LOG_CONFIGURE ON)
-find_package (Eigen3 3.3 REQUIRED NO_MODULE)
-
-add_subdirectory(engine_optimizer)

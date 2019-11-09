@@ -1,0 +1,6 @@
+file(GLOB SRCS *.cpp)
+add_executable(test_lib_neuralnet ${SRCS})
+target_link_libraries(test_lib_neuralnet lib_neuralnet)
+target_link_libraries(test_lib_neuralnet libgtest)
+target_link_libraries(test_lib_neuralnet libgmock)
+add_test(NAME lib_neuralnet_tests COMMAND test_lib_neuralnet)

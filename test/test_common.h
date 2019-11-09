@@ -1,7 +1,3 @@
-//
-// Created by leonkaco on 7/23/19.
-//
-
 #ifndef CHESSENGINE_TEST_COMMON_H
 #define CHESSENGINE_TEST_COMMON_H
 #include <gtest/gtest.h>

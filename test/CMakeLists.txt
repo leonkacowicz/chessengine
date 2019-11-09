@@ -43,3 +43,4 @@ include_directories("${source_dir}/googletest/include"
 add_subdirectory(chess)
 add_subdirectory(engine)
 add_subdirectory(arbiter)
+add_subdirectory(neuralnet)
