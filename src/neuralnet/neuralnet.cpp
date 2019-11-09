@@ -1,7 +1,9 @@
 #include <fstream>
 #include "neuralnet.h"
 
-chess::neural::neuralnet::neuralnet(std::istream& fin) {
+namespace chess { namespace neural {
+
+neuralnet::neuralnet(std::istream& fin) {
     int num_layers;
     fin >> num_layers;
     while (num_layers--) {
@@ -15,7 +17,11 @@ chess::neural::neuralnet::neuralnet(std::istream& fin) {
     }
 }
 
-Eigen::VectorXd chess::neural::neuralnet::operator()(const Eigen::VectorXd& input_vector) {
+neuralnet::neuralnet(const std::vector<Eigen::MatrixXd>& matrices) : matrices(matrices) {
+
+}
+
+Eigen::VectorXd neuralnet::operator()(const Eigen::VectorXd& input_vector) {
     Eigen::VectorXd v(input_vector.size() + 1);
     v << 1, input_vector;
 
@@ -27,3 +33,13 @@ Eigen::VectorXd chess::neural::neuralnet::operator()(const Eigen::VectorXd& inpu
 
     return matrices.back() * v;
 }
+
+void neuralnet::output_to_stream(std::ostream&& os) const {
+    os << matrices.size() << std::endl;
+    for (auto& matrix : matrices) {
+        os << matrix.rows() << " " << matrix.cols() << std::endl;
+        os << matrix << std::endl;
+    }
+}
+
+}}

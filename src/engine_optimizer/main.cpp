@@ -2,30 +2,18 @@
 #include <iostream>
 #include <fstream>
 #include <boost/process.hpp>
+#include <neuralnet.h>
 
-struct neuralnet {
-    std::vector<Eigen::MatrixXd> matrices;
-
-    void save_to_file(const std::string& filename) const {
-        std::ofstream ofs(filename);
-        ofs << matrices.size() << std::endl;
-        for (auto& matrix : matrices) {
-            ofs << matrix.rows() << " " << matrix.cols() << std::endl;
-            ofs << matrix << std::endl;
-        }
-    }
-};
+using chess::neural::neuralnet;
 
 neuralnet random_net() {
-    neuralnet nn;
-    nn.matrices.push_back(Eigen::MatrixXd::Random(6, 833) * 100);
-    nn.matrices.push_back(Eigen::MatrixXd::Random(1, 7));
+    neuralnet nn({Eigen::MatrixXd::Random(6, 833), Eigen::MatrixXd::Random(1, 7)});
     return nn;
 }
 
 int main() {
-    random_net().save_to_file("test_white.txt");
-    random_net().save_to_file("test_black.txt");
+    random_net().output_to_stream(std::ofstream("test_white.txt"));
+    random_net().output_to_stream(std::ofstream("test_black.txt"));
 
     std::ofstream white_options("white_options.txt");
     white_options << "setoption name evaluator value test_white.txt";

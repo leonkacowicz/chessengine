@@ -14,3 +14,11 @@ ExternalProject_Add(
         INSTALL_COMMAND ""
         LOG_DOWNLOAD ON
         LOG_CONFIGURE ON)
+
+ExternalProject_Add (ep_boost
+        URL https://dl.bintray.com/boostorg/release/1.71.0/source/boost_1_71_0.tar.bz2
+        CONFIGURE_COMMAND ./bootstrap.sh --with-libraries=all
+        BUILD_COMMAND ./b2 link=static
+        BUILD_IN_SOURCE 1
+        INSTALL_COMMAND ""
+        )

@@ -10,8 +10,11 @@ namespace chess {
             std::vector<Eigen::MatrixXd> matrices;
         public:
             neuralnet(std::istream&);
+            neuralnet(const std::vector<Eigen::MatrixXd>&);
             Eigen::VectorXd operator()(const Eigen::VectorXd&);
+            void output_to_stream(std::ostream&& os) const;
         };
+
     }
 }
 

@@ -1,11 +1,11 @@
 file(GLOB SRCS *.cpp *.h)
+list(REMOVE_ITEM SRCS main.cpp)
 add_library(engine STATIC ${SRCS})
-target_link_libraries(engine chess)
 target_include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-
-find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+target_link_libraries(engine chess)
 target_link_libraries(engine Eigen3::Eigen)
 target_link_libraries(engine Threads::Threads)
+target_link_libraries(engine lib_neuralnet)
 
 add_executable(chessengine main.cpp)
 target_link_libraries(chessengine engine)
