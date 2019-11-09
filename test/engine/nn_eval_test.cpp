@@ -9,12 +9,14 @@
 
 TEST(evaluator_test, test_single_matrix) {
     board b;
+    b.set_king_position(WHITE, SQ_E1);
+    b.set_king_position(BLACK, SQ_E8);
     b.put_piece(PAWN, WHITE, SQ_A1);
 
     std::stringstream ss;
     ss << "1\n";
     ss << "1 833\n";
-    ss << "0 5";
+    ss << "0 .0005";
     for (int i = 0; i < 831; i++) ss << " 0";
 
     nn_eval e(ss);
@@ -33,7 +35,7 @@ TEST(evaluator_test, two_matrices) {
     ss << "5 833\n";
     ss << Eigen::MatrixXd::Random(5, 833);
     ss << "\n1 6\n";
-    ss << Eigen::MatrixXd::Random(1, 6) * 1000;
+    ss << Eigen::MatrixXd::Random(1, 6) * 0.1;
     std::cout << ss.str() << "\n\n=============\n";
     nn_eval e(ss);
     int evaluation = e.eval(b);
@@ -53,7 +55,7 @@ TEST(evaluator_test, three_matrices) {
     ss << "\n10 21\n";
     ss << Eigen::MatrixXd::Random(10, 21);
     ss << "\n1 11\n";
-    ss << Eigen::MatrixXd::Random(1, 11) * 1000;
+    ss << Eigen::MatrixXd::Random(1, 11) * .1;
     nn_eval e(ss);
     int evaluation = e.eval(b);
 

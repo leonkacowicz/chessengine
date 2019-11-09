@@ -16,6 +16,8 @@
 constexpr int INPUT_SIZE = 832;
 constexpr int en_passant_offset = 64 * 12;
 constexpr int castling_rights_offset = en_passant_offset + 8;
+constexpr int turn_offset = castling_rights_offset + 4;
+constexpr int in_check_offset = turn_offset + 1;
 
 class nn_eval : public evaluator {
 
