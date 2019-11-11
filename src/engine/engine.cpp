@@ -56,6 +56,7 @@ int engine::search_root(const board& b, int depth, int alpha, int beta) {
     if (tt.load(hash, depth, alpha, beta, &node)) {
         bestmove = node.bestmove;
     }
+    move current_bestmove = bestmove;
     auto legal_moves = get_move_scores(b, 0, move_gen(b).generate(), bestmove);
     int val;
     int best = -1;
@@ -82,7 +83,7 @@ int engine::search_root(const board& b, int depth, int alpha, int beta) {
         }
         if (val > alpha) {
             best = i;
-            bestmove = m;
+            current_bestmove = m;
             if (val > beta) {
                 tt.save(hash, depth, beta, BETA, m);
                 log_score(b, beta);
@@ -95,6 +96,7 @@ int engine::search_root(const board& b, int depth, int alpha, int beta) {
         }
     }
     assert(best > -1);
+    bestmove = current_bestmove;
     tt.save(hash, depth, alpha, EXACT, bestmove);
     return alpha;
 }
