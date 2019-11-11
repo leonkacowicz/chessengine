@@ -53,11 +53,11 @@ int engine::search_root(const board& b, int depth, int alpha, int beta) {
     if (time_over) return 0;
     uint64_t hash = zobrist::hash(b, 0);
     tt_node node;
-    if (tt.load(hash, depth, alpha, beta, &node)) {
-        bestmove = node.bestmove;
-    }
     move current_bestmove = bestmove;
-    auto legal_moves = get_move_scores(b, 0, move_gen(b).generate(), bestmove);
+    if (tt.load(hash, depth, alpha, beta, &node)) {
+        current_bestmove = node.bestmove;
+    }
+    auto legal_moves = get_move_scores(b, 0, move_gen(b).generate(), current_bestmove);
     int val;
     int best = -1;
     int bestval = -INF;

@@ -83,10 +83,10 @@ int get_score(const neuralnet nn1, const neuralnet nn2) {
                            "--verbose",
                            "--white-exec", "../engine/chessengine",
                            "--white-input", "white_options.txt",
-                           "--white-move-time", "500",
+                           "--white-move-time", "100",
                            "--black-exec", "../engine/chessengine",
                            "--black-input", "black_options.txt",
-                           "--black-move-time", "500",
+                           "--black-move-time", "100",
                            boost::process::std_out > out
     );
 
@@ -102,9 +102,9 @@ int get_score(const neuralnet nn1, const neuralnet nn2) {
 
 int main() {
     int population = 4;
-    int num_generations = 10;
+    int num_generations = 15;
 
-    path workdir("/home/leon/workdir");
+    path workdir("workdir");
     path first_gen(workdir);
     first_gen /= "gen0";
     if (!boost::filesystem::is_directory(first_gen)) {
