@@ -92,13 +92,23 @@ int get_score(const neuralnet nn1, const neuralnet nn2) {
     );
 
     std::string line;
-    while (c.running() && out.good() && std::getline(out, line)) {
+    while (out.good() && !out.eof() && std::getline(out, line)) {
         std::cout << line << std::endl;
-        if (line == "1-0") return 1;
-        else if (line == "0-1") return -1;
-        else if (line == "1/2-1/2") return 0;
+        if (line == "1-0") {
+            c.wait();
+            return 1;
+        }
+        else if (line == "0-1") {
+            c.wait();
+            return -1;
+        }
+        else if (line == "1/2-1/2") {
+            c.wait();
+            return 0;
+        }
     }
     c.wait();
+    return 0;
 }
 
 int main() {
