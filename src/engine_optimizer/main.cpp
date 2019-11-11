@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <random>
 #include <boost/filesystem.hpp>
 #include <boost/process.hpp>
 #include <Eigen/Core>
