@@ -4,6 +4,7 @@
 #include <mutex>
 #include <board.h>
 #include <algorithm>
+#include <move_gen.h>
 #include "arbiter.h"
 
 arbiter::arbiter(player& white_player,
@@ -94,7 +95,7 @@ board arbiter::get_initial_board() {
         str >> token;
         if (token == "moves") while (str.good()) {
             str >> token;
-            auto legal_moves = b.get_legal_moves(b.side_to_play);
+            auto legal_moves = move_gen(b).generate();
             auto move_found = std::find_if(legal_moves.begin(), legal_moves.end(), equals(token));
             if (move_found == legal_moves.end()) {
                 throw std::invalid_argument("initial position provided has illegal move: " + token);
@@ -129,7 +130,7 @@ void arbiter::start_game() {
     int i = 0;
     bool player_won[2] = {false, false};
     int half_move_clock = 0;
-    board last_positions[50];
+    board last_positions[100];
     while(true) {
         ++i;
         std::cout << i << std::endl;
@@ -142,7 +143,7 @@ void arbiter::start_game() {
         color side_color  = b.side_to_play;
         std::string side(b.side_to_play == WHITE ? "White" : "Black");
 
-        const std::vector<move> legal_moves = b.get_legal_moves(side_color);
+        const std::vector<move> legal_moves = move_gen(b).generate();
         if (legal_moves.empty()) {
             bool check = b.under_check(side_color);
             std::cout << side << " under check? " << check << std::endl;
@@ -193,7 +194,7 @@ void arbiter::start_game() {
             else half_move_clock++;
             pgn_moves.push_back(b.move_in_pgn(*move_found, legal_moves));
             b.make_move(*move_found);
-            if (half_move_clock >= 50) {
+            if (half_move_clock >= 100) {
                 std::cout << "DRAW BY 50-move RULE" << std::endl;
                 break;
             } else {
