@@ -5,6 +5,7 @@
 #include <board.h>
 #include <magic_bitboard.h>
 #include <fstream>
+#include <move_gen.h>
 #include "engine.h"
 #include "uci.h"
 #include "static_evaluator.h"
@@ -45,7 +46,7 @@ board handle_position_cmd(const std::vector<string>& words) {
         auto iter = std::find(words.begin(), words.end(), "moves");
         if (iter == words.end()) return b;
         while (++iter != words.end()) {
-            auto moves = b.get_legal_moves(b.side_to_play);
+            auto moves = move_gen(b).generate();
             auto move_found = std::find_if(moves.begin(), moves.end(), [&] (const move& m) {
                 return to_long_move(m) == *iter;
             });
@@ -90,7 +91,7 @@ int main()
             continue;
         } else if (words[0] == "go") {
             uci_go_cmd cmd(words);
-            if (b.get_legal_moves(b.side_to_play).empty()) {
+            if (move_gen(b).generate().empty()) {
                 std::cerr << "no legal move found to be searched" << std::endl;
                 std::cout << "bestmove (none)" << std::endl;
             } else {
