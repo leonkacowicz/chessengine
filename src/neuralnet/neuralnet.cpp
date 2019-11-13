@@ -50,9 +50,11 @@ Eigen::VectorXd neuralnet::operator()(const Eigen::VectorXd& input_vector) {
     v << 1, input_vector;
 
     for (int i = 0; i < matrices.size() - 1; i++) {
-        Eigen::VectorXd w(matrices[i].rows() + 1);
+        auto rows = matrices[i].rows() + 1;
+        Eigen::VectorXd w(rows);
         w << 1, matrices[i] * v;
-        v = (w.array() > 0).matrix().cast<double>();
+        v = w;
+        for (int j = 0; j < rows; j++) if (w(j) < 0) w(j) = 0;
     }
 
     return matrices.back() * v;

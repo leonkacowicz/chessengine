@@ -4,18 +4,30 @@
 #include <boost/filesystem.hpp>
 #include <boost/process.hpp>
 #include <Eigen/Core>
+#include <Eigen/Dense>
 #include <neuralnet.h>
 
 using chess::neural::neuralnet;
 using boost::filesystem::path;
+
+const std::vector<int> layers{832, 25, 15, 1};
 
 std::random_device rd;
 std::mt19937 mt(rd());
 std::uniform_int_distribution<int> rand_dist;
 
 neuralnet random_net() {
-    neuralnet nn({Eigen::MatrixXd::Random(50, 833), Eigen::MatrixXd::Random(1, 51) / 10});
-    return nn;
+    std::normal_distribution dis(0.0, 1.0);
+    std::vector<Eigen::MatrixXd> matrices;
+    matrices.reserve(layers.size());
+
+    for (int i = 1; i < layers.size(); i++) {
+        int rows = layers[i], cols = layers[i - 1] + 1;
+        Eigen::MatrixXd M = Eigen::MatrixXd::Zero(rows, cols);
+        for (int row = 0; row < rows; row++) for (int col = 0; col < cols; col++) M(row, col) = dis(mt) / 50;
+        matrices.push_back(M);
+    }
+    return neuralnet(matrices);
 }
 
 int num_files_with_extension(const std::string& ext, const path& location) {
@@ -67,7 +79,7 @@ void swap(Eigen::VectorXd& v1, Eigen::VectorXd& v2) {
     }
 }
 
-int get_score(const neuralnet nn1, const neuralnet nn2) {
+int get_score(const neuralnet& nn1, const neuralnet& nn2) {
     nn1.output_to_stream(std::ofstream("white.txt"));
     nn2.output_to_stream(std::ofstream("black.txt"));
 
@@ -169,16 +181,11 @@ int main() {
                 Eigen::VectorXd child1_vec = parent1_vec;
                 Eigen::VectorXd child2_vec = parent2_vec;
                 int size = child1_vec.size();
-                int mid = size / 2;
-                for (int i = mid; i < size; i++) {
-                    child1_vec(i) = parent2_vec(i);
-                    child2_vec(i) = parent1_vec(i);
-                    if (rand_dist(mt) % 1000 == 0) {
-                        child1_vec(i) = flip_random_bit(child1_vec(i));
-                    }
-                    if (rand_dist(mt) % 1000 == 0) {
-                        child2_vec(i) = flip_random_bit(child2_vec(i));
-                    }
+                for (int i = 0; i < size; i++) {
+                    if (rand_dist(mt) % 2 == 0) child1_vec(i) = parent2_vec(i);
+                    if (rand_dist(mt) % 2 == 0) child2_vec(i) = parent1_vec(i);
+                    if (rand_dist(mt) % 1000 == 0) child1_vec(i) = flip_random_bit(child1_vec(i));
+                    if (rand_dist(mt) % 1000 == 0) child2_vec(i) = flip_random_bit(child2_vec(i));
                 }
 
                 if ((child1_vec - parent1_vec).squaredNorm() + (child2_vec - parent2_vec).squaredNorm() >
@@ -188,27 +195,31 @@ int main() {
 
                 {
                     int score1 = 0;
-                    neuralnet child1_nn({832, 50, 1}, child1_vec);
+                    neuralnet child1_nn(layers, child1_vec);
 
                     if (rand_dist(mt) % 2 == 0) score1 = get_score(parent1_nn, child1_nn);
                     else score1 = -get_score(child1_nn, parent1_nn);
 
                     if (score1 >= 0) {
+                        std::cout << "[OPTIMIZER] parent won!" << std::endl;
                         write_nn_to_file(parent1_nn, next_gen_path);
                     } else {
+                        std::cout << "[OPTIMIZER] child won!" << std::endl;
                         write_nn_to_file(child1_nn, next_gen_path);
                     }
                 }
                 {
                     int score2 = 0;
-                    neuralnet child2_nn({832, 50, 1}, child2_vec);
+                    neuralnet child2_nn(layers, child2_vec);
 
                     if (rand_dist(mt) % 2 == 0) score2 = get_score(parent2_nn, child2_nn);
                     else score2 = -get_score(child2_nn, parent2_nn);
 
                     if (score2 >= 0) {
+                        std::cout << "[OPTIMIZER] parent won!" << std::endl;
                         write_nn_to_file(parent2_nn, next_gen_path);
                     } else {
+                        std::cout << "[OPTIMIZER] child won!" << std::endl;
                         write_nn_to_file(child2_nn, next_gen_path);
                     }
                 }
@@ -217,29 +228,4 @@ int main() {
             }
         }
     }
-
-    std::exit(0);
-    random_net().output_to_stream(std::ofstream("test_white.txt"));
-    random_net().output_to_stream(std::ofstream("test_black.txt"));
-
-    std::ofstream white_options("white_options.txt");
-    white_options << "setoption name evaluator value test_white.txt";
-    white_options.close();
-
-    std::ofstream black_options("black_options.txt");
-    black_options << "setoption name evaluator value test_black.txt";
-    black_options.close();
-
-//    generate_random_population(0, "~/workdir");
-
-    boost::process::system("../arbiter/chessarbiter",
-            "--verbose",
-            "--white-exec", "../engine/chessengine",
-            "--white-input", "white_options.txt",
-            "--white-move-time", "500",
-            "--black-exec", "../engine/chessengine",
-            "--black-input", "black_options.txt",
-            "--black-move-time", "500"
-    );
-
 }
