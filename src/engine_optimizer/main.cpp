@@ -10,7 +10,7 @@
 using chess::neural::neuralnet;
 using boost::filesystem::path;
 
-const std::vector<int> layers{832, 25, 15, 1};
+const std::vector<int> layers{832, 1};
 
 std::random_device rd;
 std::mt19937 mt(rd());
@@ -28,6 +28,22 @@ neuralnet random_net() {
         matrices.push_back(M);
     }
     return neuralnet(matrices);
+}
+
+std::pair<path, path> get_random_parents(const std::string& ext, const path& location) {
+    std::vector<path> paths;
+    boost::filesystem::directory_iterator enditer;
+    for (boost::filesystem::directory_iterator iter(location); iter != enditer; iter++) {
+        if (iter->path().extension() == ext) paths.push_back(iter->path());
+    }
+
+    auto num_files = paths.size();
+    assert(num_files >= 2);
+    int parent1_idx = rand_dist(mt) % num_files;
+    int parent2_idx = rand_dist(mt) % num_files;
+    while (parent1_idx == parent2_idx) parent2_idx = rand_dist(mt) % num_files;
+
+    return std::make_pair(paths[parent1_idx], paths[parent2_idx]);
 }
 
 int num_files_with_extension(const std::string& ext, const path& location) {
@@ -65,7 +81,7 @@ double flip_random_bit(double x) {
         uint64_t mask = 1uL << uint64_t(rand_dist(mt) % 64);
         *z ^= mask;
         double ret = *((double*) z);
-        if (!(std::isnan(ret) || std::isinf(ret) || std::abs(ret) > 10 * std::abs(x)))
+        if (!(std::isnan(ret) || std::isinf(ret) || std::abs(ret) > double(10000.0)))
             return ret;
     }
 }
@@ -157,18 +173,15 @@ int main() {
         while (true) {
             int num_files = num_files_with_extension(".txt", current_gen_path);
             if (num_files >= 2) {
-                boost::filesystem::directory_iterator end_iter;
-                boost::filesystem::directory_iterator iter(current_gen_path);
-                while (iter->path().extension() != ".txt") ++iter;
-                auto parent1 = *iter++;
-                while (iter->path().extension() != ".txt") ++iter;
-                auto parent2 = *iter;
+                auto parents = get_random_parents(".txt", current_gen_path);
+                auto parent1 = parents.first;
+                auto parent2 = parents.second;
 
-                boost::filesystem::rename(parent1.path(), path(current_gen_processed_path) /= parent1.path().filename());
-                boost::filesystem::rename(parent2.path(), path(current_gen_processed_path) /= parent2.path().filename());
+                boost::filesystem::rename(parent1, path(current_gen_processed_path) /= parent1.filename());
+                boost::filesystem::rename(parent2, path(current_gen_processed_path) /= parent2.filename());
 
-                path parent1_path(current_gen_processed_path); parent1_path /= parent1.path().filename();
-                path parent2_path(current_gen_processed_path); parent2_path /= parent2.path().filename();
+                path parent1_path(current_gen_processed_path); parent1_path /= parent1.filename();
+                path parent2_path(current_gen_processed_path); parent2_path /= parent2.filename();
 
                 std::ifstream parent1_ifs(parent1_path.string());
                 std::ifstream parent2_ifs(parent2_path.string());
