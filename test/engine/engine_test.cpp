@@ -63,3 +63,48 @@ TEST(engine_test, engine_should_find_mate_in_5ply) {
 
     ASSERT_EQ(m, get_move(SQ_B7, SQ_F7));
 }
+
+class zero_eval : public evaluator {
+    int eval(const board& b) override {
+        return 0;
+    }
+};
+
+TEST(engine_test, engine_should_stick_to_mate1) {
+    //1. e4 g6 2. Bc4 d5 3. Bxd5 Qxd5 4. d4 Qxe4+ 5. Kf1 a6
+    //6. Qe2 Qxe2+ 7. Nxe2 e5 8. Bf4 Bb4 9. Bxe5 h5 10. Nb1c3 Ne7
+    //11. Nb5 axb5 12. f4 Rh7 13. Nc3 Bxc3 14. Bd6 Nb8c6 15. Bxe7 Nxe7
+    //16. Re1 Bxb2 17. Rxe7+ Kxe7 18. f5 Ra5 19. g4 Kf8 20. h3 Rg7
+    //21. Rh2 Bc3 22. Re2 Bb4 23. Re8+ Kxe8 24. Kf2 hxg4 25. hxg4 Rxa2
+    //26. Kg1 Ra1+ 27. Kf2 Ra2 28. Kf3 Kf8 29. c4 Ra3+ 30. Ke2 Ra2+
+    //31. Kf1 Rh7 32. Kg1 Rc2 33. cxb5 Rh4 34. b6 Rxg4+ 35. Kf1 Re4
+    //36. f6 Re1#
+    //0-1
+
+    board b("2b2k2/1pp2p2/1P3Pp1/8/1b1Pr3/8/2r5/5K2 b - - 0 36");
+    zero_eval eval;
+    engine e(eval);
+
+    move m = e.search_iterate(b);
+    ASSERT_EQ(m, get_move(SQ_E4, SQ_E1));
+}
+
+//
+TEST(engine_test, engine_should_stick_to_mate2) {
+    //1. e4 g6 2. Bc4 d5 3. Bxd5 Qxd5 4. d4 Qxe4+ 5. Kf1 a6
+    //6. Qe2 Qxe2+ 7. Nxe2 e5 8. Bf4 Bb4 9. Bxe5 h5 10. Nb1c3 Ne7
+    //11. Nb5 axb5 12. f4 Rh7 13. Nc3 Bxc3 14. Bd6 Nb8c6 15. Bxe7 Nxe7
+    //16. Re1 Bxb2 17. Rxe7+ Kxe7 18. f5 Ra5 19. g4 Kf8 20. h3 Rg7
+    //21. Rh2 Bc3 22. Re2 Bb4 23. Re8+ Kxe8 24. Kf2 hxg4 25. hxg4 Rxa2
+    //26. Kg1 Ra1+ 27. Kf2 Ra2 28. Kf3 Kf8 29. c4 Ra3+ 30. Ke2 Ra2+
+    //31. Kf1 Rh7 32. Kg1 Rc2 33. cxb5 Rh4 34. b6 Rxg4+ 35. Kf1 Re4
+    //36. f6 Re1#
+    //0-1
+
+    board b("2b2k2/1pp2p2/1P4p1/5P2/1b1P2r1/8/2r5/5K2 b - - 1 35");
+    zero_eval eval;
+    engine e(eval);
+
+    move m = e.search_iterate(b);
+    ASSERT_TRUE(m == get_move(SQ_G4, SQ_E4) || get_move(SQ_G4, SQ_D4));
+}

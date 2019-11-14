@@ -36,6 +36,7 @@ move engine::search_iterate(const board& b) {
     int val = search_root(b, current_depth, -INF, +INF);
 
     for (current_depth = 2; current_depth <= max_depth; current_depth++) {
+        if (val > MATE - 100) return bestmove;
         val = search_widen(b, current_depth, val);
     }
     return bestmove;
@@ -54,7 +55,7 @@ int engine::search_root(const board& b, int depth, int alpha, int beta) {
     uint64_t hash = zobrist::hash(b, 0);
     tt_node node;
     move current_bestmove = bestmove;
-    if (tt.load(hash, depth, alpha, beta, &node)) {
+    if (tt.load(hash, depth, alpha, beta, &node) && node.type == EXACT) {
         current_bestmove = node.bestmove;
     }
     auto legal_moves = get_move_scores(b, 0, move_gen(b).generate(), current_bestmove);
