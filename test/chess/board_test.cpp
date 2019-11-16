@@ -150,107 +150,129 @@ TEST(legal_moves_king, king_e5) {
 TEST(legal_moves_rook, rook_a1) {
     for (color c : {WHITE, BLACK}) {
         board b;
-        square pos = SQ_A1;
-        b.put_piece(ROOK, c, pos);
+        square king = SQ_H8;
+        square rook = SQ_A1;
+        b.set_king_position(c, king);
+        b.put_piece(ROOK, c, rook);
         auto moves = b.get_legal_moves(c);
         list_moves(moves);
-        ASSERT_CONTAINS(moves, get_move(pos, "a2"));
-        ASSERT_CONTAINS(moves, get_move(pos, "a3"));
-        ASSERT_CONTAINS(moves, get_move(pos, "a4"));
-        ASSERT_CONTAINS(moves, get_move(pos, "a5"));
-        ASSERT_CONTAINS(moves, get_move(pos, "a6"));
-        ASSERT_CONTAINS(moves, get_move(pos, "a7"));
-        ASSERT_CONTAINS(moves, get_move(pos, "a8"));
-        ASSERT_CONTAINS(moves, get_move(pos, "b1"));
-        ASSERT_CONTAINS(moves, get_move(pos, "c1"));
-        ASSERT_CONTAINS(moves, get_move(pos, "d1"));
-        ASSERT_CONTAINS(moves, get_move(pos, "e1"));
-        ASSERT_CONTAINS(moves, get_move(pos, "f1"));
-        ASSERT_CONTAINS(moves, get_move(pos, "g1"));
-        ASSERT_CONTAINS(moves, get_move(pos, "h1"));
-        ASSERT_EQ(moves.size(), 14);
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_A2));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_A3));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_A4));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_A5));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_A6));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_A7));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_A8));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_B1));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_C1));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_D1));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_E1));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_F1));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_G1));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_H1));
+        ASSERT_CONTAINS(moves, get_move(king, SQ_H7));
+        ASSERT_CONTAINS(moves, get_move(king, SQ_G8));
+        ASSERT_CONTAINS(moves, get_move(king, SQ_G7));
+        ASSERT_EQ(moves.size(), 17);
     }
 }
 
 TEST(legal_moves_rook, rook_a8) {
     for (color c : {WHITE, BLACK}) {
         board b;
-        square pos = SQ_A8;
-        b.put_piece(ROOK, c, pos);
+        square king = SQ_H1;
+        square rook = SQ_A8;
+        b.set_king_position(c, king);
+        b.put_piece(ROOK, c, rook);
         auto moves = b.get_legal_moves(c);
         list_moves(moves);
-        ASSERT_CONTAINS(moves, get_move(pos, "a2"));
-        ASSERT_CONTAINS(moves, get_move(pos, "a3"));
-        ASSERT_CONTAINS(moves, get_move(pos, "a4"));
-        ASSERT_CONTAINS(moves, get_move(pos, "a5"));
-        ASSERT_CONTAINS(moves, get_move(pos, "a6"));
-        ASSERT_CONTAINS(moves, get_move(pos, "a7"));
-        ASSERT_CONTAINS(moves, get_move(pos, "a1"));
-        ASSERT_CONTAINS(moves, get_move(pos, "b8"));
-        ASSERT_CONTAINS(moves, get_move(pos, "c8"));
-        ASSERT_CONTAINS(moves, get_move(pos, "d8"));
-        ASSERT_CONTAINS(moves, get_move(pos, "e8"));
-        ASSERT_CONTAINS(moves, get_move(pos, "f8"));
-        ASSERT_CONTAINS(moves, get_move(pos, "g8"));
-        ASSERT_CONTAINS(moves, get_move(pos, "h8"));
-        ASSERT_EQ(moves.size(), 14);
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_A2));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_A3));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_A4));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_A5));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_A6));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_A7));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_A1));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_B8));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_C8));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_D8));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_E8));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_F8));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_G8));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_H8));
+        ASSERT_CONTAINS(moves, get_move(king, SQ_H2));
+        ASSERT_CONTAINS(moves, get_move(king, SQ_G1));
+        ASSERT_CONTAINS(moves, get_move(king, SQ_G2));
+        ASSERT_EQ(moves.size(), 17);
     }
 }
 
 TEST(legal_moves_rook, rook_h8) {
     for (color c : {WHITE, BLACK}) {
         board b;
-        square pos = SQ_H8;
-        b.put_piece(ROOK, c, pos);
+        square king = SQ_A1;
+        square rook = SQ_H8;
+        b.set_king_position(c, king);
+        b.put_piece(ROOK, c, rook);
         auto moves = b.get_legal_moves(c);
         list_moves(moves);
-        ASSERT_CONTAINS(moves, get_move(pos, "h2"));
-        ASSERT_CONTAINS(moves, get_move(pos, "h3"));
-        ASSERT_CONTAINS(moves, get_move(pos, "h4"));
-        ASSERT_CONTAINS(moves, get_move(pos, "h5"));
-        ASSERT_CONTAINS(moves, get_move(pos, "h6"));
-        ASSERT_CONTAINS(moves, get_move(pos, "h7"));
-        ASSERT_CONTAINS(moves, get_move(pos, "a8"));
-        ASSERT_CONTAINS(moves, get_move(pos, "b8"));
-        ASSERT_CONTAINS(moves, get_move(pos, "c8"));
-        ASSERT_CONTAINS(moves, get_move(pos, "d8"));
-        ASSERT_CONTAINS(moves, get_move(pos, "e8"));
-        ASSERT_CONTAINS(moves, get_move(pos, "f8"));
-        ASSERT_CONTAINS(moves, get_move(pos, "g8"));
-        ASSERT_CONTAINS(moves, get_move(pos, "h1"));
-        ASSERT_EQ(moves.size(), 14);
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_H2));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_H3));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_H4));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_H5));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_H6));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_H7));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_A8));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_B8));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_C8));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_D8));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_E8));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_F8));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_G8));
+        ASSERT_CONTAINS(moves, get_move(rook, SQ_H1));
+        ASSERT_CONTAINS(moves, get_move(king, SQ_A2));
+        ASSERT_CONTAINS(moves, get_move(king, SQ_B1));
+        ASSERT_CONTAINS(moves, get_move(king, SQ_B2));
+        ASSERT_EQ(moves.size(), 17);
     }
 }
 
 TEST(legal_moves_rook, rook_h1) {
     for (color c : {WHITE, BLACK}) {
         board b;
+        square king = SQ_A8;
         square pos = SQ_H1;
+        b.set_king_position(c, king);
         b.put_piece(ROOK, c, pos);
         auto moves = b.get_legal_moves(c);
         list_moves(moves);
-        ASSERT_CONTAINS(moves, get_move(pos, "h2"));
-        ASSERT_CONTAINS(moves, get_move(pos, "h3"));
-        ASSERT_CONTAINS(moves, get_move(pos, "h4"));
-        ASSERT_CONTAINS(moves, get_move(pos, "h5"));
-        ASSERT_CONTAINS(moves, get_move(pos, "h6"));
-        ASSERT_CONTAINS(moves, get_move(pos, "h7"));
-        ASSERT_CONTAINS(moves, get_move(pos, "h8"));
-        ASSERT_CONTAINS(moves, get_move(pos, "a1"));
-        ASSERT_CONTAINS(moves, get_move(pos, "b1"));
-        ASSERT_CONTAINS(moves, get_move(pos, "c1"));
-        ASSERT_CONTAINS(moves, get_move(pos, "d1"));
-        ASSERT_CONTAINS(moves, get_move(pos, "e1"));
-        ASSERT_CONTAINS(moves, get_move(pos, "f1"));
-        ASSERT_CONTAINS(moves, get_move(pos, "g1"));
-        ASSERT_EQ(moves.size(), 14);
+        ASSERT_CONTAINS(moves, get_move(pos, SQ_H2));
+        ASSERT_CONTAINS(moves, get_move(pos, SQ_H3));
+        ASSERT_CONTAINS(moves, get_move(pos, SQ_H4));
+        ASSERT_CONTAINS(moves, get_move(pos, SQ_H5));
+        ASSERT_CONTAINS(moves, get_move(pos, SQ_H6));
+        ASSERT_CONTAINS(moves, get_move(pos, SQ_H7));
+        ASSERT_CONTAINS(moves, get_move(pos, SQ_H8));
+        ASSERT_CONTAINS(moves, get_move(pos, SQ_A1));
+        ASSERT_CONTAINS(moves, get_move(pos, SQ_B1));
+        ASSERT_CONTAINS(moves, get_move(pos, SQ_C1));
+        ASSERT_CONTAINS(moves, get_move(pos, SQ_D1));
+        ASSERT_CONTAINS(moves, get_move(pos, SQ_E1));
+        ASSERT_CONTAINS(moves, get_move(pos, SQ_F1));
+        ASSERT_CONTAINS(moves, get_move(pos, SQ_G1));
+        ASSERT_CONTAINS(moves, get_move(king, SQ_A7));
+        ASSERT_CONTAINS(moves, get_move(king, SQ_G8));
+        ASSERT_CONTAINS(moves, get_move(king, SQ_G7));
+        ASSERT_EQ(moves.size(), 17);
     }
 }
 
 TEST(legal_moves_rook, rook_d4) {
     for (color c : {WHITE, BLACK}) {
         board b;
+        square king = SQ_A1;
         square pos = SQ_D4;
+        b.set_king_position(c, king);
         b.put_piece(ROOK, c, pos);
         auto moves = b.get_legal_moves(c);
         list_moves(moves);
@@ -268,6 +290,10 @@ TEST(legal_moves_rook, rook_d4) {
         ASSERT_CONTAINS(moves, get_move(pos, "f4"));
         ASSERT_CONTAINS(moves, get_move(pos, "g4"));
         ASSERT_CONTAINS(moves, get_move(pos, "h4"));
+        ASSERT_CONTAINS(moves, get_move(king, SQ_A2));
+        ASSERT_CONTAINS(moves, get_move(king, SQ_B2));
+        ASSERT_CONTAINS(moves, get_move(king, SQ_B1));
+
         ASSERT_EQ(moves.size(), 14);
     }
 }
@@ -497,7 +523,7 @@ TEST(board_test, assert_its_checkmate) {
     ASSERT_TRUE(moves.empty());
 }
 
-TEST(board_test, 1b4n1_p2b4_1k3pR1_3P1n1p_1PB2P1P_8_PB2P1N1_RN2K3__w__Q_____1__51) {
+TEST(board_test, _1b4n1_p2b4_1k3pR1_3P1n1p_1PB2P1P_8_PB2P1N1_RN2K3__w__Q_____1__51) {
 
     // play 51 should not be legal:
     // 1. Nf3  d5 2. Na3  Be6 3. h4  Qd7 4. b4  Bf5 5. Ng1  Qc6 6. c3  Qd7 7. Nb1  g5
