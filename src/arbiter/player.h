@@ -29,7 +29,7 @@ public:
         } while (line != "uciok");
 
         in << options << std::endl;
-        in << "ready" << std::endl;
+        in << "isready" << std::endl;
         in.flush();
         while (out.good() && std::getline(out, line) && line != "readyok") {
             LOG_DEBUG(line);

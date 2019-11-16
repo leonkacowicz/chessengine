@@ -2,8 +2,7 @@
 #include <string>
 #include <memory>
 #include <algorithm>
-#include <board.h>
-#include <magic_bitboard.h>
+#include <core.h>
 #include <fstream>
 #include <move_gen.h>
 #include "engine.h"
@@ -63,9 +62,7 @@ board handle_position_cmd(const std::vector<string>& words) {
 
 int main()
 {
-    chess::core::init_bitboards();
-    chess::core::init_magic_bitboards();
-    zobrist::init();
+    chess::core::init();
 
     std::unique_ptr<evaluator> eval = std::make_unique<static_evaluator>();
     std::unique_ptr<engine> eng = std::make_unique<engine>(*eval.get());
@@ -80,7 +77,7 @@ int main()
             std::cout << "uciok" << std::endl;
             std::cout.flush();
             continue;
-        } else if (words[0] == "ready") {
+        } else if (words[0] == "isready") {
             std::cout << "readyok" << std::endl;
             std::cout.flush();
             continue;

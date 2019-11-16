@@ -7,21 +7,24 @@ TEST(neuralnet, neuralnet_happycase_test) {
     std::stringstream in;
     std::vector<int> layers;
 
+    auto M1 = Eigen::MatrixXd::Random(6, input_size + 1);
+    auto M2 = Eigen::MatrixXd::Random(4, 7);
+    auto M3 = Eigen::MatrixXd::Random(2, 5);
+    auto v = Eigen::VectorXd::Random(input_size);
+
     in << "3" << std::endl;
-    in << "6 " << (input_size + 1) << std::endl;
-    in << Eigen::MatrixXd::Random(6, input_size + 1) << std::endl;
-    in << "4 7" << std::endl;
-    in << Eigen::MatrixXd::Random(4, 7) << std::endl;
-    in << "2 5" << std::endl;
-    in << Eigen::MatrixXd::Random(2, 5) << std::endl;
+    in << M1.rows() << " " << M1.cols() << std::endl;
+    in << M1 << std::endl;
+    in << M2.rows() << " " << M2.cols() << std::endl;
+    in << M2 << std::endl;
+    in << M3.rows() << " " << M3.cols() << std::endl;
+    in << M3 << std::endl;
 
     chess::neural::neuralnet n(in);
 
-    auto v = Eigen::VectorXd::Random(input_size);
-
     auto y = n(v);
-    ASSERT_DOUBLE_EQ(y[0], 0.0580645);
-    ASSERT_DOUBLE_EQ(y[1], 0.055746);
+    ASSERT_DOUBLE_EQ(y[0], -1.1361272071026871);
+    ASSERT_DOUBLE_EQ(y[1], 11.493079511952136);
 }
 
 TEST(neuralnet, neuralnet_from_matrices) {
@@ -37,8 +40,8 @@ TEST(neuralnet, neuralnet_from_matrices) {
     auto v = Eigen::VectorXd::Random(input_size);
 
     auto y = n(v);
-    ASSERT_DOUBLE_EQ(y[0], 0.058064354144997998);
-    ASSERT_DOUBLE_EQ(y[1], 0.055746152557314521);
+    ASSERT_DOUBLE_EQ(y[0], -1.1361282966429407);
+    ASSERT_DOUBLE_EQ(y[1], 11.493079379636622);
 }
 
 TEST(neuralnet, to_vector_from_vector) {
@@ -57,6 +60,6 @@ TEST(neuralnet, to_vector_from_vector) {
 
     auto y = n2(v);
 
-    ASSERT_DOUBLE_EQ(y[0], 0.058064354144997998);
-    ASSERT_DOUBLE_EQ(y[1], 0.055746152557314521);
+    ASSERT_DOUBLE_EQ(y[0], -1.1361282966429407);
+    ASSERT_DOUBLE_EQ(y[1], 11.493079379636622);
 }

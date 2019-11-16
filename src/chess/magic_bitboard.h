@@ -37,9 +37,4 @@ namespace chess {
     }
 }
 
-class magic_bitboard {
-
-};
-
-
 #endif //CHESSENGINE_MAGIC_BITBOARD_H

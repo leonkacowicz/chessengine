@@ -1,7 +1,7 @@
 #include <fstream>
 #include "neuralnet.h"
 
-namespace chess { namespace neural {
+using namespace chess::neural;
 
 neuralnet::neuralnet(std::istream& fin) {
     int num_layers;
@@ -97,4 +97,3 @@ Eigen::VectorXd neuralnet::to_eigen_vector() const {
     }
     return ret;
 }
-}}

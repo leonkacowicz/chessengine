@@ -8,6 +8,18 @@
 
 using namespace std;
 
+void expect_line(std::istream& stream, const std::string& expected) {
+    std::string actual;
+    while (std::getline(stream, actual) && actual.empty());
+    EXPECT_EQ(expected, actual);
+}
+
+void expect_line_starting_with(std::istream& stream, const std::string& expected) {
+    std::string actual;
+    while (std::getline(stream, actual) && actual.empty());
+    EXPECT_EQ(expected, actual.substr(0, expected.size()));
+}
+
 TEST(arbiter_test, arbiter_can_start_players) {
 
     std::stringstream white_in, white_out, black_in, black_out("uciok\n");
@@ -21,12 +33,8 @@ TEST(arbiter_test, arbiter_can_start_players) {
     arb.start_players("", "");
     arb.start_game();
 
-    std::string line;
-    getline(white_in, line);
-    EXPECT_STREQ(line.c_str(), "uci");
-
-    getline(black_in, line);
-    EXPECT_STREQ(line.c_str(), "uci");
+    expect_line(white_in, "uci");
+    expect_line(black_in, "uci");
 }
 
 TEST(arbiter_test, arbiter_passes_moves_from_one_player_another) {
@@ -36,11 +44,13 @@ TEST(arbiter_test, arbiter_passes_moves_from_one_player_another) {
     player black(color::BLACK, black_in, black_out);
 
     white_out << "uciok" << std::endl;
+    white_out << "readyok" << std::endl;
     white_out << "bestmove e2e4" << std::endl;
     white_out << "bestmove a2a4" << std::endl;
     white_out << "bestmove h2h4" << std::endl;
 
     black_out << "uciok" << std::endl;
+    black_out << "readyok" << std::endl;
     black_out << "bestmove e7e5" << std::endl;
     black_out << "bestmove a7a5" << std::endl;
     black_out << "bestmove (none)" << std::endl;
@@ -50,43 +60,25 @@ TEST(arbiter_test, arbiter_passes_moves_from_one_player_another) {
     arb.start_players();
     arb.start_game();
 
-    std::string line;
-    getline(white_in, line);
-    EXPECT_STREQ(line.c_str(), "uci");
-    getline(white_in, line); // for empty options that are passed
-    getline(white_in, line);
-    EXPECT_STREQ(line.c_str(), "ucinewgame");
-    getline(white_in, line);
-    EXPECT_STREQ(line.c_str(), "position startpos");
-    getline(white_in, line);
-    EXPECT_STREQ(line.substr(0, 3).c_str(), "go ");
-    getline(white_in, line);
-    EXPECT_STREQ(line.c_str(), "position startpos moves e2e4 e7e5");
-    getline(white_in, line);
-    EXPECT_STREQ(line.substr(0, 3).c_str(), "go ");
-    getline(white_in, line);
-    EXPECT_STREQ(line.c_str(), "position startpos moves e2e4 e7e5 a2a4 a7a5");
-    getline(white_in, line);
-    EXPECT_STREQ(line.substr(0, 3).c_str(), "go ");
-    
-    getline(black_in, line);
-    EXPECT_STREQ(line.c_str(), "uci");
-    getline(black_in, line);
-    getline(black_in, line);
-    EXPECT_STREQ(line.c_str(), "ucinewgame");
-    getline(black_in, line);
-    EXPECT_STREQ(line.c_str(), "position startpos moves e2e4");
-    getline(black_in, line);
-    EXPECT_STREQ(line.substr(0, 3).c_str(), "go ");
-    getline(black_in, line);
-    EXPECT_STREQ(line.c_str(), "position startpos moves e2e4 e7e5 a2a4");
-    getline(black_in, line);
-    EXPECT_STREQ(line.substr(0, 3).c_str(), "go ");
-    getline(black_in, line);
-    EXPECT_STREQ(line.c_str(), "position startpos moves e2e4 e7e5 a2a4 a7a5 h2h4");
-    getline(black_in, line);
-    EXPECT_STREQ(line.substr(0, 3).c_str(), "go ");
-    std::cout << line;
+    expect_line(white_in, "uci");
+    expect_line(white_in, "isready");
+    expect_line(white_in, "ucinewgame");
+    expect_line(white_in, "position startpos");
+    expect_line_starting_with(white_in, "go ");
+    expect_line(white_in, "position startpos moves e2e4 e7e5");
+    expect_line_starting_with(white_in, "go ");
+    expect_line(white_in, "position startpos moves e2e4 e7e5 a2a4 a7a5");
+    expect_line_starting_with(white_in, "go ");
+
+    expect_line(black_in, "uci");
+    expect_line(black_in, "isready");
+    expect_line(black_in, "ucinewgame");
+    expect_line(black_in, "position startpos moves e2e4");
+    expect_line_starting_with(black_in, "go ");
+    expect_line(black_in, "position startpos moves e2e4 e7e5 a2a4");
+    expect_line_starting_with(black_in, "go ");
+    expect_line(black_in, "position startpos moves e2e4 e7e5 a2a4 a7a5 h2h4");
+    expect_line_starting_with(black_in, "go ");
 }
 
 TEST(arbiter_test, test_arbitraty_initial_pos_1) {
@@ -101,22 +93,19 @@ TEST(arbiter_test, test_arbitraty_initial_pos_1) {
     settings.initial_position = "startpos moves e2e4 e7e5";
 
     arbiter arb(white, black, settings);
-    white_out << "uciok" << std::endl;
-    black_out << "uciok" << std::endl;
+    white_out << "uciok" << std::endl
+              << "readyok" << std::endl;
+    black_out << "uciok" << std::endl
+              << "readyok" << std::endl;
 
     white_out << "bestmove (none)" << std::endl;
     arb.start_players();
-    std::string line;
-    std::getline(white_in, line);
-    EXPECT_STREQ(line.c_str(), "uci");
+    expect_line(white_in, "uci");
+    expect_line(white_in, "isready");
     arb.start_game();
-    std::getline(white_in, line); // for empty options that are passed
-    std::getline(white_in, line);
-    EXPECT_STREQ(line.c_str(), "ucinewgame");
-    std::getline(white_in, line);
-    EXPECT_STREQ(line.c_str(), "position startpos moves e2e4 e7e5");
-    std::getline(white_in, line);
-    EXPECT_STREQ(line.substr(0, 3).c_str(), "go ");
+    expect_line(white_in, "ucinewgame");
+    expect_line(white_in, "position startpos moves e2e4 e7e5");
+    expect_line_starting_with(white_in, "go ");
 }
 
 TEST(test_a, test_b) {
