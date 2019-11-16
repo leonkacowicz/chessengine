@@ -16,6 +16,7 @@ using std::endl;
 
 bool board::under_check(color c) const {
     square sq = king_pos[c];
+    if (sq == SQ_NONE) return false;
     bitboard king = get_bb(sq);
     bitboard their_piece = piece_of_color[opposite(c)];
     bitboard any_piece = piece_of_color[BLACK] | piece_of_color[WHITE];

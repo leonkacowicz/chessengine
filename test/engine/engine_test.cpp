@@ -9,20 +9,20 @@
 #include <fen.h>
 #include <static_evaluator.h>
 
-TEST(engine_test, engine_call) {
-    board b;
-    b.set_initial_position();
-    b.make_move(SQ_E2, SQ_E4);
-    static_evaluator eval;
-    engine e(eval);
-    for (int i = 1; i < 2; i++) {
-        std::cout << i << ".\n\n";
-        auto m = e.search_iterate(b);
-        if (move_type(m) == NULL_MOVE) break;
-        b.make_move(m);
-        b.print();
-    }
-}
+//TEST(engine_test, engine_call) {
+//    board b;
+//    b.set_initial_position();
+//    b.make_move(SQ_E2, SQ_E4);
+//    static_evaluator eval;
+//    engine e(eval);
+//    for (int i = 1; i < 2; i++) {
+//        std::cout << i << ".\n\n";
+//        auto m = e.search_iterate(b);
+//        if (move_type(m) == NULL_MOVE) break;
+//        b.make_move(m);
+//        b.print();
+//    }
+//}
 
 TEST(engine_test, engine_should_find_mate_in_one) {
     board b("6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - -");
@@ -62,6 +62,16 @@ TEST(engine_test, engine_should_find_mate_in_5ply) {
     move m = e.search_iterate(b);
 
     ASSERT_EQ(m, get_move(SQ_B7, SQ_F7));
+}
+
+TEST(engine_test, engine_should_find_mate_in_8ply) {
+    board b("8/5p2/2p5/2p2kpK/2R1p1N1/3NP3/2P5/5B2 w - - 0 1");
+    static_evaluator eval;
+    engine e(eval);
+
+    move m = e.search_iterate(b);
+
+    ASSERT_EQ(m, get_move(SQ_D3, SQ_C5));
 }
 
 class zero_eval : public evaluator {

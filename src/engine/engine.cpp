@@ -36,7 +36,7 @@ move engine::search_iterate(const board& b) {
     int val = search_root(b, current_depth, -INF, +INF);
 
     for (current_depth = 2; current_depth <= max_depth; current_depth++) {
-        if (val > MATE - 100) return bestmove;
+        if (val >= MATE - current_depth) return bestmove;
         val = search_widen(b, current_depth, val);
     }
     return bestmove;
