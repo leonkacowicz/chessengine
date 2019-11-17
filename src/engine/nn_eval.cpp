@@ -15,7 +15,7 @@ nn_eval::nn_eval(std::istream& fin): net(fin) {
 
 int nn_eval::eval(const board& b) {
     fill_input_vector(b);
-    return std::min(std::max(int(10000 * (net(input_vector))[0]), -10000), 10000);
+    return std::min(std::max(int(10000 * ((net(input_vector))[0] - .5)), -10000), 10000);
 }
 
 void nn_eval::fill_input_vector(const board& b) {

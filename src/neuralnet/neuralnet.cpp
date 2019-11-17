@@ -46,18 +46,15 @@ neuralnet::neuralnet(const std::vector<int>& layer_sizes, const Eigen::VectorXd&
 }
 
 Eigen::VectorXd neuralnet::operator()(const Eigen::VectorXd& input_vector) {
-    Eigen::VectorXd v(input_vector.size() + 1);
-    v << 1, input_vector;
-
-    for (int i = 0; i < matrices.size() - 1; i++) {
-        auto rows = matrices[i].rows() + 1;
-        Eigen::VectorXd w(rows);
-        w << 1, matrices[i] * v;
-        v = w;
-        for (int j = 0; j < rows; j++) if (w(j) < 0) w(j) = 0;
+    Eigen::VectorXd v(input_vector);
+    for (auto& M : matrices) {
+        auto size = M.cols();
+        Eigen::VectorXd w(size);
+        w << 1, v;
+        v = M * w;
+        for (int j = 0; j < v.size(); j++) v[j] = 1 / (1 + std::exp(-v[j]));
     }
-
-    return matrices.back() * v;
+    return v;
 }
 
 void neuralnet::output_to_stream(std::ostream&& os) const {
