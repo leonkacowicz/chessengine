@@ -19,6 +19,7 @@ struct game_settings {
     player_settings white_settings;
     player_settings black_settings;
     std::string initial_position;
+    std::string output_location;
     bool valid;
     bool verbose;
 };

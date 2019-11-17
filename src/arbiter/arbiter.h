@@ -27,6 +27,8 @@ class arbiter {
     std::chrono::milliseconds white_move_time;
     std::chrono::milliseconds black_move_time;
 
+    const std::string output_file;
+
     player& white;
     player& black;
     std::thread white_thread;

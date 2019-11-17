@@ -19,6 +19,7 @@ arbiter::arbiter(player& white_player,
         white_move_time(settings.white_settings.move_time),
         black_move_time(settings.black_settings.move_time),
         verbose(settings.verbose),
+        output_file(settings.output_location),
         initial_pos(settings.initial_position) {
 }
 
@@ -227,16 +228,22 @@ void arbiter::start_game() {
     black_thread.join();
 
     int k = 0;
+    std::stringstream pgn_output;
+    if (!output_file.empty());
     for (auto move = begin(pgn_moves); move != end(pgn_moves); move++) {
-        if (k % 10 == 0) std::cout << std::endl;
-        if (k % 2 == 0) std::cout << k/2 + 1 << ". ";
-        std::cout << *move << " ";
+        if (k % 10 == 0 && k > 0) pgn_output << std::endl;
+        if (k % 2 == 0) pgn_output << k/2 + 1 << ". ";
+        pgn_output << *move << " ";
         k++;
     }
-    if (player_won[WHITE]) std::cout << "\n1-0";
-    else if (player_won[BLACK]) std::cout << "\n0-1";
-    else std::cout << "\n1/2-1/2";
-    std::cout << std::endl;
+    if (player_won[WHITE]) pgn_output << "\n1-0";
+    else if (player_won[BLACK]) pgn_output << "\n0-1";
+    else pgn_output << "\n1/2-1/2";
+    pgn_output << std::endl;
+    std::cout << pgn_output.str();
+    if (!output_file.empty()) {
+        std::ofstream(output_file) << pgn_output.str();
+    }
 }
 
 void arbiter::player_loop(player& p, mutexes &m) {

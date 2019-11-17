@@ -26,6 +26,7 @@ game_settings parse_cmd_line(int argc, char** argv) {
                 ("black-init-time", value<int>()->default_value(0), "initial time for black in milliseconds")
                 ("black-move-time", value<int>()->default_value(0), "move time for white in milliseconds")
                 ("black-time-increment", value<int>()->default_value(0), "time increment per move for black in milliseconds")
+                ("output", value<std::string>()->default_value(""), "location of pgn output file")
                 ("initial-pos", value<std::string>()->default_value("startpos"),
                  "string representing initial position either as 'startpos moves e2e4 e7e5 ...' or as 'fen fen-value moves m1 m2'")
                 ("verbose", "enables verbose mode");
@@ -38,6 +39,7 @@ game_settings parse_cmd_line(int argc, char** argv) {
         if (variables.count("white-exec") == 0 || variables.count("black-exec") == 0)
             throw std::logic_error("white-exec and black-exec parameters are required");
         gs.verbose = variables.count("verbose") > 0;
+        gs.output_location = variables["output"].as<std::string>();
         gs.initial_position = variables["initial-pos"].as<std::string>();
         gs.white_settings.executable = variables["white-exec"].as<std::string>();
         gs.white_settings.input_filename = variables["white-input"].as<std::string>();
