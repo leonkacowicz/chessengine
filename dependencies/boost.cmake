@@ -1,14 +1,17 @@
 include(ExternalProject)
+
+list(APPEND libs "filesystem" "program_options")
+list(JOIN libs "," libs_comma_separated)
 ExternalProject_Add(boost_external
         PREFIX ${CMAKE_BINARY_DIR}/external
         URL https://dl.bintray.com/boostorg/release/1.71.0/source/boost_1_71_0.tar.bz2
-        CONFIGURE_COMMAND ./bootstrap.sh --with-libraries=all
+        CONFIGURE_COMMAND ./bootstrap.sh --with-libraries=${libs_comma_separated}
         BUILD_COMMAND ./b2 link=static
         BUILD_IN_SOURCE 1
         INSTALL_COMMAND ""
         )
 
-foreach(lib "filesystem" "program_options")
+foreach(lib ${libs})
     set(libname "boost_${lib}")
     message("Adding ${libname}")
     add_library(${libname} IMPORTED STATIC GLOBAL)

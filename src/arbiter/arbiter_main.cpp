@@ -1,58 +1,62 @@
 #include <iostream>
-#include <bitboard.h>
-#include <magic_bitboard.h>
+#include <boost/program_options.hpp>
+#include <core.h>
 #include "settings.h"
 #include "process.h"
 #include "player.h"
 #include "arbiter.h"
 
-game_settings parse_cmd_line(int argc, char ** argv) {
+game_settings parse_cmd_line(int argc, char** argv) {
+    using namespace boost::program_options;
+    using std::chrono::milliseconds;
+
     game_settings gs = {};
     gs.valid = false;
-
-    for (int i = 1; i < argc - 1; i++) {
-        std::string current(argv[i]);
-        std::string next(argv[i + 1]);
-
-        try {
-            if (current == "--white-exec") gs.white_settings.executable = next;
-            else if (current == "--white-input") gs.white_settings.input_filename = next;
-            else if (current == "--white-init-time") gs.white_settings.initial_time = std::chrono::milliseconds(std::stoi(next));
-            else if (current == "--white-time-increment") gs.white_settings.time_increment = std::chrono::milliseconds(std::stoi(next));
-            else if (current == "--white-move-time") gs.white_settings.move_time = std::chrono::milliseconds(std::stoi(next));
-            else if (current == "--black-exec") gs.black_settings.executable = next;
-            else if (current == "--black-input") gs.black_settings.input_filename = next;
-            else if (current == "--black-init-time") gs.black_settings.initial_time = std::chrono::milliseconds(std::stoi(next));
-            else if (current == "--black-time-increment") gs.black_settings.time_increment = std::chrono::milliseconds(std::stoi(next));
-            else if (current == "--black-move-time") gs.black_settings.move_time = std::chrono::milliseconds(std::stoi(next));
-            else if (current == "--initial-pos") gs.initial_position = next;
-            else if (current == "--verbose") { gs.verbose = true; continue; }
-            else return gs;
-            i++;
-        } catch (std::invalid_argument & e) {
-            return gs;
+    try {
+        options_description options;
+        options.add_options()
+                ("help,h", "print usage message")
+                ("white-exec", value<std::string>()->required(), "[REQUIRED] path to engine executable that will play with white pieces")
+                ("white-input", value<std::string>()->default_value(""), "path to white options input file")
+                ("white-init-time", value<int>()->default_value(0), "initial time for white in milliseconds")
+                ("white-move-time", value<int>()->default_value(0), "move time for white in milliseconds")
+                ("white-time-increment", value<int>()->default_value(0), "time increment per move for white in milliseconds")
+                ("black-exec", value<std::string>()->required(), "[REQUIRED] path to engine executable that will play with black pieces")
+                ("black-input", value<std::string>()->default_value(""), "path to black options input file")
+                ("black-init-time", value<int>()->default_value(0), "initial time for black in milliseconds")
+                ("black-move-time", value<int>()->default_value(0), "move time for white in milliseconds")
+                ("black-time-increment", value<int>()->default_value(0), "time increment per move for black in milliseconds")
+                ("initial-pos", value<std::string>()->default_value("startpos"),
+                 "string representing initial position either as 'startpos moves e2e4 e7e5 ...' or as 'fen fen-value moves m1 m2'")
+                ("verbose", "enables verbose mode");
+        variables_map variables;
+        store(parse_command_line(argc, argv, options), variables);
+        if (variables.count("help")) {
+            std::cout << options << std::endl;
+            std::exit(0);
         }
-    }
-    gs.valid = true;
-    return gs;
-}
+        if (variables.count("white-exec") == 0 || variables.count("black-exec") == 0)
+            throw std::logic_error("white-exec and black-exec parameters are required");
+        gs.verbose = variables.count("verbose") > 0;
+        gs.initial_position = variables["initial-pos"].as<std::string>();
+        gs.white_settings.executable = variables["white-exec"].as<std::string>();
+        gs.white_settings.input_filename = variables["white-input"].as<std::string>();
+        gs.white_settings.initial_time = milliseconds(variables["white-init-time"].as<int>());
+        gs.white_settings.move_time = milliseconds(variables["white-move-time"].as<int>());
+        gs.white_settings.time_increment = milliseconds(variables["white-time-increment"].as<int>());
 
-void print_usage() {
-    std::cout << "Chess Arbiter" << std::endl;
-    std::cout << "Usage: chessarbiter OPTIONS " << std::endl << std::endl;
-    std::cout << "     --white-exec                path to white pieces engine executable" << std::endl;
-    std::cout << "     --white-input               [optional] path to white engine input options file" << std::endl;
-    std::cout << "     --white-init-time           [optional] initial white time in milliseconds" << std::endl;
-    std::cout << "     --white-time-increment      [optional] white time increment per move in milliseconds" << std::endl;
-    std::cout << "     --white-move-time           [optional] white time per move in milliseconds" << std::endl;
-    std::cout << "     --black-exec                path to black pieces engine executable" << std::endl;
-    std::cout << "     --black-input               [optional] path to black engine input options file" << std::endl;
-    std::cout << "     --black-init-time           [optional] initial black time in milliseconds" << std::endl;
-    std::cout << "     --black-time-increment      [optional] black time increment per move in milliseconds" << std::endl;
-    std::cout << "     --black-move-time           [optional] black time per move in milliseconds" << std::endl;
-    std::cout << "     --initial-pos               [optional] initial position in fen notation or in list of moves since start position" << std::endl;
-    std::cout << "     --verbose                   [optional] enables verbose mode" << std::endl;
-    std::cout << std::endl;
+        gs.black_settings.executable = variables["black-exec"].as<std::string>();
+        gs.black_settings.input_filename = variables["black-input"].as<std::string>();
+        gs.black_settings.initial_time = milliseconds(variables["black-init-time"].as<int>());
+        gs.black_settings.move_time = milliseconds(variables["black-move-time"].as<int>());
+        gs.black_settings.time_increment = milliseconds(variables["black-time-increment"].as<int>());
+
+        gs.valid = true;
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+        std::cerr << "run  `chessarbiter --help` for more info" << std::endl;
+    }
+    return gs;
 }
 
 void print_settings(const game_settings& gs) {
@@ -70,25 +74,17 @@ void print_settings(const game_settings& gs) {
     std::cout << "     --initial-pos             = " << gs.initial_position << std::endl;
 }
 
-std::string file_contents(const std::string & filepath) {
+std::string file_contents(const std::string& filepath) {
     if (filepath.empty()) return "";
     std::ifstream t(filepath);
     return std::string((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
 }
 
-int main(int argc, char ** argv) {
-    chess::core::init_bitboards();
-    chess::core::init_magic_bitboards();
-
+int main(int argc, char** argv) {
+    chess::core::init();
     const game_settings& settings = parse_cmd_line(argc, argv);
-    if (!settings.valid) {
-        print_usage();
-        return 1;
-    }
-
-    if (settings.verbose) {
-        print_settings(settings);
-    }
+    if (!settings.valid) return 1;
+    if (settings.verbose) print_settings(settings);
 
     process white_proc(settings.white_settings.executable);
     process black_proc(settings.black_settings.executable);

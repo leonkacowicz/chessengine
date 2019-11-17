@@ -18,8 +18,7 @@ std::vector<string> split(const string& input, const string& delimiter = " ") {
     auto end = input.find(delimiter);
     auto delim_len = delimiter.length();
     std::vector<string> ret;
-    while (end != std::string::npos)
-    {
+    while (end != std::string::npos) {
         ret.push_back(input.substr(start, end - start));
         start = end + delim_len;
         end = input.find(delimiter, start);
@@ -63,7 +62,6 @@ board handle_position_cmd(const std::vector<string>& words) {
 int main()
 {
     chess::core::init();
-
     std::unique_ptr<evaluator> eval = std::make_unique<static_evaluator>();
     std::unique_ptr<engine> eng = std::make_unique<engine>(*eval.get());
     board b;

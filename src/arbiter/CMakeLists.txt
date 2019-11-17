@@ -5,3 +5,4 @@ target_link_libraries(arbiter chess)
 
 add_executable(chessarbiter arbiter_main.cpp)
 target_link_libraries(chessarbiter arbiter)
+target_link_libraries(chessarbiter boost_program_options)
