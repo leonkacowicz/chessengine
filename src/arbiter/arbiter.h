@@ -20,6 +20,7 @@ struct mutexes {
 
 class arbiter {
     const std::string initial_pos;
+    std::string initial_pos_fen;
     std::chrono::milliseconds white_time;
     std::chrono::milliseconds black_time;
     std::chrono::milliseconds white_increment;

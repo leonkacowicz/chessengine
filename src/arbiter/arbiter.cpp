@@ -87,8 +87,8 @@ board arbiter::get_initial_board() {
                 fen << token;
             }
         }
-
-        b = board(fen.str());
+        initial_pos_fen = fen.str();
+        b = board(initial_pos_fen);
     } else {
         throw std::invalid_argument("initial position provided must start with 'startpos' or 'fen'");
     }
@@ -229,7 +229,11 @@ void arbiter::start_game() {
 
     int k = 0;
     std::stringstream pgn_output;
-    if (!output_file.empty());
+
+    if (!initial_pos_fen.empty()) {
+        pgn_output << "[FEN \"" << initial_pos_fen << "\"]" << std::endl << std::endl;
+    }
+
     for (auto move = begin(pgn_moves); move != end(pgn_moves); move++) {
         if (k % 10 == 0 && k > 0) pgn_output << std::endl;
         if (k % 2 == 0) pgn_output << k/2 + 1 << ". ";
@@ -257,7 +261,7 @@ void arbiter::player_loop(player& p, mutexes &m) {
             break;
         }
         //std::cout << "Time for player " << p.player_color << " to play" << std::endl;
-        p.set_position(moves);
+        p.set_position(moves, initial_pos_fen);
         p.calculate_next_move(white_time, black_time, white_increment, black_increment);
         std::string player_move = p.get_next_move();
         moves.push_back(player_move);
@@ -278,7 +282,7 @@ void arbiter::player_loop(player& p, mutexes &m, std::chrono::milliseconds move_
             break;
         }
         //std::cout << "Time for player " << p.player_color << " to play" << std::endl;
-        p.set_position(moves);
+        p.set_position(moves, initial_pos_fen);
         p.calculate_next_move(move_time);
         std::string player_move = p.get_next_move();
         moves.push_back(player_move);

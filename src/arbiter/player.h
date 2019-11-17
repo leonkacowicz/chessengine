@@ -8,17 +8,18 @@
 #include <color.h>
 #include <chrono>
 
+#define LOG_DEBUG(x) std::cout << "[DEBUG] [" << (player_color == WHITE ? "WHITE" : "BLACK") << "] " << x << std::endl
+
 class player {
     std::ostream& in;
     std::istream& out;
 
 public:
     color player_color;
-    player(color c, std::ostream& in, std::istream& out): player_color(c), in(in), out(out) {}
 
-    #define LOG_DEBUG(x) std::cout << "[DEBUG] [" << (player_color == WHITE ? "WHITE" : "BLACK") << "] " << x << std::endl
+    player(color c, std::ostream& in, std::istream& out) : player_color(c), in(in), out(out) {}
 
-    void start_player(const std::string & options) {
+    void start_player(const std::string& options) {
         in << "uci" << std::endl;
         in.flush();
         std::string line;
@@ -27,8 +28,7 @@ public:
             if (!line.empty())
                 LOG_DEBUG(line);
         } while (line != "uciok");
-
-        in << options << std::endl;
+        if (!options.empty()) in << options << std::endl;
         in << "isready" << std::endl;
         in.flush();
         while (out.good() && std::getline(out, line) && line != "readyok") {
@@ -41,8 +41,12 @@ public:
         in << "ucinewgame" << std::endl;
     }
 
-    void set_position(const std::vector<std::string>& moves) {
-        in << "position startpos";
+    void set_position(const std::vector<std::string>& moves, const std::string& fen = "") {
+        if (fen.empty())
+            in << "position startpos";
+        else
+            in << "position fen " << fen;
+
         if (!moves.empty()) {
             in << " moves";
             for (auto move = begin(moves); move != end(moves); move++) {
@@ -57,10 +61,10 @@ public:
                              std::chrono::milliseconds white_increment,
                              std::chrono::milliseconds black_increment) {
         in << "go wtime " << white_time.count()
-            << " btime " << black_time.count()
-            << " winc " << white_increment.count()
-            << " binc " << black_increment.count()
-            << std::endl;
+           << " btime " << black_time.count()
+           << " winc " << white_increment.count()
+           << " binc " << black_increment.count()
+           << std::endl;
         in.flush();
     }
 
@@ -80,7 +84,6 @@ public:
             else */if (!line.empty()) LOG_DEBUG(line);
 
             if (line.substr(0, 9) == "bestmove ") {
-                //std::cout << "[DEBUG] [" << (player_color == 1 ? "BLACK" : "WHITE") << "] " << info << std::endl;
                 LOG_DEBUG(info);
                 LOG_DEBUG("Move :" << line);
                 std::stringstream ss(line.substr(9));
