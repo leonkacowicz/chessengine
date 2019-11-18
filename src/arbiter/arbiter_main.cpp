@@ -73,6 +73,7 @@ void print_settings(const game_settings& gs) {
     std::cout << "     --black-init-time         = " << gs.black_settings.initial_time.count() << std::endl;
     std::cout << "     --black-time-increment    = " << gs.black_settings.time_increment.count() << std::endl;
     std::cout << "     --black-move-time         = " << gs.black_settings.move_time.count() << std::endl;
+    std::cout << "     --output                  = " << gs.output_location << std::endl;
     std::cout << "     --initial-pos             = " << gs.initial_position << std::endl;
 }
 

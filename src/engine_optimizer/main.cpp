@@ -30,20 +30,14 @@ neuralnet random_net() {
     return neuralnet(matrices);
 }
 
-std::pair<path, path> get_random_parents(const std::string& ext, const path& location) {
-    std::vector<path> paths;
+std::vector<std::string> list_files_with_extension(const std::string& ext, const path& location) {
+    std::vector<std::string> result;
     boost::filesystem::directory_iterator enditer;
-    for (boost::filesystem::directory_iterator iter(location); iter != enditer; iter++) {
-        if (iter->path().extension() == ext) paths.push_back(iter->path());
+    for (boost::filesystem::directory_iterator iter(location); iter != enditer; ++iter) {
+        if (iter->path().extension() == ext)
+            result.push_back(iter->path().filename().string());
     }
-
-    auto num_files = paths.size();
-    assert(num_files >= 2);
-    int parent1_idx = rand_dist(mt) % num_files;
-    int parent2_idx = rand_dist(mt) % num_files;
-    while (parent1_idx == parent2_idx) parent2_idx = rand_dist(mt) % num_files;
-
-    return std::make_pair(paths[parent1_idx], paths[parent2_idx]);
+    return result;
 }
 
 int num_files_with_extension(const std::string& ext, const path& location) {
@@ -109,14 +103,14 @@ int get_score(const neuralnet& nn1, const neuralnet& nn2) {
 
     boost::process::ipstream out;
     boost::process::child c("../arbiter/chessarbiter",
-                           "--verbose",
-                           "--white-exec", "../engine/chessengine",
-                           "--white-input", "white_options.txt",
-                           "--white-move-time", "100",
-                           "--black-exec", "../engine/chessengine",
-                           "--black-input", "black_options.txt",
-                           "--black-move-time", "100",
-                           boost::process::std_out > out
+                            "--verbose",
+                            "--white-exec", "../engine/chessengine",
+                            "--white-input", "white_options.txt",
+                            "--white-move-time", "100",
+                            "--black-exec", "../engine/chessengine",
+                            "--black-input", "black_options.txt",
+                            "--black-move-time", "100",
+                            boost::process::std_out > out
     );
 
     std::string line;
@@ -125,12 +119,10 @@ int get_score(const neuralnet& nn1, const neuralnet& nn2) {
         if (line == "1-0") {
             c.wait();
             return 1;
-        }
-        else if (line == "0-1") {
+        } else if (line == "0-1") {
             c.wait();
             return -1;
-        }
-        else if (line == "1/2-1/2") {
+        } else if (line == "1/2-1/2") {
             c.wait();
             return 0;
         }
@@ -170,74 +162,73 @@ int main() {
             boost::filesystem::create_directory(current_gen_processed_path);
         }
 
-        while (true) {
-            int num_files = num_files_with_extension(".txt", current_gen_path);
-            if (num_files >= 2) {
-                auto parents = get_random_parents(".txt", current_gen_path);
-                auto parent1 = parents.first;
-                auto parent2 = parents.second;
+        auto files_in_generation = list_files_with_extension(".txt", current_gen_path);
+        assert(files_in_generation.size() == population);
+        std::shuffle(files_in_generation.begin(), files_in_generation.end(), rd);
 
-                boost::filesystem::rename(parent1, path(current_gen_processed_path) /= parent1.filename());
-                boost::filesystem::rename(parent2, path(current_gen_processed_path) /= parent2.filename());
+        for (int i = 0; i < files_in_generation.size(); i += 2) {
+            auto parent1 = path(current_gen_path) /= files_in_generation[i];
+            auto parent2 = path(current_gen_path) /= files_in_generation[i + 1];
+            auto parent1_path = path(current_gen_processed_path) /= parent1.filename();
+            auto parent2_path = path(current_gen_processed_path) /= parent2.filename();
+            boost::filesystem::rename(parent1, parent1_path);
+            boost::filesystem::rename(parent2, parent2_path);
 
-                path parent1_path(current_gen_processed_path); parent1_path /= parent1.filename();
-                path parent2_path(current_gen_processed_path); parent2_path /= parent2.filename();
+            std::ifstream parent1_ifs(parent1_path.string());
+            std::ifstream parent2_ifs(parent2_path.string());
+            neuralnet parent1_nn(parent1_ifs);
+            neuralnet parent2_nn(parent2_ifs);
 
-                std::ifstream parent1_ifs(parent1_path.string());
-                std::ifstream parent2_ifs(parent2_path.string());
-                neuralnet parent1_nn(parent1_ifs);
-                neuralnet parent2_nn(parent2_ifs);
+            Eigen::VectorXd parent1_vec = parent1_nn.to_eigen_vector();
+            Eigen::VectorXd parent2_vec = parent2_nn.to_eigen_vector();
 
-                Eigen::VectorXd parent1_vec = parent1_nn.to_eigen_vector();
-                Eigen::VectorXd parent2_vec = parent2_nn.to_eigen_vector();
+            Eigen::VectorXd child1_vec = parent1_vec;
+            Eigen::VectorXd child2_vec = parent2_vec;
+            int size = child1_vec.size();
+            int mutation_ratio = size / 2;
+            for (int i = 0; i < size; i++) {
+                if (rand_dist(mt) % 2 == 0) child1_vec(i) = parent2_vec(i);
+                if (rand_dist(mt) % 2 == 0) child2_vec(i) = parent1_vec(i);
+                if (rand_dist(mt) % mutation_ratio == 0) child1_vec(i) = flip_random_bit(child1_vec(i));
+                if (rand_dist(mt) % mutation_ratio == 0) child2_vec(i) = flip_random_bit(child2_vec(i));
+            }
 
-                Eigen::VectorXd child1_vec = parent1_vec;
-                Eigen::VectorXd child2_vec = parent2_vec;
-                int size = child1_vec.size();
-                for (int i = 0; i < size; i++) {
-                    if (rand_dist(mt) % 2 == 0) child1_vec(i) = parent2_vec(i);
-                    if (rand_dist(mt) % 2 == 0) child2_vec(i) = parent1_vec(i);
-                    if (rand_dist(mt) % 1000 == 0) child1_vec(i) = flip_random_bit(child1_vec(i));
-                    if (rand_dist(mt) % 1000 == 0) child2_vec(i) = flip_random_bit(child2_vec(i));
+            if ((child1_vec - parent1_vec).squaredNorm() + (child2_vec - parent2_vec).squaredNorm() >
+                (child1_vec - parent2_vec).squaredNorm() + (child2_vec - parent1_vec).squaredNorm()) {
+                swap(child1_vec, child2_vec);
+            }
+
+            {
+                int score1 = 0;
+                neuralnet child1_nn(layers, child1_vec);
+
+                if (rand_dist(mt) % 2 == 0) score1 = get_score(parent1_nn, child1_nn);
+                else score1 = -get_score(child1_nn, parent1_nn);
+
+                if (score1 >= 0) {
+                    if (score1 > 0) std::cout << "[OPTIMIZER] parent won!" << std::endl;
+                    else std::cout << "[OPTIMIZER] draw!" << std::endl;
+                    write_nn_to_file(parent1_nn, next_gen_path);
+                } else {
+                    std::cout << "[OPTIMIZER] child won!" << std::endl;
+                    write_nn_to_file(child1_nn, next_gen_path);
                 }
+            }
+            {
+                int score2 = 0;
+                neuralnet child2_nn(layers, child2_vec);
 
-                if ((child1_vec - parent1_vec).squaredNorm() + (child2_vec - parent2_vec).squaredNorm() >
-                        (child1_vec - parent2_vec).squaredNorm() + (child2_vec - parent1_vec).squaredNorm()) {
-                    swap(child1_vec, child2_vec);
+                if (rand_dist(mt) % 2 == 0) score2 = get_score(parent2_nn, child2_nn);
+                else score2 = -get_score(child2_nn, parent2_nn);
+
+                if (score2 >= 0) {
+                    if (score2 > 0) std::cout << "[OPTIMIZER] parent won!" << std::endl;
+                    else std::cout << "[OPTIMIZER] draw!" << std::endl;
+                    write_nn_to_file(parent2_nn, next_gen_path);
+                } else {
+                    std::cout << "[OPTIMIZER] child won!" << std::endl;
+                    write_nn_to_file(child2_nn, next_gen_path);
                 }
-
-                {
-                    int score1 = 0;
-                    neuralnet child1_nn(layers, child1_vec);
-
-                    if (rand_dist(mt) % 2 == 0) score1 = get_score(parent1_nn, child1_nn);
-                    else score1 = -get_score(child1_nn, parent1_nn);
-
-                    if (score1 >= 0) {
-                        std::cout << "[OPTIMIZER] parent won!" << std::endl;
-                        write_nn_to_file(parent1_nn, next_gen_path);
-                    } else {
-                        std::cout << "[OPTIMIZER] child won!" << std::endl;
-                        write_nn_to_file(child1_nn, next_gen_path);
-                    }
-                }
-                {
-                    int score2 = 0;
-                    neuralnet child2_nn(layers, child2_vec);
-
-                    if (rand_dist(mt) % 2 == 0) score2 = get_score(parent2_nn, child2_nn);
-                    else score2 = -get_score(child2_nn, parent2_nn);
-
-                    if (score2 >= 0) {
-                        std::cout << "[OPTIMIZER] parent won!" << std::endl;
-                        write_nn_to_file(parent2_nn, next_gen_path);
-                    } else {
-                        std::cout << "[OPTIMIZER] child won!" << std::endl;
-                        write_nn_to_file(child2_nn, next_gen_path);
-                    }
-                }
-            } else {
-                break;
             }
         }
     }
