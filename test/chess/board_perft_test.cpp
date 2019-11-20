@@ -12,6 +12,8 @@
 
 #define DEBUG(x)
 
+using namespace chess::core;
+
 bool recursive_cmp(const board & b, int depth) {
     if (depth == 0) return true;
 
@@ -128,7 +130,7 @@ TEST(board_test, perft_test_1_c2c3_a7a5_d1a4) {
 }
 
 TEST(board_test, perft_test_2) {
-    board b("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ");
+    board b = fen::board_from_fen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ");
     //b.make_move("e2", "b5");
     ASSERT_EQ(perft<true>(b, 1), 48);
     ASSERT_EQ(perft<true>(b, 2), 2039);
@@ -138,7 +140,7 @@ TEST(board_test, perft_test_2) {
 }
 
 TEST(board_test, perft_test_3) {
-    board b("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ");
+    board b = fen::board_from_fen("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ");
 
     ASSERT_EQ(perft<true>(b, 1), 14);
     ASSERT_EQ(perft<true>(b, 2), 191);
@@ -148,7 +150,7 @@ TEST(board_test, perft_test_3) {
 }
 
 TEST(board_test, perft_test_4) {
-    board b("r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1");
+    board b = fen::board_from_fen("r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1");
 
     EXPECT_EQ(perft<true>(b, 1), 6);
     EXPECT_EQ(perft<true>(b, 2), 264);
@@ -158,7 +160,7 @@ TEST(board_test, perft_test_4) {
 }
 
 TEST(board_test, perft_test_5) {
-    board b("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
+    board b = fen::board_from_fen("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
     b.print();
     ASSERT_EQ(perft<true>(b, 1), 44);
     ASSERT_EQ(perft<true>(b, 2), 1'486);

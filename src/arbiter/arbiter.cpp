@@ -5,6 +5,7 @@
 #include <board.h>
 #include <algorithm>
 #include <move_gen.h>
+#include <fen.h>
 #include "arbiter.h"
 
 arbiter::arbiter(player& white_player,
@@ -88,7 +89,7 @@ board arbiter::get_initial_board() {
             }
         }
         initial_pos_fen = fen.str();
-        b = board(initial_pos_fen);
+        b = chess::core::fen::board_from_fen(initial_pos_fen);
     } else {
         throw std::invalid_argument("initial position provided must start with 'startpos' or 'fen'");
     }

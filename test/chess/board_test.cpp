@@ -22,16 +22,16 @@ TEST(board_test, fen_test) {
     board b;
     b.set_initial_position();
     ASSERT_EQ(fen::to_string(b), "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-    ASSERT_EQ(b, board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"));
+    ASSERT_EQ(b,  fen::board_from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"));
     b.make_move(get_move("e2", "e4"));
     ASSERT_EQ(fen::to_string(b), "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1");
-    ASSERT_EQ(b, board("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"));
+    ASSERT_EQ(b, fen::board_from_fen("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"));
     b.make_move(get_move("c7", "c5"));
     ASSERT_EQ(fen::to_string(b, 2), "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2");
-    ASSERT_EQ(b, board("rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2"));
+    ASSERT_EQ(b, fen::board_from_fen("rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2"));
     b.make_move(get_move("g1", "f3"));
     ASSERT_EQ(fen::to_string(b, 2), "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2");
-    ASSERT_EQ(b, board("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2"));
+    ASSERT_EQ(b, fen::board_from_fen("rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2"));
 }
 
 
@@ -92,7 +92,7 @@ TEST(board_test, assert_its_checkmate) {
      a b c d e f g h
      */
 
-    board b("7k/3n4/p1p2p1Q/P7/2BP4/2P4P/4p1P1/6K1 b - - 0 1");
+    board b = chess::core::fen::board_from_fen("7k/3n4/p1p2p1Q/P7/2BP4/2P4P/4p1P1/6K1 b - - 0 1");
 //    b.set_king_position(WHITE, SQ_G1);
 //    b.put_piece(PAWN, BLACK, SQ_E2);
 //    b.put_piece(PAWN, WHITE, SQ_G2);

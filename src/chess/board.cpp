@@ -2,7 +2,6 @@
 #include <vector>
 #include <string>
 #include <algorithm>
-#include <cassert>
 #include "color.h"
 #include "board.h"
 #include "move.h"
@@ -121,71 +120,6 @@ void board::set_king_position(color c, square position) {
     piece_of_type[BISHOP] &= bbi;
     piece_of_type[ROOK] &= bbi;
     piece_of_type[QUEEN] &= bbi;
-}
-
-board::board(const std::string& fen) {
-
-    using std::string;
-    using std::stringstream;
-
-    std::stringstream ss(fen);
-
-    std::string pieces;
-    getline(ss, pieces, ' ');
-
-    std::string side_to_move;
-    getline(ss, side_to_move, ' ');
-
-    std::string castling;
-    getline(ss, castling, ' ');
-
-    std::string enpassant;
-    getline(ss, enpassant, ' ');
-
-    std::string half_move_clock;
-    getline(ss, half_move_clock, ' ');
-
-    std::string full_move_counter;
-    getline(ss, full_move_counter, ' ');
-
-
-    int r = 7;
-    int f = 0;
-    for (char ch : pieces) {
-        bitboard sq = file[f] & rank[r];
-        if (ch == '/') {
-            r--;
-            f = 0;
-            continue;
-        }
-        if (ch >= '1' && ch <= '7') {
-            f += ch - '0';
-            continue;
-        }
-
-        if (ch == 'p' || ch == 'P') piece_of_type[PAWN] |= sq;
-        if (ch == 'n' || ch == 'N') piece_of_type[KNIGHT] |= sq;
-        if (ch == 'b' || ch == 'B') piece_of_type[BISHOP] |= sq;
-        if (ch == 'r' || ch == 'R') piece_of_type[ROOK] |= sq;
-        if (ch == 'q' || ch == 'Q') piece_of_type[QUEEN] |= sq;
-        if (ch == 'k') set_king_position(BLACK, get_square(sq));
-        if (ch == 'K') set_king_position(WHITE, get_square(sq));
-        if (ch == 'p' || ch == 'n' || ch == 'b' || ch == 'r' || ch == 'q' || ch == 'k') piece_of_color[BLACK] |= sq;
-        if (ch == 'P' || ch == 'N' || ch == 'B' || ch == 'R' || ch == 'Q' || ch == 'K') piece_of_color[WHITE] |= sq;
-        f++;
-    }
-
-    side_to_play = side_to_move == "b" ? BLACK : WHITE;
-
-    can_castle_king_side[WHITE] = castling.find('K', 0) != std::string::npos;
-    can_castle_queen_side[WHITE] = castling.find('Q', 0) != std::string::npos;;
-    can_castle_king_side[BLACK] = castling.find('k', 0) != std::string::npos;;
-    can_castle_queen_side[BLACK] = castling.find('q', 0) != std::string::npos;;
-
-    this->en_passant = enpassant == "-" ? SQ_NONE : get_square(enpassant.c_str());
-
-    if (!half_move_clock.empty())
-        half_move_counter = (char)std::stoi(half_move_clock);
 }
 
 board board::simulate(const square from, const square to, const piece p, const color c) const {
@@ -375,5 +309,8 @@ bool board::operator==(const board &other) const {
 
 void board::make_move(square from, square to) {
     this->make_move(get_move(from, to));
+}
+
+board::board() {
 }
 

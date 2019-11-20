@@ -11,6 +11,8 @@
 #include <move_gen.h>
 #include <random>
 
+using namespace chess::core;
+
 TEST(board_test, bug_detector) {
     print_bb(0);
     std::default_random_engine gen;

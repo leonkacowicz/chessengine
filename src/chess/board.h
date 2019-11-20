@@ -21,9 +21,7 @@ public:
     color side_to_play = WHITE;
     char half_move_counter = 0;
 
-    board() {}
-
-    board(const std::string& fen);
+    board();
 
     bool under_check(color c) const;
 

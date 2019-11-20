@@ -12,7 +12,7 @@
 #include "../test_common.h"
 
 TEST(move_gen_test, king_move_into_check_by_pawn_1) {
-    board b("Nn4q1/7r/3B1k1b/p3pP2/N4P2/2PKRn1P/b3B3/3Q3R b - - 1 52");
+    board b = fen::board_from_fen("Nn4q1/7r/3B1k1b/p3pP2/N4P2/2PKRn1P/b3B3/3Q3R b - - 1 52");
     auto moves = move_gen(b).generate();
     ASSERT_NOT_CONTAINS(moves, get_move(SQ_F6, SQ_G5));
 }
@@ -87,7 +87,7 @@ TEST(board_test, _1b4n1_p2b4_1k3pR1_3P1n1p_1PB2P1P_8_PB2P1N1_RN2K3__w__Q_____1__
     // 41. Rg6  Bf4 42. d4  f6 43. Bxd8  Kd6 44. Bb2  Ng8 45. Bxe7+  Nc6xe7 46. Ne3  Kc6 47. Ng2  Nf5 48. d5+  Kb6
     // 49. Bc4  Bb8 50. f4  Bd7 51. O-O
 
-    board b("1b4n1/p2b4/1k3pR1/3P1n1p/1PB2P1P/8/PB2P1N1/RN2K3 w Q - 1 51");
+    board b = fen::board_from_fen("1b4n1/p2b4/1k3pR1/3P1n1p/1PB2P1P/8/PB2P1N1/RN2K3 w Q - 1 51");
 
     auto moves = move_gen(b).generate();
     for (auto& m : moves) {
@@ -96,7 +96,7 @@ TEST(board_test, _1b4n1_p2b4_1k3pR1_3P1n1p_1PB2P1P_8_PB2P1N1_RN2K3__w__Q_____1__
 }
 
 TEST(board_test, legal_moves_position_1) {
-    board b("r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1");
+    board b = fen::board_from_fen("r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1");
     b.make_move(get_move("f1", "f2"));
     auto legal_moves = move_gen(b).generate();
     int num_moves = legal_moves.size();

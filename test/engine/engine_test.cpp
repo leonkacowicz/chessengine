@@ -25,7 +25,7 @@
 //}
 
 TEST(engine_test, engine_should_find_mate_in_one) {
-    board b("6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - -");
+    board b = chess::core::fen::board_from_fen("6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - -");
     static_evaluator eval;
     engine e(eval);
     
@@ -35,7 +35,7 @@ TEST(engine_test, engine_should_find_mate_in_one) {
 }
 
 TEST(engine_test, engine_should_find_mate_in_one_b) {
-    board b("r1qr1b2/1R3pkp/3p2pN/ppnPp1Q1/bn2P3/4P2P/PBBP2P1/5RK1 w - e6");
+    board b = chess::core::fen::board_from_fen("r1qr1b2/1R3pkp/3p2pN/ppnPp1Q1/bn2P3/4P2P/PBBP2P1/5RK1 w - e6");
     static_evaluator eval;
     engine e(eval);
 
@@ -45,7 +45,7 @@ TEST(engine_test, engine_should_find_mate_in_one_b) {
 }
 
 TEST(engine_test, engine_should_find_mate_in_3ply) {
-    board b("r1qr1b2/1R3pkp/3p2pN/ppnPp1Q1/bn2P3/4P2P/PBBP2P1/5RK1 w - -");
+    board b = chess::core::fen::board_from_fen("r1qr1b2/1R3pkp/3p2pN/ppnPp1Q1/bn2P3/4P2P/PBBP2P1/5RK1 w - -");
     static_evaluator eval;
     engine e(eval);
 
@@ -55,7 +55,7 @@ TEST(engine_test, engine_should_find_mate_in_3ply) {
 }
 
 TEST(engine_test, engine_should_find_mate_in_5ply) {
-    board b("r1qr1b2/1R3pkp/3p2pN/ppnPp1Q1/bn2P3/4P2P/PBBP1PP1/5RK1 w - - 0 1");
+    board b = chess::core::fen::board_from_fen("r1qr1b2/1R3pkp/3p2pN/ppnPp1Q1/bn2P3/4P2P/PBBP1PP1/5RK1 w - - 0 1");
     static_evaluator eval;
     engine e(eval);
 
@@ -65,7 +65,7 @@ TEST(engine_test, engine_should_find_mate_in_5ply) {
 }
 
 TEST(engine_test, engine_should_find_mate_in_8ply) {
-    board b("8/5p2/2p5/2p2kpK/2R1p1N1/3NP3/2P5/5B2 w - - 0 1");
+    board b = chess::core::fen::board_from_fen("8/5p2/2p5/2p2kpK/2R1p1N1/3NP3/2P5/5B2 w - - 0 1");
     static_evaluator eval;
     engine e(eval);
 
@@ -91,7 +91,7 @@ TEST(engine_test, engine_should_stick_to_mate1) {
     //36. f6 Re1#
     //0-1
 
-    board b("2b2k2/1pp2p2/1P3Pp1/8/1b1Pr3/8/2r5/5K2 b - - 0 36");
+    board b = chess::core::fen::board_from_fen("2b2k2/1pp2p2/1P3Pp1/8/1b1Pr3/8/2r5/5K2 b - - 0 36");
     zero_eval eval;
     engine e(eval);
 
@@ -111,7 +111,7 @@ TEST(engine_test, engine_should_stick_to_mate2) {
     //36. f6 Re1#
     //0-1
 
-    board b("2b2k2/1pp2p2/1P4p1/5P2/1b1P2r1/8/2r5/5K2 b - - 1 35");
+    board b = chess::core::fen::board_from_fen("2b2k2/1pp2p2/1P4p1/5P2/1b1P2r1/8/2r5/5K2 b - - 1 35");
     zero_eval eval;
     engine e(eval);
 
