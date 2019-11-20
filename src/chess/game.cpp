@@ -6,7 +6,7 @@ using namespace chess::core;
 game::game(const board& b) {
     game_state s;
     s.b = b;
-    s.hash = zobrist::hash(b, 0);
+    s.hash = zobrist::hash(b);
     s.last_move = null_move;
     s.last_irreversible_index = 0;
     states.push_back(s);

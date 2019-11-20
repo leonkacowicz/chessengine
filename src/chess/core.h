@@ -7,7 +7,7 @@
 
 #include <bitboard.h>
 #include <magic_bitboard.h>
-#include "zobrist.h"
+#include <zobrist.h>
 
 namespace chess {
     namespace core {

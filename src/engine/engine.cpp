@@ -52,7 +52,7 @@ int engine::search_widen(const board& b, int depth, int val) {
 
 int engine::search_root(const board& b, int depth, int alpha, int beta) {
     if (time_over) return 0;
-    uint64_t hash = zobrist::hash(b, 0);
+    uint64_t hash = zobrist::hash(b);
     tt_node node;
     move current_bestmove = bestmove;
     if (tt.load(hash, depth, alpha, beta, &node) && node.type == EXACT) {
@@ -105,7 +105,7 @@ int engine::search_root(const board& b, int depth, int alpha, int beta) {
 template<bool is_pv>
 int engine::search(const board& b, int depth, int ply, int alpha, int beta) {
     if (time_over) return 0;
-    uint64_t hash = zobrist::hash(b, 0);
+    uint64_t hash = zobrist::hash(b);
     int mate_value = MATE - ply;
 
     if (alpha < -mate_value) alpha = -mate_value;
@@ -293,7 +293,7 @@ int engine::qsearch(const board& b, int ply, int alpha, int beta) {
     if (time_over) return 0;
     nodes++;
     qnodes++;
-    uint64_t hash = zobrist::hash(b, 0);
+    uint64_t hash = zobrist::hash(b);
     tt_node node;
     move tt_move = null_move;
     int val;
@@ -359,7 +359,7 @@ void engine::log_score(const board& b, int val) {
     b2.make_move(bestmove);
 
     for (int i = 1; i < current_depth; i++) {
-        auto hash = zobrist::hash(b2, 0);
+        auto hash = zobrist::hash(b2);
         if (tt.load(hash, 0, &node) && node.bestmove != null_move) {
             std::cout << " " << to_long_move(node.bestmove);
             b2.make_move(node.bestmove);
