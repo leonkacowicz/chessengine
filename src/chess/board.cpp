@@ -7,6 +7,7 @@
 #include "board.h"
 #include "move.h"
 #include "magic_bitboard.h"
+#include "move_gen.h"
 
 using namespace chess::core;
 using std::string;
@@ -84,28 +85,6 @@ void board::set_initial_position() {
     en_passant = SQ_NONE;
 }
 
-std::vector<move> board::get_legal_moves(color c) const {
-    std::vector<move> moves;
-    //moves.reserve(60);
-    for (auto sq = bitboard(1); sq; sq <<= 1u) {
-        if (!(sq & piece_of_color[c])) continue;
-        if (king_pos[c] == get_square(sq)) add_king_moves(sq, moves);
-        else if (piece_of_type[PAWN] & sq) add_pawn_moves(sq, moves);
-        else if (piece_of_type[KNIGHT] & sq) add_knight_moves(sq, moves);
-        else if (piece_of_type[ROOK] & sq) add_rook_moves(sq, moves, ROOK, c);
-        else if (piece_of_type[BISHOP] & sq) add_bishop_moves(sq, moves, BISHOP, c);
-        else if (piece_of_type[QUEEN] & sq) {
-            add_rook_moves(sq, moves, QUEEN, c);
-            add_bishop_moves(sq, moves, QUEEN, c);
-        }
-    }
-    if (can_castle_king_side[c] || can_castle_queen_side[c]) {
-        add_castle_moves(c, moves);
-    }
-    //moves.shrink_to_fit();
-    return moves;
-}
-
 void board::put_piece(piece p, color c, square s) {
 
     if ((s == king_pos[WHITE] && (p != KING || c != WHITE))
@@ -142,48 +121,6 @@ void board::set_king_position(color c, square position) {
     piece_of_type[BISHOP] &= bbi;
     piece_of_type[ROOK] &= bbi;
     piece_of_type[QUEEN] &= bbi;
-}
-
-void board::add_rook_moves(bitboard origin, std::vector<move>& moves, piece p, color c) const {
-    shift_moves<UP>(origin, rank_8_i, moves, p, c);
-    shift_moves<DOWN>(origin, rank_1_i, moves, p, c);
-    shift_moves<LEFT>(origin, file_a_i, moves, p, c);
-    shift_moves<RIGHT>(origin, file_h_i, moves, p, c);
-}
-
-void board::add_bishop_moves(bitboard origin, std::vector<move>& moves, piece p, color c) const {
-    shift_moves<UP_LEFT>(origin, file_a_i_rank_8_i, moves, p, c);
-    shift_moves<UP_RIGHT>(origin, file_h_i_rank_8_i, moves, p, c);
-    shift_moves<DOWN_LEFT>(origin, file_a_i_rank_1_i, moves, p, c);
-    shift_moves<DOWN_RIGHT>(origin, file_h_i_rank_1_i, moves, p, c);
-}
-
-void board::add_king_moves(bitboard origin, std::vector<move>& moves) const {
-    color c = (piece_of_color[BLACK] & origin) ? BLACK : WHITE;
-    auto origin_square = get_square(origin);
-    bitboard dest[8];
-    int N = 0;
-
-    if (rank_8_i & origin) {
-        dest[N++] = shift<UP>(origin);
-        if (file_a_i & origin) dest[N++] = shift<UP_LEFT>(origin);
-        if (file_h_i & origin) dest[N++] = shift<UP_RIGHT>(origin);
-    }
-    if (rank_1_i & origin) {
-        dest[N++] = shift<DOWN>(origin);
-        if (file_a_i & origin) dest[N++] = shift<DOWN_LEFT>(origin);
-        if (file_h_i & origin) dest[N++] = shift<DOWN_RIGHT>(origin);
-    }
-    if (file_a_i & origin) dest[N++] = shift<LEFT>(origin);
-    if (file_h_i & origin) dest[N++] = shift<RIGHT>(origin);
-
-    for (int i = 0; i < N; i++) {
-        if (!(piece_of_color[c] & dest[i])) {
-            assert(get_square(dest[i]) != king_pos[opposite(c)]);
-            if (!simulate(origin_square, get_square(dest[i]), KING, c).under_check(c))
-                moves.push_back(get_move(origin_square, get_square(dest[i])));
-        }
-    }
 }
 
 board::board(const std::string& fen) {
@@ -255,152 +192,6 @@ board board::simulate(const square from, const square to, const piece p, const c
     board simulated = *this;
     simulated.move_piece(from, to, p, c);
     return simulated;
-}
-
-void board::add_pawn_moves(bitboard origin, std::vector<move>& moves) const {
-    const color c = piece_of_color[BLACK] & origin ? BLACK : WHITE;
-    auto opponent = opposite(c);
-    const bitboard opponent_piece = piece_of_color[opponent];
-    // add normal moves, captures, en passant, and promotions
-    const bitboard fwd = c == WHITE ? shift<UP>(origin) : shift<DOWN>(origin);
-    const bool promotion = (rank_1 | rank_8) & fwd;
-    const square origin_sq = get_square(origin);
-    const bitboard empty = ~(piece_of_color[WHITE] | piece_of_color[BLACK]);
-
-    if (empty & fwd) {
-        const square dest = get_square(fwd);
-        if (!simulate(origin_sq, dest, PAWN, c).under_check(c)) {
-            if (promotion) {
-                moves.push_back(get_move(origin_sq, dest, special_move::PROMOTION_QUEEN));
-                moves.push_back(get_move(origin_sq, dest, special_move::PROMOTION_ROOK));
-                moves.push_back(get_move(origin_sq, dest, special_move::PROMOTION_BISHOP));
-                moves.push_back(get_move(origin_sq, dest, special_move::PROMOTION_KNIGHT));
-            } else {
-                moves.push_back(get_move(origin_sq, dest));
-            }
-        }
-        if (c == WHITE && (rank_2 & origin)) {
-            const bitboard fwd2 = shift<UP>(fwd);
-            if ((empty & fwd2) && !simulate(origin_sq, get_square(fwd2), PAWN, c).under_check(c))
-                moves.push_back(get_move(origin_sq, get_square(fwd2)));
-        } else if (c == BLACK && (rank_7 & origin)) {
-            const bitboard fwd2 = shift<DOWN>(fwd);
-            if ((empty & fwd2) && !simulate(origin_sq, get_square(fwd2), PAWN, c).under_check(c))
-                moves.push_back(get_move(origin_sq, get_square(fwd2)));
-        }
-    }
-
-    auto enpassant_bb = get_bb(en_passant);
-    if (file_a_i & origin) {
-        const bitboard cap = shift<LEFT>(fwd);
-        if ((opponent_piece & cap) || cap == enpassant_bb) {
-            const square dest = get_square(cap);
-            auto bnew = simulate(origin_sq, dest, PAWN, c);
-            if (cap == enpassant_bb) {
-                auto en_passant_bbi = ~enpassant_bb;
-                bnew.piece_of_color[opponent] &= en_passant_bbi; // remove captured piece
-                bnew.piece_of_type[PAWN] &= en_passant_bbi;
-            }
-            if (!bnew.under_check(c)) {
-                if (promotion) {
-                    moves.push_back(get_move(origin_sq, dest, special_move::PROMOTION_QUEEN));
-                    moves.push_back(get_move(origin_sq, dest, special_move::PROMOTION_KNIGHT));
-                    moves.push_back(get_move(origin_sq, dest, special_move::PROMOTION_ROOK));
-                    moves.push_back(get_move(origin_sq, dest, special_move::PROMOTION_BISHOP));
-                } else {
-                    moves.push_back(get_move(origin_sq, dest));
-                }
-            }
-        }
-    }
-
-    if (file_h_i & origin) {
-        const bitboard cap = shift<RIGHT>(fwd);
-        if ((opponent_piece & cap) || cap == enpassant_bb) {
-            const square dest = get_square(cap);
-            auto bnew = simulate(origin_sq, dest, PAWN, c);
-            if (cap == enpassant_bb) {
-                auto en_passant_bbi = ~enpassant_bb;
-                bnew.piece_of_color[opponent] &= en_passant_bbi; // remove captured piece
-                bnew.piece_of_type[PAWN] &= en_passant_bbi;
-            }
-            if (!bnew.under_check(c)) {
-                if (promotion) {
-                    moves.push_back(get_move(origin_sq, dest, special_move::PROMOTION_QUEEN));
-                    moves.push_back(get_move(origin_sq, dest, special_move::PROMOTION_KNIGHT));
-                    moves.push_back(get_move(origin_sq, dest, special_move::PROMOTION_ROOK));
-                    moves.push_back(get_move(origin_sq, dest, special_move::PROMOTION_BISHOP));
-                } else {
-                    moves.push_back(get_move(origin_sq, dest));
-                }
-            }
-        }
-    }
-}
-
-void board::add_knight_moves(bitboard origin, std::vector<move>& moves) const {
-    color c = piece_of_color[BLACK] & origin ? BLACK : WHITE;
-    auto origin_square = get_square(origin);
-    bitboard dest[8];
-    int N = 0;
-
-    if (file_a_i_rank_8_i_rank_7_i & origin) dest[N++] = shift<UP_LEFT + UP>(origin);
-    if (file_a_i_rank_1_i_rank_2_i & origin) dest[N++] = shift<DOWN_LEFT + DOWN>(origin);
-    if (file_h_i_rank_8_i_rank_7_i & origin) dest[N++] = shift<UP_RIGHT + UP>(origin);
-    if (file_h_i_rank_1_i_rank_2_i & origin) dest[N++] = shift<DOWN_RIGHT + DOWN>(origin);
-    if (file_a_i_rank_8_i_file_b_i & origin) dest[N++] = shift<UP_LEFT + LEFT>(origin);
-    if (file_a_i_rank_1_i_file_b_i & origin) dest[N++] = shift<DOWN_LEFT + LEFT>(origin);
-    if (file_h_i_rank_8_i_file_g_i & origin) dest[N++] = shift<UP_RIGHT + RIGHT>(origin);
-    if (file_h_i_rank_1_i_file_g_i & origin) dest[N++] = shift<DOWN_RIGHT + RIGHT>(origin);
-
-    for (int i = 0; i < N; i++) {
-        if ((dest[i] & piece_of_color[c]) != 0) continue;
-        if (!simulate(origin_square, get_square(dest[i]), KNIGHT, c).under_check(c)) {
-            moves.push_back(get_move(origin_square, get_square(dest[i])));
-        }
-    }
-}
-
-/**
- * Does not support Chess960 yet!!!
- * @param c
- * @param moves
- */
-void board::add_castle_moves(color c, std::vector<move> &moves) const {
-    const bitboard anypiece = piece_of_color[WHITE] | piece_of_color[BLACK];
-    bool check_checked = false;
-
-    const bitboard king = get_bb(king_pos[c]);
-    board simulated = *this;
-    if (can_castle_king_side[c]) {
-        if (under_check(c)) return;
-        else check_checked = true;
-        if (!(anypiece & (shift<RIGHT>(king) | shift<2 * RIGHT>(king)))) {
-            simulated.set_king_position(c, get_square(shift<RIGHT>(king)));
-            if (!simulated.under_check(c)) {
-                simulated.set_king_position(c, get_square(shift<2 * RIGHT>(king)));
-                if (!simulated.under_check(c)) {
-                    const square dest = c == BLACK ? SQ_G8 : SQ_G1;
-                    const special_move castle_king_side = c == WHITE ? CASTLE_KING_SIDE_WHITE : CASTLE_KING_SIDE_BLACK;
-                    moves.push_back(get_move(king_pos[c], dest, castle_king_side));
-                }
-            }
-        }
-    }
-    if (can_castle_queen_side[c]) {
-        if (!check_checked) if (under_check(c)) return;
-        if (!(anypiece & (shift<LEFT>(king) | shift<2 * LEFT>(king) | shift<3 * LEFT>(king)))) {
-            simulated.set_king_position(c, get_square(shift<LEFT>(king)));
-            if (!simulated.under_check(c)) {
-                const square dest = c == BLACK ? SQ_C8 : SQ_C1;
-                simulated.set_king_position(c, dest);
-                if (!simulated.under_check(c)) {
-                    special_move castle_queen_side = c == WHITE ? CASTLE_QUEEN_SIDE_WHITE : CASTLE_QUEEN_SIDE_BLACK;
-                    moves.push_back(get_move(king_pos[c], dest, castle_queen_side));
-                }
-            }
-        }
-    }
 }
 
 void board::move_piece(square from, square to, piece p, color c) {
@@ -551,7 +342,7 @@ std::string board::move_in_pgn(const move m, const std::vector<move>& legal_move
     board simulated = *this;
     simulated.make_move(m);
     if (simulated.under_check(opposite(c))) {
-        if (simulated.get_legal_moves(opposite(c)).empty()) {
+        if (move_gen(simulated).generate().empty()) {
             ss << "#";
         } else {
             ss << "+";
@@ -580,35 +371,6 @@ bool board::operator==(const board &other) const {
         && can_castle_king_side[WHITE] == other.can_castle_king_side[WHITE]
         && can_castle_queen_side[WHITE] == other.can_castle_queen_side[WHITE]
     ;
-}
-
-template<shift_direction d>
-bitboard board::shift_attacks(const bitboard origin, const bitboard in_range) const {
-    bitboard any_piece = piece_of_color[WHITE] | piece_of_color[BLACK];
-    bitboard sq = origin;
-    bitboard attacks = 0;
-    while (in_range & sq) {
-        sq = shift<d>(sq);
-        attacks |= sq;
-        if (any_piece & sq) break;
-    }
-    return attacks;
-}
-
-template<shift_direction d>
-void board::shift_moves(const bitboard origin, const bitboard in_range, std::vector<move>& moves, piece p, color c) const {
-    bitboard player_piece = piece_of_color[c];
-    bitboard sq = origin;
-    while (in_range & sq) {
-        sq = shift<d>(sq);
-        if (player_piece & sq) return; // blocked by own piece
-        if(sq == get_bb(king_pos[opposite(c)])) throw std::runtime_error("capture king"); // found opponent king
-        // simulate move
-        if (!simulate(get_square(origin), get_square(sq), p, c).under_check(c)) {
-            moves.push_back(get_move(get_square(origin), get_square(sq)));
-        }
-        if (piece_of_color[opposite(c)] & sq) break; // captured opponent piece: stop there
-    }
 }
 
 void board::make_move(square from, square to) {
