@@ -6,27 +6,38 @@
 #include <vector>
 #include <board.h>
 
-namespace chess {
-    namespace core {
+namespace chess::core {
 
-        struct game_state {
-            board b;
-            uint64_t hash;
-            int last_irreversible_index;
-            move last_move;
-        };
+    struct game_state {
+        board b;
+        uint64_t hash;
+        int last_irreversible_index;
+        move last_move;
+    };
 
-        class game {
-            std::string initial_pos;
-            std::vector<game_state> states;
+    class game {
+    public:
+        std::string initial_pos;
+        std::vector<game_state> states;
 
-            game(const board&);
-            void do_move(move m);
-            void undo_last_move();
-            bool is_draw_by_3foldrep();
-            bool is_draw_by_50move();
-        };
-    }
+        game(const board&);
+
+        void do_move(move m);
+
+        void do_null_move();
+
+        void undo_last_move();
+
+        bool is_draw_by_3foldrep();
+
+        bool is_draw_by_50move();
+
+        bool is_draw_by_insufficient_material();
+
+        bool is_draw_by_stale_mate();
+
+        bool is_draw();
+    };
 }
 
 

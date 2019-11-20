@@ -10,8 +10,9 @@
 #include <board.h>
 #include <unordered_map>
 #include <chrono>
+#include <game.h>
+#include <zobrist.h>
 #include "evaluator.h"
-#include "zobrist.h"
 #include "transposition_table.h"
 
 class engine {
@@ -33,16 +34,16 @@ class engine {
 public:
     engine(evaluator& e);
 
-    move timed_search(const board& b, const std::chrono::milliseconds& time);
+    move timed_search(game& g, const std::chrono::milliseconds& time);
 
-    move search_iterate(const board& b);
+    move search_iterate(game& g);
 
-    int search_widen(const board& b, int depth, int val);
+    int search_widen(game& g, int depth, int val);
 
-    int search_root(const board& b, int depth, int alpha, int beta);
+    int search_root(game& g, int depth, int alpha, int beta);
 
     template<bool is_pv>
-    int search(const board& b, int depth, int ply, int alpha, int beta);
+    int search(game& g, int depth, int ply, int alpha, int beta);
 
     void set_killer_move(move m, int ply);
 

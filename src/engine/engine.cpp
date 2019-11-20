@@ -7,16 +7,17 @@
 #include <move_gen.h>
 #include <thread>
 #include <mutex>
+#include <game.h>
 
 #include "engine.h"
 #include "evaluator.h"
 #include "zobrist.h"
 #include "transposition_table.h"
 
-move engine::search_iterate(const board& b) {
+move engine::search_iterate(game& g) {
 
     time_over = false;
-    auto legal_moves = move_gen(b).generate();
+    auto legal_moves = move_gen(g.states.back().b).generate();
     if (legal_moves.empty()) return null_move;
 
     for (int c = 0; c < 2; c++)
@@ -33,26 +34,27 @@ move engine::search_iterate(const board& b) {
 
     bestmove = legal_moves[0];
     current_depth = 1;
-    int val = search_root(b, current_depth, -INF, +INF);
+    int val = search_root(g, current_depth, -INF, +INF);
 
     for (current_depth = 2; current_depth <= max_depth; current_depth++) {
         if (val >= MATE - current_depth) return bestmove;
-        val = search_widen(b, current_depth, val);
+        val = search_widen(g, current_depth, val);
     }
     return bestmove;
 }
 
-int engine::search_widen(const board& b, int depth, int val) {
+int engine::search_widen(game& g, int depth, int val) {
     const int alpha = val - 50;
     const int beta = val + 50;
-    const int tmp = search_root(b, depth, alpha, beta);
+    const int tmp = search_root(g, depth, alpha, beta);
     if (alpha < tmp && tmp < beta) return tmp;
-    return search_root(b, depth, -INF, INF);
+    return search_root(g, depth, -INF, INF);
 }
 
-int engine::search_root(const board& b, int depth, int alpha, int beta) {
+int engine::search_root(game& g, int depth, int alpha, int beta) {
     if (time_over) return 0;
-    uint64_t hash = zobrist::hash(b);
+    auto b = g.states.back().b;
+    auto hash = g.states.back().hash;
     tt_node node;
     move current_bestmove = bestmove;
     if (tt.load(hash, depth, alpha, beta, &node) && node.type == EXACT) {
@@ -64,19 +66,26 @@ int engine::search_root(const board& b, int depth, int alpha, int beta) {
     int bestval = -INF;
     for (int i = 0; i < legal_moves.size(); i++) {
         sort_moves(legal_moves, i);
-        board bnew = b;
         move m = legal_moves[i].first;
-        bnew.make_move(m);
+        g.do_move(m);
         if (best == -1) {
-            val = -search<true>(bnew, depth - 1, 1, -beta, -alpha);
+            val = -search<true>(g, depth - 1, 1, -beta, -alpha);
+            g.undo_last_move();
         } else {
-            int tmp = -search<false>(bnew, depth - 1, 1, -alpha - 1, -alpha);
-            if (time_over) return 0;
+            int tmp = -search<false>(g, depth - 1, 1, -alpha - 1, -alpha);
+            if (time_over) {
+                g.undo_last_move();
+                return 0;
+            }
             if (tmp > alpha) {
-                val = -search<true>(bnew, depth - 1, 1, -beta, -alpha);
+                val = -search<true>(g, depth - 1, 1, -beta, -alpha);
+                g.undo_last_move();
                 if (time_over) return 0;
             }
-            else continue;
+            else {
+                g.undo_last_move();
+                continue;
+            }
         }
         if (val > bestval) {
             bestval = val;
@@ -103,9 +112,11 @@ int engine::search_root(const board& b, int depth, int alpha, int beta) {
 }
 
 template<bool is_pv>
-int engine::search(const board& b, int depth, int ply, int alpha, int beta) {
+int engine::search(game& g, int depth, int ply, int alpha, int beta) {
     if (time_over) return 0;
-    uint64_t hash = zobrist::hash(b);
+    auto state = g.states.back();
+    auto b = state.b;
+    uint64_t hash = state.hash;
     int mate_value = MATE - ply;
 
     if (alpha < -mate_value) alpha = -mate_value;
@@ -146,6 +157,7 @@ int engine::search(const board& b, int depth, int ply, int alpha, int beta) {
         }
         return val;
     }
+    if (g.is_draw()) return 0;
 
     if (depth < 3
         && !is_pv
@@ -161,16 +173,15 @@ int engine::search(const board& b, int depth, int ply, int alpha, int beta) {
 
 
     if (!is_pv && !in_check && depth > 2 && can_do_null_move && eval.eval(b) * (b.side_to_play == BLACK ? -1 : 1) >= beta) {
-        board bnew = b;
-        bnew.side_to_play = opposite(b.side_to_play); // null move
+        g.do_null_move();
         can_do_null_move = false;
         int nmval;
         if (depth > 6)
-            nmval = -search<is_pv>(bnew, depth - 4, ply + 1, -beta, -beta + 1);
+            nmval = -search<is_pv>(g, depth - 4, ply + 1, -beta, -beta + 1);
         else
-            nmval = -search<is_pv>(bnew, depth - 3, ply + 1, -beta, -beta + 1);
+            nmval = -search<is_pv>(g, depth - 3, ply + 1, -beta, -beta + 1);
         can_do_null_move = true;
-
+        g.undo_last_move();
         if (time_over) return 0;
         if (nmval >= beta) return beta;
     }
@@ -182,21 +193,30 @@ int engine::search(const board& b, int depth, int ply, int alpha, int beta) {
     tt_node_type new_tt_node_type = ALPHA;
     for (int i = 0; i < legal_moves.size(); i++) {
         sort_moves(legal_moves, i);
-        board bnew = b;
         move m = legal_moves[i].first;
-        bnew.make_move(m);
 
+        g.do_move(m);
         if (!raised_alpha) {
-            val = -search<is_pv>(bnew, depth - 1, ply + 1, -beta, -alpha);
-            if (time_over) return 0;
+            val = -search<is_pv>(g, depth - 1, ply + 1, -beta, -alpha);
+            g.undo_last_move();
+            if (time_over) {
+                return 0;
+            }
         } else {
-            int tmp = -search<false>(bnew, depth - 1, ply + 1, -alpha - 1, -alpha);
-            if (time_over) return 0;
+            int tmp = -search<false>(g, depth - 1, ply + 1, -alpha - 1, -alpha);
+            if (time_over) {
+                g.undo_last_move();
+                return 0;
+            }
             if (tmp > alpha) {
-                val = -search<true>(bnew, depth - 1, ply + 1, -beta, -alpha);
+                val = -search<true>(g, depth - 1, ply + 1, -beta, -alpha);
+                g.undo_last_move();
                 if (time_over) return 0;
             }
-            else continue;
+            else {
+                g.undo_last_move();
+                continue;
+            }
         }
         if (val > bestval) {
             bestval = val;
@@ -371,12 +391,12 @@ void engine::log_score(const board& b, int val) {
     std::cout << std::endl;
 }
 
-move engine::timed_search(const board& b, const std::chrono::milliseconds& time) {
+move engine::timed_search(game& g, const std::chrono::milliseconds& time) {
     std::timed_mutex mutex;
     mutex.lock();
     time_over = false;
     std::thread thr([&] () {
-        search_iterate(b);
+        search_iterate(g);
         mutex.unlock();
     });
     if (!mutex.try_lock_for(time)) {

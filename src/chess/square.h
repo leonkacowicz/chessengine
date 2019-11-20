@@ -4,7 +4,7 @@
 #include <string>
 #include <iostream>
 
-namespace chess { namespace core {
+namespace chess::core {
     enum square : int {
         SQ_A1, SQ_B1, SQ_C1, SQ_D1, SQ_E1, SQ_F1, SQ_G1, SQ_H1,
         SQ_A2, SQ_B2, SQ_C2, SQ_D2, SQ_E2, SQ_F2, SQ_G2, SQ_H2,
@@ -82,6 +82,6 @@ namespace chess { namespace core {
     constexpr square& operator++(square& sq) {
         return sq = sq + 1;
     }
-}}
+}
 
 #endif //CHESSENGINE_SQUARE_H

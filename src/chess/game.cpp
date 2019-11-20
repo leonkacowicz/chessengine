@@ -19,8 +19,17 @@ void game::do_move(move m) {
         s.last_irreversible_index = states.size();
     }
     s.b.make_move(m);
-    s.hash = zobrist::hash(s.b, 0);
+    s.hash = zobrist::hash(s.b);
     s.last_move = m;
+    states.push_back(s);
+}
+
+void game::do_null_move() {
+    game_state s;
+    s = states.back();
+    s.b.side_to_play = opposite(s.b.side_to_play);
+    s.hash ^= zobrist::side;
+    s.last_move = null_move;
     states.push_back(s);
 }
 
@@ -45,4 +54,16 @@ bool game::is_draw_by_3foldrep() {
 
 bool game::is_draw_by_50move() {
     return states.back().b.half_move_counter >= 100;
+}
+
+bool game::is_draw_by_insufficient_material() {
+    return false;
+}
+
+bool game::is_draw_by_stale_mate() {
+    return false;
+}
+
+bool game::is_draw() {
+    return is_draw_by_50move() || is_draw_by_insufficient_material() || is_draw_by_stale_mate() || is_draw_by_3foldrep();
 }

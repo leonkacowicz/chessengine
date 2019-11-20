@@ -26,10 +26,12 @@
 
 TEST(engine_test, engine_should_find_mate_in_one) {
     board b = chess::core::fen::board_from_fen("6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - -");
+    b.print();
     static_evaluator eval;
     engine e(eval);
-    
-    move m = e.search_iterate(b);
+
+    auto g = game(b);
+    move m = e.search_iterate(g);
 
     ASSERT_EQ(m, get_move(SQ_D1, SQ_D8));
 }
@@ -39,7 +41,8 @@ TEST(engine_test, engine_should_find_mate_in_one_b) {
     static_evaluator eval;
     engine e(eval);
 
-    move m = e.search_iterate(b);
+    auto g = game(b);
+    move m = e.search_iterate(g);
 
     ASSERT_EQ(m, get_move(SQ_D5, SQ_E6));
 }
@@ -49,7 +52,8 @@ TEST(engine_test, engine_should_find_mate_in_3ply) {
     static_evaluator eval;
     engine e(eval);
 
-    move m = e.search_iterate(b);
+    auto g = game(b);
+    move m = e.search_iterate(g);
 
     ASSERT_EQ(m, get_move(SQ_F1, SQ_F7));
 }
@@ -59,7 +63,8 @@ TEST(engine_test, engine_should_find_mate_in_5ply) {
     static_evaluator eval;
     engine e(eval);
 
-    move m = e.search_iterate(b);
+    auto g = game(b);
+    move m = e.search_iterate(g);
 
     ASSERT_EQ(m, get_move(SQ_B7, SQ_F7));
 }
@@ -69,7 +74,8 @@ TEST(engine_test, engine_should_find_mate_in_8ply) {
     static_evaluator eval;
     engine e(eval);
 
-    move m = e.search_iterate(b);
+    auto g = game(b);
+    move m = e.search_iterate(g);
 
     ASSERT_EQ(m, get_move(SQ_D3, SQ_C5));
 }
@@ -95,7 +101,8 @@ TEST(engine_test, engine_should_stick_to_mate1) {
     zero_eval eval;
     engine e(eval);
 
-    move m = e.search_iterate(b);
+    auto g = game(b);
+    move m = e.search_iterate(g);
     ASSERT_EQ(m, get_move(SQ_E4, SQ_E1));
 }
 
@@ -115,6 +122,7 @@ TEST(engine_test, engine_should_stick_to_mate2) {
     zero_eval eval;
     engine e(eval);
 
-    move m = e.search_iterate(b);
+    auto g = game(b);
+    move m = e.search_iterate(g);
     ASSERT_TRUE(m == get_move(SQ_G4, SQ_E4) || get_move(SQ_G4, SQ_D4));
 }

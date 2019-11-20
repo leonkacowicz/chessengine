@@ -5,6 +5,7 @@
 #include <core.h>
 #include <fstream>
 #include <move_gen.h>
+#include <game.h>
 #include "engine.h"
 #include "uci.h"
 #include "static_evaluator.h"
@@ -36,26 +37,27 @@ void print_illegal_start_sequence_message(const std::vector<string>& words, int 
     std::cerr << std::endl;
 }
 
-board handle_position_cmd(const std::vector<string>& words) {
+game handle_position_cmd(const std::vector<string>& words) {
     assert(words[0] == "position");
     if (words[1] == "startpos") {
         board b;
         b.set_initial_position();
+        game g(b);
         auto iter = std::find(words.begin(), words.end(), "moves");
-        if (iter == words.end()) return b;
+        if (iter == words.end()) return g;
         while (++iter != words.end()) {
-            auto moves = move_gen(b).generate();
+            auto moves = move_gen(g.states.back().b).generate();
             auto move_found = std::find_if(moves.begin(), moves.end(), [&] (const move& m) {
                 return to_long_move(m) == *iter;
             });
             if (move_found != moves.end()) {
-                b.make_move(*move_found);
+                g.do_move(*move_found);
             } else {
                 print_illegal_start_sequence_message(words, iter - words.begin() + 1);
-                return b;
+                return g;
             }
         }
-        return b;
+        return g;
     }
 }
 
@@ -66,6 +68,7 @@ int main()
     std::unique_ptr<engine> eng = std::make_unique<engine>(*eval.get());
     board b;
     b.set_initial_position();
+    game g(b);
     while (!std::cin.eof()) {
         string input;
         std::getline(std::cin, input);
@@ -81,17 +84,17 @@ int main()
             continue;
         } else if (words[0] == "position") {
             if (words[1] == "startpos") {
-                b = handle_position_cmd(words);
+                g = handle_position_cmd(words);
             }
             continue;
         } else if (words[0] == "go") {
             uci_go_cmd cmd(words);
-            if (move_gen(b).generate().empty()) {
+            if (move_gen(g.states.back().b).generate().empty()) {
                 std::cerr << "no legal move found to be searched" << std::endl;
                 std::cout << "bestmove (none)" << std::endl;
             } else {
                 std::cout << "info calculating move time for " << cmd.move_time.count() << "ms\n";
-                auto selected_move = eng->timed_search(b, cmd.move_time);
+                auto selected_move = eng->timed_search(g, cmd.move_time);
                 std::cout << "bestmove " << to_long_move(selected_move) << std::endl;
                 std::cout.flush();
             }
