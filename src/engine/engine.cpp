@@ -14,9 +14,12 @@
 #include "zobrist.h"
 #include "transposition_table.h"
 
+using namespace chess::core;
+
 move engine::search_iterate(game& g) {
 
     time_over = false;
+    initial_search_time = std::chrono::system_clock::now();
     auto legal_moves = move_gen(g.states.back().b).generate();
     if (legal_moves.empty()) return null_move;
 
@@ -68,22 +71,19 @@ int engine::search_root(game& g, int depth, int alpha, int beta) {
         sort_moves(legal_moves, i);
         move m = legal_moves[i].first;
         g.do_move(m);
+        auto _ = auto_undo_last_move(g);
         if (best == -1) {
             val = -search<true>(g, depth - 1, 1, -beta, -alpha);
-            g.undo_last_move();
         } else {
             int tmp = -search<false>(g, depth - 1, 1, -alpha - 1, -alpha);
             if (time_over) {
-                g.undo_last_move();
                 return 0;
             }
             if (tmp > alpha) {
                 val = -search<true>(g, depth - 1, 1, -beta, -alpha);
-                g.undo_last_move();
                 if (time_over) return 0;
             }
             else {
-                g.undo_last_move();
                 continue;
             }
         }
@@ -123,6 +123,8 @@ int engine::search(game& g, int depth, int ply, int alpha, int beta) {
     if (beta > mate_value - 1) beta = mate_value - 1;
     if (alpha >= beta) return alpha;
 
+    if (g.is_draw_by_3foldrep() || g.is_draw_by_50move()) return 0;
+
     tt_node node;
     move tt_move = null_move;
     int val;
@@ -157,7 +159,6 @@ int engine::search(game& g, int depth, int ply, int alpha, int beta) {
         }
         return val;
     }
-    if (g.is_draw()) return 0;
 
     if (depth < 3
         && !is_pv
@@ -194,29 +195,19 @@ int engine::search(game& g, int depth, int ply, int alpha, int beta) {
     for (int i = 0; i < legal_moves.size(); i++) {
         sort_moves(legal_moves, i);
         move m = legal_moves[i].first;
-
         g.do_move(m);
+        auto _ = auto_undo_last_move(g);
         if (!raised_alpha) {
             val = -search<is_pv>(g, depth - 1, ply + 1, -beta, -alpha);
-            g.undo_last_move();
-            if (time_over) {
-                return 0;
-            }
+            if (time_over) return 0;
         } else {
             int tmp = -search<false>(g, depth - 1, ply + 1, -alpha - 1, -alpha);
-            if (time_over) {
-                g.undo_last_move();
-                return 0;
-            }
+            if (time_over) return 0;
             if (tmp > alpha) {
                 val = -search<true>(g, depth - 1, ply + 1, -beta, -alpha);
-                g.undo_last_move();
                 if (time_over) return 0;
             }
-            else {
-                g.undo_last_move();
-                continue;
-            }
+            else continue;
         }
         if (val > bestval) {
             bestval = val;
@@ -372,6 +363,7 @@ void engine::log_score(const board& b, int val) {
     }
     std::cout << " nodes " << nodes;
     std::cout << " qnodes " << qnodes;
+    std::cout << " time " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - initial_search_time).count();
     std::cout << " tthit " << cache_hit_count;
     std::cout << " pv " << to_long_move(bestmove);
     tt_node node{};

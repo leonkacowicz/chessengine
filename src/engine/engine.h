@@ -29,6 +29,7 @@ class engine {
     bool can_do_null_move = true;
     bool time_over = false;
 
+    std::chrono::system_clock::time_point initial_search_time;
     evaluator& eval;
 
 public:

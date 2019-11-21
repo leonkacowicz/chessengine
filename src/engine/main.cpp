@@ -13,6 +13,7 @@
 
 using std::stringstream;
 using std::string;
+using chess::core::game;
 
 std::vector<string> split(const string& input, const string& delimiter = " ") {
     auto start = 0U;
@@ -59,6 +60,7 @@ game handle_position_cmd(const std::vector<string>& words) {
         }
         return g;
     }
+    throw std::runtime_error("position type not implemented");
 }
 
 int main()

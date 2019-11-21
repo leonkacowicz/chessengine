@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 #include <square.h>
 #include <engine.h>
-#include <zobrist.h>
+#include <game.h>
 #include <fen.h>
 #include <static_evaluator.h>
 
@@ -24,8 +24,10 @@
 //    }
 //}
 
+using namespace chess::core;
+
 TEST(engine_test, engine_should_find_mate_in_one) {
-    board b = chess::core::fen::board_from_fen("6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - -");
+    board b = fen::board_from_fen("6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - -");
     b.print();
     static_evaluator eval;
     engine e(eval);

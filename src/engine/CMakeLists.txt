@@ -1,5 +1,6 @@
 file(GLOB SRCS *.cpp *.h)
-list(REMOVE_ITEM SRCS main.cpp)
+file(GLOB MAINCPP main.cpp)
+list(REMOVE_ITEM SRCS ${MAINCPP})
 add_library(engine STATIC ${SRCS})
 target_include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(engine chess)
