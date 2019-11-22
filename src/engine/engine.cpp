@@ -76,9 +76,7 @@ int engine::search_root(game& g, int depth, int alpha, int beta) {
             val = -search<true>(g, depth - 1, 1, -beta, -alpha);
         } else {
             int tmp = -search<false>(g, depth - 1, 1, -alpha - 1, -alpha);
-            if (time_over) {
-                return 0;
-            }
+            if (time_over) return 0;
             if (tmp > alpha) {
                 val = -search<true>(g, depth - 1, 1, -beta, -alpha);
                 if (time_over) return 0;
@@ -144,7 +142,7 @@ int engine::search(game& g, int depth, int ply, int alpha, int beta) {
     bool in_check = b.under_check(b.side_to_play);
     if (in_check) depth++;
     if (depth <= 0 && !in_check)
-        return qsearch(b, ply, alpha, beta);
+        return qsearch(g, ply, alpha, beta);
 
     nodes++;
 
@@ -300,11 +298,13 @@ void engine::set_killer_move(move m, int ply) {
     }
 }
 
-int engine::qsearch(const board& b, int ply, int alpha, int beta) {
+int engine::qsearch(game& g, int ply, int alpha, int beta) {
     if (time_over) return 0;
+    if (g.is_draw_by_3foldrep() || g.is_draw_by_50move()) return 0;
+    const board& b = g.states.back().b;
     nodes++;
     qnodes++;
-    uint64_t hash = zobrist::hash(b);
+    uint64_t hash = g.states.back().hash;
     tt_node node;
     move tt_move = null_move;
     int val;
@@ -325,9 +325,9 @@ int engine::qsearch(const board& b, int ply, int alpha, int beta) {
         val = 0;
         if (b.under_check(b.side_to_play)) {
             val = -MATE + ply;
-            tt.save(hash, 1000, -MATE, EXACT, tt_move);
+            tt.save(hash, INF, -MATE, EXACT, tt_move);
         } else {
-            tt.save(hash, 1000, 0, EXACT, tt_move);
+            tt.save(hash, INF, 0, EXACT, tt_move);
         }
         return val;
     }
@@ -336,9 +336,9 @@ int engine::qsearch(const board& b, int ply, int alpha, int beta) {
         sort_moves(legal_moves, i);
         move m = legal_moves[i].first;
         if (b.piece_at(get_bb(move_dest(m))) != NO_PIECE || move_type(m) >= PROMOTION_QUEEN || (move_dest(m) == b.en_passant && b.piece_at(get_bb(move_origin(m))) == PAWN)) {
-            board bnew = b;
-            bnew.make_move(m);
-            val = -qsearch(bnew, ply + 1, -beta, -alpha);
+            g.do_move(m);
+            auto _ = auto_undo_last_move(g);
+            val = -qsearch(g, ply + 1, -beta, -alpha);
             if (time_over) return 0;
             if (val > alpha) {
                 if (val >= beta) return beta;
@@ -361,9 +361,12 @@ void engine::log_score(const board& b, int val) {
     } else {
         std::cout << " score cp " << val;
     }
+
+    long time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now() - initial_search_time).count();
     std::cout << " nodes " << nodes;
     std::cout << " qnodes " << qnodes;
-    std::cout << " time " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - initial_search_time).count();
+    std::cout << " nps " << int(double(nodes) * 1000000000 / double(time));
+    std::cout << " time " << (time / 1000000);
     std::cout << " tthit " << cache_hit_count;
     std::cout << " pv " << to_long_move(bestmove);
     tt_node node{};

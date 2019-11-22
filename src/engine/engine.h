@@ -50,7 +50,7 @@ public:
 
     void log_score(const board& b, int val);
 
-    int qsearch(const board& b, int ply, int alpha, int beta);
+    int qsearch(game& g, int ply, int alpha, int beta);
 
     std::vector<std::pair<move, int>>
     get_move_scores(const board& b, int ply, const std::vector<move>& moves, const move tt_move);
