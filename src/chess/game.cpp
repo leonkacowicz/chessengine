@@ -57,6 +57,24 @@ bool game::is_draw_by_50move() {
 }
 
 bool game::is_draw_by_insufficient_material() {
+    auto b = states.back().b;
+    if (b.piece_of_type[QUEEN] || b.piece_of_type[ROOK] || b.piece_of_type[PAWN]) return false;
+    int light_square_bishops_white = num_squares(b.piece_of_type[BISHOP] & b.piece_of_color[WHITE] & light_squares);
+    int light_square_bishops_black = num_squares(b.piece_of_type[BISHOP] & b.piece_of_color[BLACK] & light_squares);
+    int dark_square_bishops_white = num_squares(b.piece_of_type[BISHOP] & b.piece_of_color[WHITE] & dark_squares);
+    int dark_square_bishops_black = num_squares(b.piece_of_type[BISHOP] & b.piece_of_color[BLACK] & dark_squares);
+    int knights_white = num_squares(b.piece_of_type[KNIGHT] & b.piece_of_color[WHITE]);
+    int knights_black = num_squares(b.piece_of_type[KNIGHT] & b.piece_of_color[BLACK]);
+
+    if (light_square_bishops_white + dark_square_bishops_white + light_square_bishops_black + dark_square_bishops_black == 0) {
+        if (knights_white == 0 && knights_black <= 2) return true;
+        else if (knights_black == 0 && knights_white <= 2) return true;
+    } else if (knights_white + knights_black == 0) {
+        if (light_square_bishops_white + light_square_bishops_black == 0) return true;
+        else if (dark_square_bishops_white + dark_square_bishops_black == 0) return true;
+        else if (light_square_bishops_white + dark_square_bishops_white <= 1 &&
+                 light_square_bishops_black + dark_square_bishops_black <= 1) return true;
+    }
     return false;
 }
 

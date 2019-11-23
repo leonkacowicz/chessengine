@@ -41,7 +41,9 @@ namespace chess::core {
 
     struct auto_undo_last_move {
         game& g;
-        auto_undo_last_move(game& g) : g(g) {}
+
+        explicit auto_undo_last_move(game& g) : g(g) {}
+
         ~auto_undo_last_move() {
             g.undo_last_move();
         }

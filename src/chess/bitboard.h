@@ -134,6 +134,9 @@ namespace chess {
         constexpr bitboard file[8] = {file_a, file_b, file_c, file_d, file_e, file_f, file_g, file_h};
         constexpr bitboard rank[8] = {rank_1, rank_2, rank_3, rank_4, rank_5, rank_6, rank_7, rank_8};
 
+        constexpr bitboard dark_squares = file_a ^ file_c ^ file_e ^ file_g ^ rank_2 ^ rank_4 ^ rank_6 ^ rank_8;
+        constexpr bitboard light_squares = ~dark_squares;
+
         constexpr bitboard get_bb(unsigned int f, unsigned int r) {
             return 1uL << (8 * r + f);
         }

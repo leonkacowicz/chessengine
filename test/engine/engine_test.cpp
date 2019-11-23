@@ -82,6 +82,32 @@ TEST(engine_test, engine_should_find_mate_in_8ply) {
     ASSERT_EQ(m, get_move(SQ_D3, SQ_C5));
 }
 
+TEST(engine_test, engine_should_find_mate_in_9ply) {
+    board b = fen::board_from_fen("1Q6/N2k4/1p1pp3/1rp1p3/1b1p4/2p5/8/5K2 w - - 0 1");
+
+    static_evaluator eval;
+    engine e(eval);
+
+    auto g = game(b);
+    move m = e.search_iterate(g);
+
+    ASSERT_EQ(m, get_move(SQ_A7, SQ_C6));
+
+}
+
+TEST(engine_test, engine_should_find_mate_in_14ply) {
+    board b = fen::board_from_fen("1k2N3/p7/P2Np3/2Pp1p2/2p4p/7P/1q3PP1/3R2KR w - - 0 1");
+
+    static_evaluator eval;
+    engine e(eval);
+
+    auto g = game(b);
+    using std::chrono_literals::operator""ms;
+    move m = e.timed_search(g, 100ms);
+
+    ASSERT_EQ(m, get_move(SQ_C5, SQ_C6));
+}
+
 class zero_eval : public evaluator {
     int eval(const board& b) override {
         return 0;

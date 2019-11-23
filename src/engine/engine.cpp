@@ -61,7 +61,8 @@ int engine::search_root(game& g, int depth, int alpha, int beta) {
     tt_node node;
     move current_bestmove = bestmove;
     if (tt.load(hash, depth, alpha, beta, &node) && node.type == EXACT) {
-        current_bestmove = node.bestmove;
+        if (node.bestmove != null_move)
+            current_bestmove = node.bestmove;
     }
     auto legal_moves = get_move_scores(b, 0, move_gen(b).generate(), current_bestmove);
     int val;
@@ -93,13 +94,12 @@ int engine::search_root(game& g, int depth, int alpha, int beta) {
             best = i;
             current_bestmove = m;
             if (val > beta) {
-                tt.save(hash, depth, beta, BETA, m);
-                log_score(b, beta);
-                return beta;
+                tt.save(hash, depth, val, BETA, m);
+                return val;
             }
-
             alpha = val;
             tt.save(hash, depth, alpha, ALPHA, m);
+            bestmove = current_bestmove;
             log_score(b, alpha);
         }
     }
@@ -137,6 +137,11 @@ int engine::search(game& g, int depth, int ply, int alpha, int beta) {
             }
             return val;
         }
+    }
+
+    if (g.is_draw_by_insufficient_material()) {
+        tt.save(hash, INF, 0, EXACT, null_move);
+        return 0;
     }
 
     bool in_check = b.under_check(b.side_to_play);
@@ -182,7 +187,7 @@ int engine::search(game& g, int depth, int ply, int alpha, int beta) {
         can_do_null_move = true;
         g.undo_last_move();
         if (time_over) return 0;
-        if (nmval >= beta) return beta;
+        if (nmval >= beta) return nmval;
     }
 
 
@@ -220,7 +225,7 @@ int engine::search(game& g, int depth, int ply, int alpha, int beta) {
                     set_killer_move(m, ply);
                 }
                 new_tt_node_type = BETA;
-                alpha = beta;
+                alpha = val;
                 break;
             }
             raised_alpha = true;
@@ -317,9 +322,13 @@ int engine::qsearch(game& g, int ply, int alpha, int beta) {
         tt.save(hash, 0, val, EXACT, tt_move);
     }
 
-    if (val >= beta) return beta;
+    if (val >= beta) return val;
     if (val > alpha) alpha = val;
 
+    if (g.is_draw_by_insufficient_material()) {
+        tt.save(hash, INF, 0, EXACT, tt_move);
+        return 0;
+    }
     auto legal_moves = get_move_scores(b, ply, move_gen(b).generate(), tt_move);
     if (legal_moves.empty()) {
         val = 0;
@@ -341,7 +350,7 @@ int engine::qsearch(game& g, int ply, int alpha, int beta) {
             val = -qsearch(g, ply + 1, -beta, -alpha);
             if (time_over) return 0;
             if (val > alpha) {
-                if (val >= beta) return beta;
+                if (val >= beta) return val;
                 alpha = val;
             }
         }
