@@ -374,8 +374,8 @@ void engine::log_score(const board& b, int val) {
     long time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now() - initial_search_time).count();
     std::cout << " nodes " << nodes;
     std::cout << " qnodes " << qnodes;
-    std::cout << " nps " << int(double(nodes) * 1000000000 / double(time));
-    std::cout << " time " << (time / 1000000);
+    std::cout << " nps " << int(double(nodes) * 1'000'000'000 / double(time));
+    std::cout << " time " << (time / 1'000'000);
     std::cout << " tthit " << cache_hit_count;
     std::cout << " pv " << to_long_move(bestmove);
     tt_node node{};
@@ -404,7 +404,7 @@ move engine::timed_search(game& g, const std::chrono::milliseconds& time) {
         mutex.unlock();
     });
     if (!mutex.try_lock_for(time)) {
-        std::cerr << "Timeout" << std::endl;
+        std::cout << "info time " << time.count() << std::endl;
         time_over = true;
     }
     thr.join();

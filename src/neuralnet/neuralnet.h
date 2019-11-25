@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <Eigen/Core>
+#include <random>
 
 namespace chess {
     namespace neural {
@@ -10,6 +11,8 @@ namespace chess {
             std::vector<Eigen::MatrixXd> matrices;
         public:
             neuralnet(std::istream&);
+            neuralnet(std::random_device&& rd, const std::vector<int>& layers);
+
             neuralnet(const std::vector<Eigen::MatrixXd>&);
             neuralnet(const std::vector<int>&, const std::vector<double>&);
             neuralnet(const std::vector<int>&, const Eigen::VectorXd&);

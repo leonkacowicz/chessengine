@@ -154,3 +154,24 @@ TEST(engine_test, engine_should_stick_to_mate2) {
     move m = e.search_iterate(g);
     ASSERT_TRUE(m == get_move(SQ_G4, SQ_E4) || get_move(SQ_G4, SQ_D4));
 }
+
+TEST(engine_test, engine_should_find_mate_in_7ply) {
+//    8   ◦ ◦ ♕ ◦ ◦ ◦ ◦ ◦
+//    7   ◦ ◦ ◦ ◦ ◦ ♟ ◦ ◦
+//    6   ◦ ◦ ◦ ◦ ◦ ♙ ◦ ◦
+//    5   ◦ ◦ ◦ ◦ ◦ ◦ ◦ ◦
+//    4   ◦ ◦ ◦ ◦ ◦ ◦ ◦ ◦
+//    3   ♙ ♚ ◦ ◦ ◦ ◦ ◦ ◦
+//    2   ◦ ◦ ◦ ◦ ◦ ◦ ◦ ◦
+//    1   ◦ ◦ ♔ ◦ ◦ ◦ ◦ ◦
+//
+//    a◦b◦c◦d◦e◦f◦g◦h
+
+
+    board b = fen::board_from_fen("2Q5/5p2/5P2/8/8/Pk6/8/2K5 w - - 0 1");
+    game g(b);
+    zero_eval eval;
+    engine e(eval);
+    move m = e.search_iterate(g);
+    ASSERT_TRUE(m == get_move(SQ_C8, SQ_C5));
+}

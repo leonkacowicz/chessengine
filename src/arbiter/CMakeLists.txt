@@ -8,3 +8,7 @@ target_link_libraries(arbiter chess)
 add_executable(chessarbiter ${MAINCPP})
 target_link_libraries(chessarbiter arbiter)
 target_link_libraries(chessarbiter boost_program_options)
+
+if ("${CMAKE_BUILD_TYPE}" MATCHES "Release")
+    add_custom_command(TARGET chessarbiter POST_BUILD COMMAND aws s3 cp ${CMAKE_CURRENT_BINARY_DIR}/chessarbiter s3://leonkacowicz/chess/)
+endif()

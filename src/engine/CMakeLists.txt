@@ -10,3 +10,7 @@ target_link_libraries(engine lib_neuralnet)
 
 add_executable(chessengine main.cpp)
 target_link_libraries(chessengine engine)
+
+if ("${CMAKE_BUILD_TYPE}" MATCHES "Release")
+    add_custom_command(TARGET chessengine POST_BUILD COMMAND aws s3 cp ${CMAKE_CURRENT_BINARY_DIR}/chessengine s3://leonkacowicz/chess/)
+endif()

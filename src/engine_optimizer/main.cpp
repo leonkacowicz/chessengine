@@ -10,7 +10,7 @@
 using chess::neural::neuralnet;
 using boost::filesystem::path;
 
-const std::vector<int> layers{832, 1};
+const std::vector<int> layers{832, 50, 40, 30, 20, 10, 1};
 
 std::random_device rd;
 std::mt19937 mt(rd());
@@ -24,7 +24,7 @@ neuralnet random_net() {
     for (int i = 1; i < layers.size(); i++) {
         int rows = layers[i], cols = layers[i - 1] + 1;
         Eigen::MatrixXd M = Eigen::MatrixXd::Zero(rows, cols);
-        for (int row = 0; row < rows; row++) for (int col = 0; col < cols; col++) M(row, col) = dis(mt) / 50;
+        for (int row = 0; row < rows; row++) for (int col = 0; col < cols; col++) M(row, col) = .1 * dis(mt) / dis(mt);
         matrices.push_back(M);
     }
     return neuralnet(matrices);
@@ -106,10 +106,10 @@ int get_score(const neuralnet& nn1, const neuralnet& nn2) {
                             "--verbose",
                             "--white-exec", "../engine/chessengine",
                             "--white-input", "white_options.txt",
-                            "--white-move-time", "100",
+                            "--white-move-time", "50",
                             "--black-exec", "../engine/chessengine",
                             "--black-input", "black_options.txt",
-                            "--black-move-time", "100",
+                            "--black-move-time", "50",
                             boost::process::std_out > out
     );
 
@@ -133,7 +133,7 @@ int get_score(const neuralnet& nn1, const neuralnet& nn2) {
 
 int main() {
     int population = 4;
-    int num_generations = 15;
+    int num_generations = 20;
 
     path workdir("workdir");
     path first_gen(workdir);

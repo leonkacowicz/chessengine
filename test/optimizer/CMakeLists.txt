@@ -1,0 +1,6 @@
+file(GLOB SRCS *.cpp)
+add_executable(optimizer_tests ${SRCS})
+target_link_libraries(optimizer_tests engine_optimizer)
+target_link_libraries(optimizer_tests libgtest)
+target_link_libraries(optimizer_tests libgmock)
+add_test(NAME optimizer_tests COMMAND optimizer_tests)

@@ -94,3 +94,16 @@ Eigen::VectorXd neuralnet::to_eigen_vector() const {
     }
     return ret;
 }
+
+neuralnet::neuralnet(std::random_device&& rd, const std::vector<int>& layers) {
+    std::mt19937 mt(rd());
+    std::normal_distribution dis(0.0, 1.0);
+    int num_layers = layers.size();
+    matrices.reserve(num_layers);
+    for (int i = 1; i < num_layers; i++) {
+        int rows = layers[i], cols = layers[i - 1] + 1;
+        Eigen::MatrixXd M = Eigen::MatrixXd::Zero(rows, cols);
+        for (int row = 0; row < rows; row++) for (int col = 0; col < cols; col++) M(row, col) = .1 * dis(mt) / dis(mt);
+        matrices.push_back(M);
+    }
+}

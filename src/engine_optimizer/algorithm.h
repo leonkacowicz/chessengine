@@ -4,30 +4,43 @@
 
 #ifndef CHESSENGINE_ALGORITHM_H
 #define CHESSENGINE_ALGORITHM_H
-/*
 
-        while (true) {
-            forma n pares de jogadores sem reposição
-            para cada par, roda o jogo
+#include <unordered_map>
+#include <Eigen/Core>
+#include <random>
+#include <neuralnet.h>
 
-            se o jogo terminar em vitoria, colocar o vencedor no conjunto V e o perdedor no conjunto P
-            se o jogo terminar em empate, colocar ambos no conjunto E
+namespace chess::optimizer {
+    class algorithm {
 
-            formar N pares de jogadores sorteando
-                - do conjunto V com probabilidade 0.70,
-                - do conjunto E com probabilidade 0.25
-                - do conjunto P com probabilidade 0.05
+        struct parent {
+            int id = -1;
+            int child_id = -1;
+            int destination = -1;
+        };
 
-            para cada par, fazer o cruzamento dos genes, e salvar os novos individuos
+        struct player {
+            std::string hash;
+            Eigen::VectorXd theta;
+        };
 
-            se |P| >= N, deletar N jogadores aleatórios em P do disco
-            se não, deletar todos os jogadores de P, e N - |P| jogadores aleatórios de E
-        }
-     */
+        typedef std::vector<parent> generation;
+        std::vector<generation> generations;
+        std::vector<player> players;
+        int num_generations;
+        int population_size;
+        std::random_device rd;
+        std::vector<int> random_permutation(int size);
+        generation& add_generation();
+        player generate_random_player();
+        void cross_over(parent& p1, parent& p2);
+        player save_player(const Eigen::VectorXd& theta);
+        player save_player(const chess::neural::neuralnet& nn);
 
-class algorithm {
-
+    public:
+        algorithm(int num_generations, int population_size);
+        void run();
+    };
 };
-
 
 #endif //CHESSENGINE_ALGORITHM_H
