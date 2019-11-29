@@ -32,6 +32,8 @@ public:
 
     void save(uint64_t hash, int depth, int value, tt_node_type type, move bestmove) {
         assert(bestmove != 0);
+        assert(!(value < 31950 && value > 31000 && type == EXACT));
+        assert(!(-value < 31950 && -value > 31000 && type == EXACT));
         auto& n = nodes[hash % size];
         if (n.hash == hash && n.depth > depth) return;
         n.hash = hash;
@@ -59,11 +61,11 @@ public:
             if (m.depth >= depth) {
                 if (m.type == EXACT) return true;
                 if (m.type == ALPHA && m.value <= alpha) {
-                    n->value = alpha;
+                    //n->value = alpha;
                     return true;
                 }
                 if (m.type == BETA && m.value >= beta) {
-                    n->value = beta;
+                    //n->value = beta;
                     return true;
                 }
             }

@@ -31,7 +31,7 @@ move engine::search_iterate(game& g) {
     qnodes = 0;
     cache_hit_count = 0;
     // assuming last search was last played move, we can shift the killer move list one ply to the left and hope it will be still valid
-    for (int i = 0; i < killers.size() - 1 && killers.size() > 0; i++) {
+    for (int i = 0; i < killers.size() - 1 && !killers.empty(); i++) {
         killers[i] = killers[i + 1];
     }
 
@@ -40,7 +40,7 @@ move engine::search_iterate(game& g) {
     int val = search_root(g, current_depth, -INF, +INF);
 
     for (current_depth = 2; current_depth <= max_depth; current_depth++) {
-        if (val >= MATE - current_depth) return bestmove;
+        //if (val > MATE - current_depth) return bestmove;
         val = search_widen(g, current_depth, val);
     }
     return bestmove;
@@ -137,6 +137,8 @@ int engine::search(game& g, int depth, int ply, int alpha, int beta) {
             }
             return val;
         }
+    } else if (tt.load(hash, -1, -INF, INF, &node)) {
+        tt_move = node.bestmove;
     }
 
     if (g.is_draw_by_insufficient_material()) {
@@ -249,7 +251,8 @@ std::vector<std::pair<move, int>> engine::get_move_scores(const board& b, int pl
         int score = history[b.side_to_play][move_origin(m)][move_dest(m)];
         board bnew = b;
         bnew.make_move(m);
-        if (bnew.under_check(bnew.side_to_play)) score += 400000000;
+        if (m == tt_move) score += 1'000'000'000;
+        if (bnew.under_check(bnew.side_to_play)) score += 400'000'000;
         piece captured = b.piece_at(get_bb(move_dest(m)));
         if (captured != NO_PIECE || (b.piece_at(get_bb(move_origin(m))) == PAWN && move_dest(m) == b.en_passant)) {
             score += 100000100;
@@ -258,11 +261,10 @@ std::vector<std::pair<move, int>> engine::get_move_scores(const board& b, int pl
             else if (captured == BISHOP) score += 235;
             else if (captured == KNIGHT) score += 225;
         }
-        if (b.piece_at(get_bb(move_origin(m))) == PAWN && (get_rank(move_dest(m)) % 8) == 0) score += 90000000;
-        if (m == tt_move) score += 200000000;
+        if (b.piece_at(get_bb(move_origin(m))) == PAWN && (get_rank(move_dest(m)) % 8) == 0) score += 90'000'000;
         if (killers.size() > ply) {
-            if (killers[ply].first == m) score += 80000000;
-            if (killers[ply].second == m) score += 79999999;
+            if (killers[ply].first == m) score += 80'000'000;
+            if (killers[ply].second == m) score += 79'999'999;
         }
         ret.emplace_back(m, score);
     }
@@ -316,17 +318,25 @@ int engine::qsearch(game& g, int ply, int alpha, int beta) {
     if (tt.load(hash, 0, &node)) {
         val = node.value;
         tt_move = node.bestmove;
+        if (node.type == EXACT) {
+            if (alpha < val && val < beta) {
+                if (std::abs(val) > MATE - 100) {
+                    if (val > 0) val = val - ply;
+                    else val = val + ply;
+                }
+                return val;
+            }
+        }
     } else {
         val = eval.eval(b);
         if (b.side_to_play == BLACK) val = -val;
         tt.save(hash, 0, val, EXACT, tt_move);
     }
-
     if (val >= beta) return val;
     if (val > alpha) alpha = val;
 
     if (g.is_draw_by_insufficient_material()) {
-        tt.save(hash, INF, 0, EXACT, tt_move);
+        tt.save(hash, INF, 0, EXACT, null_move);
         return 0;
     }
     auto legal_moves = get_move_scores(b, ply, move_gen(b).generate(), tt_move);
@@ -334,9 +344,9 @@ int engine::qsearch(game& g, int ply, int alpha, int beta) {
         val = 0;
         if (b.under_check(b.side_to_play)) {
             val = -MATE + ply;
-            tt.save(hash, INF, -MATE, EXACT, tt_move);
+            tt.save(hash, INF, -MATE, EXACT, null_move);
         } else {
-            tt.save(hash, INF, 0, EXACT, tt_move);
+            tt.save(hash, INF, 0, EXACT, null_move);
         }
         return val;
     }
@@ -344,6 +354,7 @@ int engine::qsearch(game& g, int ply, int alpha, int beta) {
     for (int i = 0; i < legal_moves.size(); i++) {
         sort_moves(legal_moves, i);
         move m = legal_moves[i].first;
+        //auto bnew = g.states.back().b;
         if (b.piece_at(get_bb(move_dest(m))) != NO_PIECE || move_type(m) >= PROMOTION_QUEEN || (move_dest(m) == b.en_passant && b.piece_at(get_bb(move_origin(m))) == PAWN)) {
             g.do_move(m);
             auto _ = auto_undo_last_move(g);

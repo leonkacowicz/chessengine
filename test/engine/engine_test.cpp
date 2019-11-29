@@ -103,7 +103,7 @@ TEST(engine_test, engine_should_find_mate_in_14ply) {
 
     auto g = game(b);
     using std::chrono_literals::operator""ms;
-    move m = e.timed_search(g, 100ms);
+    move m = e.timed_search(g, 2000ms);
 
     ASSERT_EQ(m, get_move(SQ_C5, SQ_C6));
 }
