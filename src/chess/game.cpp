@@ -41,9 +41,9 @@ void game::undo_last_move() {
 
 bool game::is_draw_by_3foldrep() {
     game_state& last = states.back();
-    int reps = 0;
+    int reps = 1;
     int size = states.size();
-    for (int i = last.last_irreversible_index; i < size; i++) {
+    for (int i = size - 3; i >= last.last_irreversible_index; i -= 2) {
         if (states[i].hash == last.hash)
             if (states[i].b == last.b)
                 if (++reps >= 3)

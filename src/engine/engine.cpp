@@ -40,7 +40,7 @@ move engine::search_iterate(game& g) {
     int val = search_root(g, current_depth, -INF, +INF);
 
     for (current_depth = 2; current_depth <= max_depth; current_depth++) {
-        //if (val > MATE - current_depth) return bestmove;
+        if (val > MATE - current_depth) return bestmove;
         val = search_widen(g, current_depth, val);
     }
     return bestmove;
@@ -101,6 +101,7 @@ int engine::search_root(game& g, int depth, int alpha, int beta) {
             tt.save(hash, depth, alpha, ALPHA, m);
             bestmove = current_bestmove;
             log_score(b, alpha);
+            if (val >= MATE - depth) break;
         }
     }
     assert(best > -1);
@@ -118,7 +119,7 @@ int engine::search(game& g, int depth, int ply, int alpha, int beta) {
     int mate_value = MATE - ply;
 
     if (alpha < -mate_value) alpha = -mate_value;
-    if (beta > mate_value - 1) beta = mate_value - 1;
+    if (beta > mate_value) beta = mate_value;
     if (alpha >= beta) return alpha;
 
     if (g.is_draw_by_3foldrep() || g.is_draw_by_50move()) return 0;
@@ -233,10 +234,14 @@ int engine::search(game& g, int depth, int ply, int alpha, int beta) {
             raised_alpha = true;
             new_tt_node_type = EXACT;
             alpha = val;
+            if (val >= MATE - depth) break;
         }
     }
     if (alpha > MATE - 100) {
-        tt.save(hash, depth, alpha + ply, new_tt_node_type, legal_moves[best].first);
+        if (MATE - (alpha + ply) <= depth)
+            tt.save(hash, INF, alpha + ply, new_tt_node_type, legal_moves[best].first);
+        else
+            tt.save(hash, depth, alpha + ply, new_tt_node_type, legal_moves[best].first);
     } else if (alpha < -MATE + 100) {
         tt.save(hash, depth, alpha - ply, new_tt_node_type, legal_moves[best].first);
     } else {
@@ -410,6 +415,7 @@ move engine::timed_search(game& g, const std::chrono::milliseconds& time) {
     std::timed_mutex mutex;
     mutex.lock();
     time_over = false;
+    bestmove = null_move;
     std::thread thr([&] () {
         search_iterate(g);
         mutex.unlock();

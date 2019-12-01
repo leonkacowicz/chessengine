@@ -8,21 +8,24 @@
 #include <game.h>
 #include <fen.h>
 #include <static_evaluator.h>
+#include <chrono>
 
-//TEST(engine_test, engine_call) {
-//    board b;
-//    b.set_initial_position();
-//    b.make_move(SQ_E2, SQ_E4);
-//    static_evaluator eval;
-//    engine e(eval);
-//    for (int i = 1; i < 2; i++) {
-//        std::cout << i << ".\n\n";
-//        auto m = e.search_iterate(b);
-//        if (move_type(m) == NULL_MOVE) break;
-//        b.make_move(m);
-//        b.print();
-//    }
-//}
+TEST(engine_test, engine_call) {
+    using namespace std::chrono_literals;
+    board b;
+    b.set_initial_position();
+    game g(b);
+    g.do_move(get_move(SQ_E2, SQ_E4));
+    static_evaluator eval;
+    engine e(eval);
+    for (int i = 1; i < 200; i++) {
+        std::cout << i << ".\n\n";
+        auto m = e.timed_search(g, 50ms);
+        if (m == null_move) break;
+        g.do_move(m);
+        g.states.back().b.print();
+    }
+}
 
 using namespace chess::core;
 

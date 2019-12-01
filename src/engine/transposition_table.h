@@ -35,7 +35,10 @@ public:
         assert(!(value < 31950 && value > 31000 && type == EXACT));
         assert(!(-value < 31950 && -value > 31000 && type == EXACT));
         auto& n = nodes[hash % size];
-        if (n.hash == hash && n.depth > depth) return;
+        if (n.hash == hash) {
+            if (n.depth > depth) return;
+            if (n.depth == depth && n.type == EXACT && type != EXACT) return;
+        }
         n.hash = hash;
         n.depth = depth;
         n.value = value;
