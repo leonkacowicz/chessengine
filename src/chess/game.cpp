@@ -18,8 +18,8 @@ void game::do_move(move m) {
     if (s.b.resets_half_move_counter(m)) {
         s.last_irreversible_index = states.size();
     }
+    s.hash = zobrist::hash_update(s.b, s.hash, m);
     s.b.make_move(m);
-    s.hash = zobrist::hash(s.b);
     s.last_move = m;
     states.push_back(s);
 }

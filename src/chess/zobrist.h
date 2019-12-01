@@ -17,6 +17,7 @@ namespace chess::core::zobrist {
     void init();
 
     uint64_t hash(const board& b);
+    uint64_t hash_update(const board& b, uint64_t hash, move m);
 }
 
 

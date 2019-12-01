@@ -10,12 +10,14 @@
 #include <fen.h>
 #include <move_gen.h>
 #include <random>
+#include <zobrist.h>
 
 using namespace chess::core;
 
 TEST(board_test, bug_detector) {
     print_bb(0);
-    std::default_random_engine gen;
+    std::random_device rd;
+    std::mt19937 gen(rd());
     std::uniform_int_distribution<int> dis(1, 20000);
     dis(gen);
     int testNum;
@@ -36,7 +38,12 @@ TEST(board_test, bug_detector) {
                 move m = legal_moves[i];
                 long_moves.push_back(to_long_move(m));
                 pgn.push_back(b.move_in_pgn(m, legal_moves));
+                uint64_t hash_prev = chess::core::zobrist::hash(b);
+                uint64_t hash_updated = chess::core::zobrist::hash_update(b, hash_prev, m);
                 b.make_move(m);
+                if (hash_updated != zobrist::hash(b)) {
+                    throw std::exception();
+                }
                 if (b.under_check(opposite(b.side_to_play))) {
                     std::__throw_runtime_error("Move ignored check");
                 }
