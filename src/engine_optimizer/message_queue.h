@@ -15,6 +15,7 @@ struct request_message {
     std::string outputdir;
     int generation;
     int id;
+    int array_index;
     int movetime;
 };
 
@@ -26,10 +27,14 @@ struct response_message {
     int generation;
     int id;
     int movetime;
+    int array_index;
     std::string result;
 };
 
 struct message_queue {
+    const std::string queue_send;
+    const std::string queue_receive;
+    message_queue(const std::string& queue_send, const std::string& queue_receive): queue_send(queue_send), queue_receive(queue_receive) {};
     void send_message(const request_message& rm);
     bool receive_message(response_message& rm, std::chrono::seconds timeout = std::chrono::seconds(0));
 };

@@ -2,11 +2,14 @@
 // Created by leon on 2019-11-07.
 //
 
-#include <neuralnet.h>
 #include <boost/filesystem/path.hpp>
 #include <boost/process.hpp>
 
+#include <neuralnet.h>
+#include <iostream>
 #include "algorithm.h"
+#include "message_queue.h"
+
 using namespace chess::optimizer;
 using chess::neural::neuralnet;
 
@@ -30,14 +33,13 @@ algorithm::generation& algorithm::add_generation() {
 
 algorithm::algorithm(int num_generations, int population_size):
         num_generations(num_generations),
-        population_size(population_size) {
-
+        population_size(population_size),
+        mq(message_queue("https://sqs.us-west-2.amazonaws.com/284217563291/games.fifo", "https://sqs.us-west-2.amazonaws.com/284217563291/game_results")) {
     generations.reserve(num_generations);
     generation& gen0 = add_generation();
 }
 
 void algorithm::run() {
-
     for (int i = 0; i < population_size; i++) {
         player p = generate_random_player();
         players.push_back(p);
@@ -47,13 +49,16 @@ void algorithm::run() {
     for (int i = 0; i < population_size - 1; i += 2) {
         cross_over(generations[0][i], generations[0][i + 1]);
 
+        request_message rm;
+        mq.send_message(rm);
         //enqueue_game(generations[0][i].id, generations[0][i].child_id)
         //enqueue_game(generations[0][i + 1].id, generations[0][i + 1].child_id)
     }
 
     while (generations.size() < num_generations) {
         // game_result r = get_next_game_result()
-        // while (r.generation + 1 >= generations.size()) add_generation();
+        //while (r.generation + 1 >= generations.size())
+            add_generation();
         // int destination = generations[r.generation][r.id].destination
         // if (r.parent_won()) generations[r.generation + 1][destination].id = generations[r.generation][r.id].id;
         // else generations[r.generation + 1][destination].id = generations[r.generation][r.id].child_id;
@@ -117,4 +122,21 @@ algorithm::player algorithm::save_player(const neuralnet& nn) {
     boost::process::system(boost::process::search_path("aws"), "s3", "cp", file.string(), "s3://leonkacowicz/chess/players/" + p.hash + ".txt");
     boost::filesystem::remove(file);
     return p;
+}
+
+algorithm::game_result algorithm::get_next_game_result() {
+    using namespace std::chrono_literals;
+    response_message msg;
+    while (!mq.receive_message(msg, 10s)) std::cout << "Waiting for game results";
+
+    assert(msg.generation < generations.size());
+    assert(msg.array_index < population_size);
+    assert(generations[msg.generation][msg.array_index].id == msg.id);
+
+    //if (generations[msg.generation][msg.id].)
+
+//    game_result gr{
+//        .id = msg.id, .generation = msg.generation
+//    };
+    return algorithm::game_result();
 }

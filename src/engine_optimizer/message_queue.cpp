@@ -5,6 +5,8 @@
 #include "message_queue.h"
 #include <boost/process.hpp>
 #include <sstream>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 
 void message_queue::send_message(const request_message& rm) {
@@ -18,18 +20,39 @@ void message_queue::send_message(const request_message& rm) {
         << R"(, "white": ")" << rm.white << "\""
         << R"(, "black": ")" << rm.black << "\""
         << "}";
-    //aws sqs send-message --region us-west-2 --queue-url "${QUEUE_URL}" --message-body "$MSG" --message-group-id 1 --message-deduplication-id "${DEDUP}"
-    const std::string queue_url = "https://sqs.us-west-2.amazonaws.com/284217563291/games.fifo";
     ipstream ips;
-    system(search_path("aws"), "send-message", "--region", "us-west-2",
-            "--queue-url", queue_url, "--message-body", msg.str(), "--message-group-id", "1", std_out > ips);
+    system(search_path("aws"), "send-message",
+            "--region", "us-west-2",
+            "--queue-url", queue_send,
+            "--message-body", msg.str(),
+            "--message-group-id", "1",
+            std_out > ips);
 }
 
 bool message_queue::receive_message(response_message& rm, std::chrono::seconds timeout) {
     using namespace boost::process;
-    const std::string queue_url = "https://sqs.us-west-2.amazonaws.com/284217563291/game_results";
     if (timeout.count() > 0) {
-        system(search_path("aws"), "receive-message", "--region", "us-west-2", "--queue-url", queue_url);
+        ipstream ips;
+        auto aws = search_path("aws");
+        system(aws, "sqs", "receive-message", "--region", "us-west-2", "--queue-url", queue_receive, std_out > ips);
+
+        boost::property_tree::ptree json;
+        boost::property_tree::read_json(ips, json);
+
+        std::string receipt = json.get_child("Messages").front().second.get_child("ReceiptHandle").data();
+        system(aws, "sqs", "delete-message", "--region", "us-west-2", "--queue-url", queue_receive, "--receipt-handle", receipt, std_out > ips);
+        std::stringstream ss;
+        ss << json.get_child("Messages").front().second.get_child("Body").data();
+        boost::property_tree::read_json(ss, json);
+
+        rm.id = json.get<int>("id");
+        rm.generation = json.get<int>("generation");
+        rm.array_index = json.get<int>("array_index");
+        rm.result = json.get<std::string>("result");
+        rm.white = json.get<std::string>("white");
+        rm.black = json.get<std::string>("black");
+
+        return true;
     }
     return false;
 }

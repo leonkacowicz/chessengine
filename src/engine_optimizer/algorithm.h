@@ -9,6 +9,7 @@
 #include <Eigen/Core>
 #include <random>
 #include <neuralnet.h>
+#include "message_queue.h"
 
 namespace chess::optimizer {
     class algorithm {
@@ -29,7 +30,9 @@ namespace chess::optimizer {
         std::vector<player> players;
         int num_generations;
         int population_size;
+
         std::random_device rd;
+
         std::vector<int> random_permutation(int size);
         generation& add_generation();
         player generate_random_player();
@@ -37,6 +40,14 @@ namespace chess::optimizer {
         player save_player(const Eigen::VectorXd& theta);
         player save_player(const chess::neural::neuralnet& nn);
 
+        struct game_result {
+            int generation;
+            int id;
+            int winner_id;
+        };
+
+        message_queue mq;
+        game_result get_next_game_result();
     public:
         algorithm(int num_generations, int population_size);
         void run();
