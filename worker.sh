@@ -56,6 +56,7 @@ while true; do
     MSG=$(echo "$MSG" | jq ". + {result: \"$RESULT\"}")
     aws s3 cp "$WORKDIR/game/${GAME}.pgn" "s3://${BUCKET}/${OUTPUTDIR}"
     aws s3 cp "$WORKDIR/log/${GAME}.log.gz" "s3://${BUCKET}/${OUTPUTDIR}"
+    echo "${MSG}"
     aws sqs send-message --region us-west-2 --queue-url "${RESPONSE_QUEUE_URL}" --message-body "$MSG"
     rm "$WHITE_OPTIONS" "$BLACK_OPTIONS"
 done

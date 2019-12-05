@@ -49,6 +49,7 @@ namespace chess::optimizer {
 
         message_queue mq;
         game_result get_next_game_result();
+        void enqueue_game(int generation, int index, bool parent_as_white);
     public:
         algorithm(int num_generations, int population_size);
         void run();

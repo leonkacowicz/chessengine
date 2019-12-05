@@ -6,6 +6,7 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include <neuralnet.h>
+#include "algorithm.h"
 
 using chess::neural::neuralnet;
 using boost::filesystem::path;
@@ -134,6 +135,9 @@ int get_score(const neuralnet& nn1, const neuralnet& nn2) {
 int main() {
     int population = 4;
     int num_generations = 20;
+
+    chess::optimizer::algorithm alg(num_generations, population);
+    alg.run();
 
     path workdir("workdir");
     path first_gen(workdir);
