@@ -56,13 +56,38 @@ void algorithm::run() {
     }
 
     while (generations.size() < num_generations) {
-        // game_result r = get_next_game_result()
-        //while (r.generation + 1 >= generations.size())
+        game_result r = get_next_game_result();
+        while (r.generation + 1 >= generations.size())
             add_generation();
-        // int destination = generations[r.generation][r.id].destination
-        // if (r.parent_won()) generations[r.generation + 1][destination].id = generations[r.generation][r.id].id;
-        // else generations[r.generation + 1][destination].id = generations[r.generation][r.id].child_id;
+        int destination = generations[r.generation][r.array_index].destination;
+        if (r.winner_id == generations[r.generation][r.array_index].id)
+            generations[r.generation + 1][destination].id = generations[r.generation][r.id].id;
+        else
+            generations[r.generation + 1][destination].id = generations[r.generation][r.id].child_id;
 
+//MSG+=$(printf '{"%s": "%s"' "bucket" "leonkacowicz")
+//MSG+=$(printf ',"%s": "%s"' "outputdir" "chess/generations/")
+//MSG+=$(printf ',"%s": "%s"' "white" "${WHITE}")
+//MSG+=$(printf ',"%s": "%s"' "black" "${BLACK}")
+//MSG+=$(printf ',"%s": "%s"' "movetime" "100")
+//MSG+=$(printf ',"%s": "%s"' "id" "123")
+//MSG+=$(printf ',"%s": "%s"' "generation" "321")
+//MSG+=$(printf ',"%s": "%s"}' "array_index" "111")
+
+        int base_index = destination - (destination % 2);
+        if (generations[r.generation + 1][base_index].id > -1 && generations[r.generation + 1][base_index + 1].id > -1) {
+            cross_over(generations[r.generation + 1][base_index], generations[r.generation + 1][base_index + 1]);
+            request_message rm;
+            mq.send_message({
+                .white = players[generations[r.generation + 1][base_index].id].hash,
+                .black = players[generations[r.generation + 1][base_index].child_id].hash,
+                .outputdir = "chess/generations/",
+                .generation = r.generation + 1,
+                .id = generations[r.generation + 1][base_index].id,
+                .array_index = base_index,
+                .movetime = 100
+            });
+        }
         // if exists generations[r.generation + 1] for indices 2 * (destination >> 1) and 2 * (destination >> 1) + 1,
         //      perform cross-over between them;
         //      enqueue games
@@ -133,10 +158,18 @@ algorithm::game_result algorithm::get_next_game_result() {
     assert(msg.array_index < population_size);
     assert(generations[msg.generation][msg.array_index].id == msg.id);
 
-    //if (generations[msg.generation][msg.id].)
-
-//    game_result gr{
-//        .id = msg.id, .generation = msg.generation
-//    };
-    return algorithm::game_result();
+    int winner;
+    if (msg.result == "1-0") {
+        winner = players[msg.id].hash == msg.white ? msg.id : generations[msg.generation][msg.array_index].child_id;
+    } else if (msg.result == "0-1") {
+        winner = players[msg.id].hash == msg.black ? msg.id : generations[msg.generation][msg.array_index].child_id;
+    } else {
+        winner = 0;
+    }
+    return game_result {
+        .generation = msg.generation,
+        .array_index = msg.array_index,
+        .id = msg.id,
+        .winner_id = winner
+    };
 }

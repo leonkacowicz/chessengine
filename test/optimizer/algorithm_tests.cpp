@@ -33,7 +33,16 @@ TEST(ptree_test, ptree_test1) {
 )";
     read_json(ss, json);
     //std::cout << json.get_child("Messages.0.ReceiptHandle").data();
-    std::cout << json.get_child("Messages").front().second.get_child("ReceiptHandle").data() << std::endl;
-    std::cout << json.get_child("Messages").get_child("ReceiptHandle").() << std::endl;
+    for (auto& msg : json.get_child("Messages")) {
+        std::cout << msg.second.get<std::string>("ReceiptHandle").data() << std::endl;
+        ptree body;
+
+        std::stringstream ss2(msg.second.get<std::string>("Body"));
+        read_json(ss2, body);
+        for (auto& field : body) {
+            std::cout << field.first << " = " << field.second.data() << std::endl;
+        }
+    }
+
     std::cout << json.size();
 }

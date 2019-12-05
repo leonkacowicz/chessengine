@@ -42,6 +42,7 @@ namespace chess::optimizer {
 
         struct game_result {
             int generation;
+            int array_index;
             int id;
             int winner_id;
         };
