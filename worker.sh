@@ -35,8 +35,8 @@ while true; do
     WHITE_OPTIONS=$(mktemp)
     BLACK_OPTIONS=$(mktemp)
 
-    aws s3 cp "s3://${BUCKET}/chess/players/${WHITE}.txt" "$WORKDIR/players/${WHITE}.txt"
-    aws s3 cp "s3://${BUCKET}/chess/players/${BLACK}.txt" "$WORKDIR/players/${BLACK}.txt"
+    [ -f "$WORKDIR/players/${WHITE}.txt" ] || aws s3 cp "s3://${BUCKET}/chess/players/${WHITE}.txt" "$WORKDIR/players/${WHITE}.txt"
+    [ -f "$WORKDIR/players/${BLACK}.txt" ] || aws s3 cp "s3://${BUCKET}/chess/players/${BLACK}.txt" "$WORKDIR/players/${BLACK}.txt"
 
     echo "setoption name evaluator value $WORKDIR/players/${WHITE}.txt" > "${WHITE_OPTIONS}"
     echo "setoption name evaluator value $WORKDIR/players/${BLACK}.txt" > "${BLACK_OPTIONS}"

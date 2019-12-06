@@ -52,21 +52,35 @@ void algorithm::run() {
         enqueue_game(0, i + 1, i % 2 );
     }
 
-    while (generations.size() < num_generations) {
+    bool finished = false;
+    while (!finished) {
         game_result r = get_next_game_result();
         while (r.generation + 1 >= generations.size())
             add_generation();
         int destination = generations[r.generation][r.array_index].destination;
-        if (r.winner_id == generations[r.generation][r.array_index].id)
-            generations[r.generation + 1][destination].id = generations[r.generation][r.id].id;
+        if (r.winner_id == generations[r.generation][r.array_index].child_id)
+            generations[r.generation + 1][destination].id = generations[r.generation][r.array_index].child_id;
         else
-            generations[r.generation + 1][destination].id = generations[r.generation][r.id].child_id;
+            generations[r.generation + 1][destination].id = generations[r.generation][r.array_index].id;
 
         int base_index = destination - (destination % 2);
+        assert(r.generation + 1 < generations.size());
+
         if (generations[r.generation + 1][base_index].id > -1 && generations[r.generation + 1][base_index + 1].id > -1) {
+            assert(generations[r.generation + 1][base_index].id < players.size());
+            assert(generations[r.generation + 1][base_index + 1].id < players.size());
             cross_over(generations[r.generation + 1][base_index], generations[r.generation + 1][base_index + 1]);
             enqueue_game(r.generation + 1, base_index, true);
             enqueue_game(r.generation + 1, base_index + 1, false);
+        }
+
+        if (generations.size() == num_generations) {
+            finished = true;
+            for (int i = 0; i < population_size; i++)
+                if (generations.back()[i].id == -1) {
+                    finished = false;
+                    break;
+                }
         }
     }
 }
@@ -79,6 +93,7 @@ void algorithm::cross_over(algorithm::parent& p1, algorithm::parent& p2) {
     int theta_size = players[p1.id].theta.size();
     const Eigen::VectorXd& theta1 = players[p1.id].theta;
     const Eigen::VectorXd& theta2 = players[p2.id].theta;
+    assert(theta1.size() == theta2.size());
     auto theta1_child = theta1;
     auto theta2_child = theta2;
     std::mt19937 mt(rd());

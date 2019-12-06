@@ -133,12 +133,12 @@ int get_score(const neuralnet& nn1, const neuralnet& nn2) {
 }
 
 int main() {
-    int population = 4;
-    int num_generations = 20;
+    int population = 10;
+    int num_generations = 30;
 
     chess::optimizer::algorithm alg(num_generations, population);
     alg.run();
-
+    std::exit(0);
     path workdir("workdir");
     path first_gen(workdir);
     first_gen /= "gen0";
