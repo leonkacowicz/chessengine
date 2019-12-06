@@ -16,6 +16,7 @@ void message_queue::send_message(const request_message& rm) {
     msg << "{"
         << R"("id": )" << rm.id
         << R"(, "generation": )" << rm.generation
+        << R"(, "array_index": )" << rm.array_index
         << R"(, "bucket": ")" << rm.bucket << "\""
         << R"(, "outputdir": ")" << rm.outputdir << "\""
         << R"(, "white": ")" << rm.white << "\""
@@ -47,7 +48,7 @@ bool message_queue::receive_message(response_message& rm, std::chrono::seconds t
             std::string receipt = json.get_child("Messages").front().second.get_child("ReceiptHandle").data();
             std::stringstream ss;
             ss << json.get_child("Messages").front().second.get_child("Body").data();
-            std::cout << ss.str();
+            std::cout << ss.str() << std::endl << std::endl;
             boost::property_tree::read_json(ss, json);
 
             rm.id = json.get<int>("id");

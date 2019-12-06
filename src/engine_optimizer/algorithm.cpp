@@ -65,25 +65,8 @@ void algorithm::run() {
         int base_index = destination - (destination % 2);
         if (generations[r.generation + 1][base_index].id > -1 && generations[r.generation + 1][base_index + 1].id > -1) {
             cross_over(generations[r.generation + 1][base_index], generations[r.generation + 1][base_index + 1]);
-            mq.send_message({
-                .white = players[generations[r.generation + 1][base_index].id].hash,
-                .black = players[generations[r.generation + 1][base_index].child_id].hash,
-                .outputdir = "chess/generations/",
-                .generation = r.generation + 1,
-                .id = generations[r.generation + 1][base_index].id,
-                .array_index = base_index,
-                .movetime = 100
-            });
-
-            mq.send_message({
-                .white = players[generations[r.generation + 1][base_index + 1].id].hash,
-                .black = players[generations[r.generation + 1][base_index + 1].child_id].hash,
-                .outputdir = "chess/generations/",
-                .generation = r.generation + 1,
-                .id = generations[r.generation + 1][base_index].id,
-                .array_index = base_index,
-                .movetime = 100
-            });
+            enqueue_game(r.generation + 1, base_index, true);
+            enqueue_game(r.generation + 1, base_index + 1, false);
         }
     }
 }

@@ -26,6 +26,7 @@ while true; do
 
     MSG=$(echo "$MSG" | jq -r '.Body')
     BUCKET=$(echo "$MSG" | jq -r '.bucket')
+    GENERATION=$(echo "$MSG" | jq -r '.generation')
     OUTPUTDIR=$(echo "$MSG" | jq -r '.outputdir')
     WHITE=$(echo "$MSG" | jq -r '.white')
     BLACK=$(echo "$MSG" | jq -r '.black')
@@ -54,8 +55,8 @@ while true; do
 
     RESULT=$(tail -n 1 "$WORKDIR/game/${GAME}.pgn")
     MSG=$(echo "$MSG" | jq ". + {result: \"$RESULT\"}")
-    aws s3 cp "$WORKDIR/game/${GAME}.pgn" "s3://${BUCKET}/${OUTPUTDIR}"
-    aws s3 cp "$WORKDIR/log/${GAME}.log.gz" "s3://${BUCKET}/${OUTPUTDIR}"
+    aws s3 cp "$WORKDIR/game/${GAME}.pgn" "s3://${BUCKET}/${OUTPUTDIR%/}/${GENERATION}/"
+    aws s3 cp "$WORKDIR/log/${GAME}.log.gz" "s3://${BUCKET}/${OUTPUTDIR%/}/${GENERATION}/"
     echo "${MSG}"
     aws sqs send-message --region us-west-2 --queue-url "${RESPONSE_QUEUE_URL}" --message-body "$MSG"
     rm "$WHITE_OPTIONS" "$BLACK_OPTIONS"
