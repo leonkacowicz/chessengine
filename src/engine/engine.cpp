@@ -421,7 +421,6 @@ move engine::timed_search(game& g, const std::chrono::milliseconds& time) {
         mutex.unlock();
     });
     if (!mutex.try_lock_for(time)) {
-        std::cout << "info time " << time.count() << std::endl;
         time_over = true;
     }
     thr.join();
