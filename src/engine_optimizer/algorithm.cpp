@@ -63,10 +63,13 @@ void algorithm::run() {
         else
             generations[r.generation + 1][destination].id = generations[r.generation][r.array_index].id;
 
+        serialize_state(std::cout);
         int base_index = destination - (destination % 2);
         assert(r.generation + 1 < generations.size());
 
-        if (generations[r.generation + 1][base_index].id > -1 && generations[r.generation + 1][base_index + 1].id > -1) {
+        if (r.generation < num_generations &&
+            generations[r.generation + 1][base_index].id > -1 &&
+            generations[r.generation + 1][base_index + 1].id > -1) {
             assert(generations[r.generation + 1][base_index].id < players.size());
             assert(generations[r.generation + 1][base_index + 1].id < players.size());
             cross_over(generations[r.generation + 1][base_index], generations[r.generation + 1][base_index + 1]);
@@ -74,7 +77,7 @@ void algorithm::run() {
             enqueue_game(r.generation + 1, base_index + 1, false);
         }
 
-        if (generations.size() == num_generations) {
+        if (generations.size() >= num_generations) {
             finished = true;
             for (int i = 0; i < population_size; i++)
                 if (generations.back()[i].id == -1) {
@@ -86,7 +89,7 @@ void algorithm::run() {
 }
 
 algorithm::player algorithm::generate_random_player() {
-    return save_player(neuralnet(std::move(rd), {832, 10, 1}));
+    return save_player(neuralnet(std::move(rd), {832, 1}));
 }
 
 void algorithm::cross_over(algorithm::parent& p1, algorithm::parent& p2) {
@@ -97,13 +100,18 @@ void algorithm::cross_over(algorithm::parent& p1, algorithm::parent& p2) {
     auto theta1_child = theta1;
     auto theta2_child = theta2;
     std::mt19937 mt(rd());
-    std::uniform_int_distribution dis(0, 1);
+    std::uniform_int_distribution dis(0, 9);
+    std::uniform_int_distribution dis2(0, 99);
 
     for (int i = 0; i < theta_size; i++) {
-        if (dis(mt) == 0) theta1_child(i) = theta1(i);
-        else theta1_child(i) = theta2(i);
+        if (dis(mt) == 0) theta1_child(i) = theta2(i);
+        else theta1_child(i) = theta1(i);
         if (dis(mt) == 0) theta2_child(i) = theta1(i);
         else theta2_child(i) = theta2(i);
+
+        if (dis2(mt) == 0) {
+
+        }
     }
 
     if ((theta1_child - theta1).squaredNorm() + (theta2_child - theta2).squaredNorm() >
@@ -125,18 +133,20 @@ void algorithm::cross_over(algorithm::parent& p1, algorithm::parent& p2) {
 }
 
 algorithm::player algorithm::save_player(const Eigen::VectorXd& theta) {
-    return save_player(neuralnet({832, 10, 1}, theta));
+    return save_player(neuralnet({832, 1}, theta));
 }
 
 algorithm::player algorithm::save_player(const neuralnet& nn) {
+    using namespace boost::process;
     algorithm::player p;
     p.theta = nn.to_eigen_vector();
     boost::filesystem::path file = boost::filesystem::unique_path();
     nn.output_to_stream(std::ofstream(file.string()));
-    boost::process::ipstream out;
-    boost::process::system("sha256sum " + file.string(), boost::process::std_out > out);
+    ipstream out;
+    system("sha256sum " + file.string(), std_out > out);
     out >> p.hash;
-    boost::process::system(boost::process::search_path("aws"), "s3", "cp", file.string(), "s3://leonkacowicz/chess/players/" + p.hash + ".txt");
+    ipstream out2;
+    system(search_path("aws"), "s3", "cp", file.string(), "s3://leonkacowicz/chess/players/" + p.hash + ".txt", std_out > out2);
     boost::filesystem::remove(file);
     return p;
 }
@@ -144,7 +154,7 @@ algorithm::player algorithm::save_player(const neuralnet& nn) {
 algorithm::game_result algorithm::get_next_game_result() {
     using namespace std::chrono_literals;
     response_message msg;
-    while (!mq.receive_message(msg, 10s)) std::cout << "Waiting for game results";
+    while (!mq.receive_message(msg, 10s)) std::cout << "Waiting for game results" << std::endl;
 
     assert(msg.generation < generations.size());
     assert(msg.array_index < population_size);
@@ -156,7 +166,7 @@ algorithm::game_result algorithm::get_next_game_result() {
     } else if (msg.result == "0-1") {
         winner = players[msg.id].hash == msg.black ? msg.id : generations[msg.generation][msg.array_index].child_id;
     } else {
-        winner = 0;
+        winner = -1;
     }
     return game_result{
             .generation = msg.generation,
@@ -172,21 +182,31 @@ void algorithm::enqueue_game(int generation, int index, bool parent_as_white) {
                 .bucket = "leonkacowicz",
                 .white = players[generations[generation][index].id].hash,
                 .black = players[generations[generation][index].child_id].hash,
-                .outputdir = "chess/generations/",
+                .outputdir = "chess/2019-12-08-0002/generations/",
                 .generation = generation,
                 .id = generations[generation][index].id,
                 .array_index = index,
-                .movetime = 100
+                .movetime = 50
         });
     else
         mq.send_message({
                 .bucket = "leonkacowicz",
                 .white = players[generations[generation][index].child_id].hash,
                 .black = players[generations[generation][index].id].hash,
-                .outputdir = "chess/generations/",
+                .outputdir = "chess/2019-12-08-0002/generations/",
                 .generation = generation,
                 .id = generations[generation][index].id,
                 .array_index = index,
-                .movetime = 100
+                .movetime = 50
         });
+}
+
+void algorithm::serialize_state(std::ostream& os) {
+    for (int g = 0; g < generations.size(); g++) {
+        os << generations[g][0].id;
+        for (int i = 1; i < generations[g].size(); i++) {
+            os << "," << generations[g][i].id;
+        }
+        os << std::endl;
+    }
 }
