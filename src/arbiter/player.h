@@ -7,14 +7,18 @@
 #include <iostream>
 #include <color.h>
 #include <chrono>
+#include "time_format.h"
 
-#define LOG_DEBUG(x) std::cout << "[DEBUG] [" << (player_color == WHITE ? "WHITE" : "BLACK") << "] " << x << std::endl
+#define LOG_DEBUG(x) std::cout << \
+    pretty_time() << \
+    " [DEBUG] [" << (player_color == WHITE ? "WHITE" : "BLACK") << "] " << x << std::endl
 
 class player {
     std::ostream& in;
     std::istream& out;
-
+    std::chrono::system_clock::time_point last_saved_time = std::chrono::system_clock::time_point();
 public:
+    std::chrono::milliseconds last_move_duration{0};
     color player_color;
 
     player(color c, std::ostream& in, std::istream& out) : player_color(c), in(in), out(out) {}
@@ -66,38 +70,34 @@ public:
            << " binc " << black_increment.count()
            << std::endl;
         in.flush();
+        last_saved_time = std::chrono::system_clock::now();
     }
 
     void calculate_next_move(std::chrono::milliseconds movetime) {
         in << "go movetime " << movetime.count() << std::endl;
         in.flush();
+        last_saved_time = std::chrono::system_clock::now();
     }
 
     std::string get_next_move() {
         std::string line;
-        std::string info;
-
         while (out.good()) {
             std::getline(out, line);
-
-            /*if (line.substr(0, 5) == "info ") info = line;
-            else */if (!line.empty()) LOG_DEBUG(line);
+            auto now = std::chrono::system_clock::now(); // must be very first thing after getting unblocked by std::getline
+            if (!line.empty()) LOG_DEBUG(line);
 
             if (line.substr(0, 9) == "bestmove ") {
-                LOG_DEBUG(info);
-                LOG_DEBUG("Move :" << line);
+                last_move_duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_saved_time);
                 std::stringstream ss(line.substr(9));
                 std::string bestmove;
                 ss >> bestmove;
                 return bestmove;
             }
         }
-        LOG_DEBUG(info);
         LOG_DEBUG(line);
         LOG_DEBUG("=================EOF================");
         return "(none)";
     }
-
 };
 
 

@@ -139,6 +139,7 @@ void arbiter::start_game() {
         if (verbose) b.print();
         mutexes& current = b.side_to_play == WHITE ? white_mutexes : black_mutexes;
         auto& current_time = b.side_to_play == WHITE ? white_time : black_time;
+        auto& current_player = b.side_to_play == WHITE ? white : black;
         auto increment = b.side_to_play == WHITE ? white_increment : black_increment;
         auto move_time = b.side_to_play == WHITE ? white_move_time : black_move_time;
 
@@ -158,7 +159,6 @@ void arbiter::start_game() {
             break;
         }
 
-        auto time_before_move = std::chrono::system_clock::now();
         current.time_to_play.unlock();
         std::cout << "Wait for player move for " << move_time.count() << "ms\n";
         if (current.has_played.try_lock_for(move_time.count() > 0 ? move_time + 10ms : current_time)) {
@@ -169,9 +169,8 @@ void arbiter::start_game() {
             break;
         }
 
-        auto time_after_move = std::chrono::system_clock::now();
         if (i > 2) {
-            auto move_duration = duration_cast<milliseconds>(time_after_move - time_before_move);
+            auto move_duration = duration_cast<milliseconds>(current_player.last_move_duration);
             std::cout << side << " took " << move_duration.count() << "ms." << std::endl;
 
             if (move_time.count() == 0) {

@@ -123,3 +123,7 @@ TEST(test_a, test_b) {
     ss >> line;
     std::cout << line << "\n";
 }
+
+TEST(time_format_test, time_format_test_milli) {
+    std::cout << pretty_time() << std::endl;
+}
