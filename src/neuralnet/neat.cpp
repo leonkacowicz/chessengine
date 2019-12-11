@@ -7,7 +7,7 @@
 using namespace chess::neural::neat;
 
 nn_graph::nn_graph(const genome& genome_, int inputs, int outputs) : inputs(inputs), outputs(outputs) {
-    int size = 0;
+    int size = inputs + outputs - 1;
     for (const auto& p : genome_.connections) {
         size = std::max(size, p.second.from);
         size = std::max(size, p.second.to);
@@ -72,6 +72,7 @@ neat_genepool::neat_genepool(int inputs, int outputs) : inputs(inputs), outputs(
 
 bool neat_genepool::mutate_add_random_connection(genome& original) {
     std::unordered_set<int> node_set;
+    for (int i = 0; i < inputs + outputs; i++) node_set.insert(i);
     for (const auto& con : original.connections) {
         node_set.insert(con.second.from);
         node_set.insert(con.second.to);
@@ -85,10 +86,10 @@ bool neat_genepool::mutate_add_random_connection(genome& original) {
     int retries_left = 100;
     while (true) {
         if (retries_left-- == 0) return false;
-        int from = dis(mt) % num_nodes;
-        if (node_genes[nodes[from]].type == OUTPUT) continue;
-        int to = dis(mt) % num_nodes;
-        if (to == from || node_genes[nodes[to]].type == INPUT) continue;
+        int from = nodes[dis(mt) % num_nodes];
+        if (node_genes[from].type == OUTPUT) continue;
+        int to = nodes[dis(mt) % num_nodes];
+        if (to == from || node_genes[to].type == INPUT) continue;
         if (nn.has_path(to, from)) continue;
         mutate_add_connection(original, from, to, dis2(mt));
         return true;
