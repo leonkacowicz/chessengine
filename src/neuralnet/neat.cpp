@@ -157,11 +157,12 @@ genome neat_genepool::crossover(const genome& g1, const genome& g2) {
             } else {
                 child.connections[i] = g1.connections.at(i);
             }
-        } else {
-            if (g2.connections.find(i) != g2.connections.end()) {
-                child.connections[i] = g2.connections.at(i);
-            }
         }
+//        else {
+//            if (g2.connections.find(i) != g2.connections.end()) {
+//                child.connections[i] = g2.connections.at(i);
+//            }
+//        }
     }
     return child;
 }
