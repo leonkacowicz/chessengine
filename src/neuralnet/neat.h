@@ -73,11 +73,17 @@ namespace chess::neural::neat {
 
         void mutate_add_node_at_random(genome& original);
 
-        void mutate_add_connection(genome& original, int from, int to, double weight);
+        void mutate_random_connection_weight(genome& original);
+
+        bool mutate_add_connection(genome& original, int from, int to, double weight);
 
         void mutate_add_node(genome& original, int connection_to_break);
 
         genome crossover(const genome& g1, const genome& g2);
+
+        connection& select_random_connection(genome& original);
+
+        void random_mutation(genome& original);
     };
 }
 #endif //CHESSENGINE_NEAT_H
