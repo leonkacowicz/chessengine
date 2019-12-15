@@ -44,6 +44,11 @@ namespace chess::neural::neat {
             if (connections.empty()) return false;
             return connections.find(connection) != connections.end();
         }
+        int active_connetions_count() const {
+            int count = 0;
+            for (const auto& kv : connections) if (kv.second.enabled) count++;
+            return count;
+        }
     };
 
     struct nn_graph {

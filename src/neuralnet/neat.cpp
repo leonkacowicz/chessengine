@@ -193,9 +193,9 @@ void neat_genepool::random_mutation(genome& original) {
         mutate_add_node_at_random(original);
     }
 
-//    if (unif(mt) < enable_prob) {
-//        flip_random_connection(original, true);
-//    }
+    if (unif(mt) < enable_prob) {
+        flip_random_connection(original, true);
+    }
 //    if (unif(mt) < disable_prob) {
 //        flip_random_connection(original, false);
 //    }
@@ -347,6 +347,11 @@ void neat_algorithm::add_generation() {
         }
         assert(offspring.back().connections.size() <= pool.connection_genes.size());
         pool.random_mutation(offspring.back());
+        if (offspring.back().active_connetions_count() == 0) {
+            offspring.pop_back();
+            i--;
+            continue;
+        }
         offspring.back().id = last_id++;
         assign_species(offspring.back());
     }

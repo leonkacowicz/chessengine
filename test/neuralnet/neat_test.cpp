@@ -82,15 +82,15 @@ double eval_xor(nn_graph&& nn) {
 double eval_xor3(nn_graph&& nn) {
     double e = 0;
     auto squared = [] (auto x) { return x * x; };
-    e += squared(nn.evaluate({0, 0, 0})[0]);
-    e += squared(nn.evaluate({0, 1, 1})[0]);
-    e += squared(1 - nn.evaluate({0, 0, 1})[0]);
-    e += squared(1 - nn.evaluate({0, 1, 0})[0]);
-    e += squared(1 - nn.evaluate({1, 0, 0})[0]);
-    e += squared(1 - nn.evaluate({1, 1, 1})[0]);
-    e += squared(nn.evaluate({1, 0, 1})[0]);
-    e += squared(nn.evaluate({1, 1, 0})[0]);
-    return std::sqrt(e / 8);
+    e += squared(0.0 - nn.evaluate({0, 0, 0})[0]);
+    e += squared(0.0 - nn.evaluate({0, 1, 1})[0]);
+    e += squared(1.0 - nn.evaluate({0, 0, 1})[0]);
+    e += squared(1.0 - nn.evaluate({0, 1, 0})[0]);
+    e += squared(1.0 - nn.evaluate({1, 0, 0})[0]);
+    e += squared(1.0 - nn.evaluate({1, 1, 1})[0]);
+    e += squared(0.0 - nn.evaluate({1, 0, 1})[0]);
+    e += squared(0.0 - nn.evaluate({1, 1, 0})[0]);
+    return std::sqrt(e);
 }
 
 std::vector<int> randomperm(int n) {
@@ -102,32 +102,29 @@ std::vector<int> randomperm(int n) {
 
 TEST(neat, detcrowd) {
 
-    int pop_size = 250;
-    std::random_device rd;
-    std::mt19937 mt(rd());
-    std::uniform_real_distribution unif;
-    std::uniform_int_distribution rnd;
+    const int inputs = 3;
+    int pop_size = 50;
 
     std::vector<std::pair<double, genome>> population;
-    neat_genepool pool(2, 1);
+    neat_genepool pool(inputs, 1);
     for (int i = 0; i < pop_size; i++) {
         genome g;
         pool.mutate_add_random_connection(g);
-        double e = eval_xor(nn_graph(g, 2, 1));
+        double e = eval_xor3(nn_graph(g, inputs, 1));
         population.emplace_back(e, g);
     }
 
     int improved_after_cross = 0;
     int improved_after_no_cross = 0;
     int total_evals = 0;
-    for (int generation = 1; generation < 1000; generation++) {
+    for (int generation = 1; generation < 1500; generation++) {
         auto permutation = randomperm(pop_size);
         std::vector<std::pair<double, genome>> new_population(pop_size, std::make_pair(0, genome()));
         for (int i = 0; i < pop_size - 1; i += 2) {
             for (int j = 0; j < 2; j++) {
-                genome child = pool.crossover(population[i + j].second, population[i + 1 - j].second);;
+                genome child = pool.crossover(population[i + j].second, population[i + 1 - j].second);
                 pool.random_mutation(child);
-                double eval = eval_xor(nn_graph(child, 2, 1));
+                double eval = eval_xor3(nn_graph(child, inputs, 1));
                 total_evals++;
                 if (eval < population[i + j].first) {
                     new_population[permutation[i + j]] = std::make_pair(eval, child);
@@ -135,7 +132,7 @@ TEST(neat, detcrowd) {
                 } else {
                     child = population[i + j].second;
                     pool.random_mutation(child);
-                    eval = eval_xor(nn_graph(child, 2, 1));
+                    eval = eval_xor3(nn_graph(child, inputs, 1));
                     total_evals++;
                     if (eval < population[i + j].first) {
                         new_population[permutation[i + j]] = std::make_pair(eval, child);
@@ -146,7 +143,7 @@ TEST(neat, detcrowd) {
             }
         }
         population = new_population;
-        double min = 1;
+        double min = 10000;
         int min_idx = -1;
         double avg = 0;
         for (int i = 0; i < pop_size; i++) {
@@ -155,6 +152,7 @@ TEST(neat, detcrowd) {
                 min_idx = i;
             }
             avg += population[i].first;
+            std::cout << "connections: " << population[i].second.active_connetions_count() << std::endl;
         }
         avg /= pop_size;
         std::cout << generation << ": ";
@@ -197,17 +195,24 @@ TEST(neat, bin_search_insert) {
 TEST(neat, speciation) {
     int comparations = 0;
     const int inputs = 3;
-    genome_comparator comp = [&](const genome& g1, const genome& g2) { comparations++; return eval_xor3(nn_graph(g1, inputs, 1)) < eval_xor3(nn_graph(g2, inputs, 1)) ? -1 : 1; };
-    neat_algorithm ga(inputs, 1, 10, comp);
-    for (int gen = 0; gen < 1000; gen++) {
+    genome_comparator comp = [&](const genome& g1, const genome& g2) {
+        comparations++;
+        auto e1 = eval_xor3(nn_graph(g1, inputs, 1));
+        auto e2 = eval_xor3(nn_graph(g2, inputs, 1));
+        if (e1 == e2) return 0;
+        return e1 < e2 ? -1 : 1;
+    };
+    neat_algorithm ga(inputs, 1, 150, comp);
+    for (int gen = 0; gen < 500; gen++) {
         std::cout << "generation " << gen << std::endl;
         std::cout << "comparisons: " << comparations << std::endl;
         for (int s = 0; s < ga.all_species.size(); s++) {
             int connections = 0;
             for (const auto& kv : ga.all_species[s].population.front().connections)
                 if (kv.second.enabled) connections++;
+            auto eval = eval_xor3(nn_graph(ga.all_species[s].population.front(), inputs, 1));
             std::cout << "species " << ga.all_species[s].id << ": " << ga.all_species[s].population.size() << " - "
-                    << ga.all_species[s].num_stale_generations << " - <" << connections << "> - " << eval_xor3(nn_graph(ga.all_species[s].population.front(), inputs, 1)) << std::endl;
+                      << ga.all_species[s].num_stale_generations << " - <" << connections << "> - " << eval << std::endl;
         }
         std::cout << std::endl;
         ga.add_generation();
