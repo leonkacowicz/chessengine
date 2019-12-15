@@ -161,7 +161,7 @@ void neat_genepool::random_mutation(genome& original) {
     const double weight_mutation_prob = .8;
     const double weight_perturbation_prob = .9;
     const double new_connection_prob = 0.25;
-    const double new_node_prob = 0.013;
+    const double new_node_prob = 0.03;
     const double enable_prob = 0.2;
     const double disable_prob = 0.4;
 
@@ -275,7 +275,7 @@ double neat_genepool::distance(const genome& g1, const genome& g2) const {
     }
     disjoint /= std::max(g1.connections.size(), g2.connections.size());
     weight_diff /= coincident;
-    return 2.0 * disjoint + 0.4 * weight_diff;
+    return disjoint + 0.02 * weight_diff;
 }
 
 void neat_algorithm::add_generation() {
@@ -283,7 +283,8 @@ void neat_algorithm::add_generation() {
     int species_counted = 0;
 
     for (auto iter = all_species.begin(); iter != all_species.end();) {
-        if (iter->num_stale_generations >= 10 && species_counted++ > 5)
+        species_counted++;
+        if (iter->num_stale_generations >= 10 && species_counted > 3)
             all_species.erase(iter);
         else {
             iter->population.resize(std::max(1uL, iter->population.size() / 2));
@@ -296,20 +297,22 @@ void neat_algorithm::add_generation() {
     std::vector<genome> offspring;
     int offspring_count = population_size - current_population;
     offspring.reserve(offspring_count);
-    std::geometric_distribution dis(0.5);
     std::uniform_real_distribution unif(0., 1.);
     for (int i = 0; i < offspring_count; i++) {
-        int s = geometric_random_index(0.8, all_species.size());
         if (unif(mt) < crossover_prob) {
-            int p1 = geometric_random_index(0.8, all_species[s].population.size());
-            int p2 = geometric_random_index(0.8, all_species[s].population.size());
-            genome child = pool.crossover(all_species[s].population[p1],  all_species[s].population[p2]);
+            int s1 = random_index(0.9, all_species.size());
+            int s2 = random_index(0.9, all_species.size());
+            int p1 = random_index(0.9, all_species[s1].population.size());
+            int p2 = random_index(0.9, all_species[s2].population.size());
+            genome child = pool.crossover(all_species[s1].population[p1],  all_species[s2].population[p2]);
             offspring.push_back(child);
         } else {
-            int p1 = geometric_random_index(0.5, all_species[s].population.size());
+            int s = random_index(0.9, all_species.size());
+            int p1 = random_index(0.5, all_species[s].population.size());
             genome child = all_species[s].population[p1];
             offspring.push_back(child);
         }
+        pool.random_mutation(offspring.back());
         pool.random_mutation(offspring.back());
         pool.random_mutation(offspring.back());
         pool.random_mutation(offspring.back());
@@ -348,13 +351,13 @@ neat_algorithm::neat_algorithm(int inputs, int outputs, int population_size, gen
 
 void neat_algorithm::assign_species(const genome& g) {
     for (int i = 0; i < all_species.size(); i++) {
-        if (pool.distance(all_species[i].population.front(), g) < 1) {
+        if (pool.distance(all_species[i].population.front(), g) < .051) {
             all_species[i].insert(g);
             return;
         }
     }
     for (int i = 0; i < new_species.size(); i++) {
-        if (pool.distance(new_species[i].population.front(), g) < 1) {
+        if (pool.distance(new_species[i].population.front(), g) < .051) {
             new_species[i].insert(g);
             return;
         }
@@ -365,17 +368,9 @@ void neat_algorithm::assign_species(const genome& g) {
     s.num_stale_generations = 0;
 }
 
-int neat_algorithm::geometric_random_index(double p, int max) {
-    std::vector<double> probs(max, p);
-    for (int i = 1; i < max; i++) probs[i] = probs[i - 1] * p;
-    double accum = 0;
-    for (int i = 0; i < max; i++) {
-        accum += probs[i];
-        probs[i] = accum;
-    }
-    double rnd = std::uniform_real_distribution(0., 1.)(mt) * accum;
-    for (int i = 0; i < max; i++) if (probs[i] > rnd) return i;
-    return max - 1;
+int neat_algorithm::random_index(double p, int max) {
+    double rnd = std::uniform_real_distribution(0., 1.)(mt);
+    return std::floor(std::pow(rnd, 3) * max);
 }
 
 void species::insert(const genome& g) {

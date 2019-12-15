@@ -183,11 +183,14 @@ TEST(neat, bin_search_insert) {
 TEST(neat, speciation) {
     int comparations = 0;
     genome_comparator comp = [&](const genome& g1, const genome& g2) { comparations++; return eval_xor(nn_graph(g1, 2, 1)) < eval_xor(nn_graph(g2, 2, 1)) ? -1 : 1; };
-    neat_algorithm ga(2, 1, 150, comp);
+    neat_algorithm ga(2, 1, 200, comp);
     for (int gen = 0; gen < 100; gen++) {
         std::cout << "generation " << gen << std::endl;
         std::cout << "comparisons: " << comparations << std::endl;
-        std::cout << "connections: " << ga.all_species.front().population.front().connections.size() << std::endl;
+        int connections = 0;
+        for (const auto& kv : ga.all_species.front().population.front().connections)
+            if (kv.second.enabled) connections++;
+        std::cout << "connections: " << connections << std::endl;
         for (int s = 0; s < ga.all_species.size(); s++) {
             std::cout << "species " << s << ": " << ga.all_species[s].population.size() << " - "
                     << ga.all_species[s].num_stale_generations << " - " << eval_xor(nn_graph(ga.all_species[s].population.front(), 2, 1)) << std::endl;

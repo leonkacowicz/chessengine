@@ -167,7 +167,7 @@ namespace chess::neural::neat {
         neat_algorithm(int inputs, int outputs, int population_size, genome_comparator comparator);
         void add_generation();
         void assign_species(const genome& g);
-        int geometric_random_index(double p, int max);
+        int random_index(double p, int max);
     };
 }
 #endif //CHESSENGINE_NEAT_H
