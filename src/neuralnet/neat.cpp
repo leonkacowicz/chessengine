@@ -260,3 +260,125 @@ void neat_genepool::flip_random_connection(genome& g, bool to_value) {
     if (connections.empty()) return;
     connections[unif(mt) % connections.size()].enabled = to_value;
 }
+
+double neat_genepool::distance(const genome& g1, const genome& g2) const {
+    int disjoint = 0;
+    int coincident = 0;
+    double weight_diff = 0;
+    for (const auto& kv : g1.connections) {
+        if (g2.contains(kv.first)) {
+            coincident++;
+            weight_diff += std::abs(kv.second.weight - g2.connections.at(kv.first).weight);
+        } else {
+            disjoint++;
+        }
+    }
+    disjoint /= std::max(g1.connections.size(), g2.connections.size());
+    weight_diff /= coincident;
+    return 2.0 * disjoint + 0.4 * weight_diff;
+}
+
+void neat_algorithm::add_generation() {
+    int current_population = 0;
+    int species_counted = 0;
+
+    for (auto iter = all_species.begin(); iter != all_species.end();) {
+        if (iter->num_stale_generations >= 10 && species_counted++ > 5)
+            all_species.erase(iter);
+        else {
+            iter->population.resize(std::max(1uL, iter->population.size() / 2));
+            iter->num_stale_generations++;
+            current_population += iter->population.size();
+            iter++;
+        }
+    }
+    new_species.clear();
+    std::vector<genome> offspring;
+    int offspring_count = population_size - current_population;
+    offspring.reserve(offspring_count);
+    std::geometric_distribution dis(0.5);
+    std::uniform_real_distribution unif(0., 1.);
+    for (int i = 0; i < offspring_count; i++) {
+        int s = geometric_random_index(0.8, all_species.size());
+        if (unif(mt) < crossover_prob) {
+            int p1 = geometric_random_index(0.8, all_species[s].population.size());
+            int p2 = geometric_random_index(0.8, all_species[s].population.size());
+            genome child = pool.crossover(all_species[s].population[p1],  all_species[s].population[p2]);
+            offspring.push_back(child);
+        } else {
+            int p1 = geometric_random_index(0.5, all_species[s].population.size());
+            genome child = all_species[s].population[p1];
+            offspring.push_back(child);
+        }
+        pool.random_mutation(offspring.back());
+        pool.random_mutation(offspring.back());
+        pool.random_mutation(offspring.back());
+        pool.random_mutation(offspring.back());
+        offspring.back().id = last_id++;
+        assign_species(offspring.back());
+    }
+    std::function<int(const species&, const species&)> comp = [&] (const species& s1, const species& s2) {
+        return comparator(s1.population.front(), s2.population.front());
+    };
+    for (int i = 0; i < all_species.size(); i++) {
+        if (all_species[i].num_stale_generations == 0)
+            binary_search_reposition(all_species, i, comp);
+    }
+    for (const species& s : new_species) {
+        binary_search_insert(all_species, s, comp);
+    }
+}
+
+neat_algorithm::neat_algorithm(int inputs, int outputs, int population_size, genome_comparator comparator)
+    : pool(neat_genepool(inputs, outputs)), population_size(population_size), comparator(comparator) {
+
+    for (int i = 0; i < population_size; i++) {
+        auto g = genome{last_id++};
+        pool.mutate_add_random_connection(g);
+        population.push_back(g);
+        assign_species(g);
+    }
+    std::function<int(const species&, const species&)> comp = [&] (const species& s1, const species& s2) {
+        return comparator(s1.population.front(), s2.population.front());
+    };
+    for (const species& s : new_species) {
+        binary_search_insert(all_species, s, comp);
+    }
+}
+
+void neat_algorithm::assign_species(const genome& g) {
+    for (int i = 0; i < all_species.size(); i++) {
+        if (pool.distance(all_species[i].population.front(), g) < 1) {
+            all_species[i].insert(g);
+            return;
+        }
+    }
+    for (int i = 0; i < new_species.size(); i++) {
+        if (pool.distance(new_species[i].population.front(), g) < 1) {
+            new_species[i].insert(g);
+            return;
+        }
+    }
+    auto& s = new_species.emplace_back();
+    s.comparator = comparator;
+    s.population.push_back(g);
+    s.num_stale_generations = 0;
+}
+
+int neat_algorithm::geometric_random_index(double p, int max) {
+    std::vector<double> probs(max, p);
+    for (int i = 1; i < max; i++) probs[i] = probs[i - 1] * p;
+    double accum = 0;
+    for (int i = 0; i < max; i++) {
+        accum += probs[i];
+        probs[i] = accum;
+    }
+    double rnd = std::uniform_real_distribution(0., 1.)(mt) * accum;
+    for (int i = 0; i < max; i++) if (probs[i] > rnd) return i;
+    return max - 1;
+}
+
+void species::insert(const genome& g) {
+    if (binary_search_insert(population, g, comparator) == 0)
+        num_stale_generations = 0;
+}

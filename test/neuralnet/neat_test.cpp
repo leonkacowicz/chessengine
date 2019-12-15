@@ -160,3 +160,39 @@ TEST(neat, detcrowd) {
         << std::endl
         << std::endl;
 }
+
+TEST(neat, bin_search_insert) {
+
+    std::random_device rd;
+    std::mt19937 mt(rd());
+    std::uniform_real_distribution unif(0., 1.);
+    std::vector<double> v;
+
+    int comparations = 0;
+    std::function<int(const double&, const double&)> comp = [&](const double& a, const double& b) { comparations++; return b - a < 0 ? 1 : b - a > 0 ? -1 : 0; };
+
+    for (int i = 0; i < 100; i++) {
+        binary_search_insert(v, unif(mt), comp);
+        for (int j = 0; j < v.size() - 1; j++)
+            ASSERT_LE(v[j], v[j + 1]);
+        std::cout << "comparations: " << comparations << std::endl;
+    }
+
+}
+
+TEST(neat, speciation) {
+    int comparations = 0;
+    genome_comparator comp = [&](const genome& g1, const genome& g2) { comparations++; return eval_xor(nn_graph(g1, 2, 1)) < eval_xor(nn_graph(g2, 2, 1)) ? -1 : 1; };
+    neat_algorithm ga(2, 1, 150, comp);
+    for (int gen = 0; gen < 100; gen++) {
+        std::cout << "generation " << gen << std::endl;
+        std::cout << "comparisons: " << comparations << std::endl;
+        std::cout << "connections: " << ga.all_species.front().population.front().connections.size() << std::endl;
+        for (int s = 0; s < ga.all_species.size(); s++) {
+            std::cout << "species " << s << ": " << ga.all_species[s].population.size() << " - "
+                    << ga.all_species[s].num_stale_generations << " - " << eval_xor(nn_graph(ga.all_species[s].population.front(), 2, 1)) << std::endl;
+        }
+        std::cout << std::endl;
+        ga.add_generation();
+    }
+}

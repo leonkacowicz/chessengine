@@ -11,6 +11,7 @@
 #include <random>
 #include <unordered_map>
 #include <unordered_set>
+#include <functional>
 
 namespace chess::neural::neat {
 
@@ -37,6 +38,7 @@ namespace chess::neural::neat {
     };
 
     struct genome {
+        int id;
         std::unordered_map<int, connection> connections;
         bool contains(int connection) const {
             return connections.find(connection) != connections.end();
@@ -104,6 +106,68 @@ namespace chess::neural::neat {
         bool genome_has_connection(const genome& g, int from, int to) const;
 
         void flip_random_connection(genome& g, bool to_value);
+
+        double distance(const genome& g1, const genome& g2) const;
+    };
+
+    typedef std::function<int(const genome&, const genome&)> genome_comparator;
+
+    template<typename T>
+    int binary_search_insert(std::vector<T>& v, const T& t, std::function<int(const T&, const T&)> comp);
+
+    template<typename T>
+    int binary_search_insert(std::vector<T>& v, const T& t, std::function<int(const T&, const T&)> comp) {
+        int begin = 0;
+        int end = static_cast<int>(v.size()) - 1;
+
+        while (begin <= end) {
+            int pos = (begin + end) / 2;
+            int c = comp(t, v[pos]);
+            if (c == 0) {
+                v.insert(v.begin() + pos, t);
+                return pos;
+            }
+            else if (c < 0) end = pos - 1;
+            else begin = pos + 1;
+        }
+        v.insert(v.begin() + begin, t);
+        return begin;
+    }
+
+    template<typename T>
+    int binary_search_reposition(std::vector<T>& v, int index, std::function<int(const T&, const T&)> comp) {
+        std::vector<T> subvector(v.begin(), v.begin() + index + 1);
+        int pos = binary_search_insert(subvector, v[index], comp);
+        for (int i = pos; i <= index; i++) {
+            v[i] = subvector[i];
+        }
+        return pos;
+    }
+
+    struct species {
+        genome_comparator comparator;
+        std::vector<genome> population;
+        int num_stale_generations;
+        void insert(const genome& g);
+    };
+
+    class neat_algorithm {
+        const double crossover_prob = 0.5;
+
+        std::random_device rd;
+        std::mt19937 mt{rd()};
+    public:
+        int last_id = 0;
+        int population_size;
+        neat_genepool pool;
+        std::vector<species> all_species;
+        std::vector<species> new_species;
+        std::vector<genome> population;
+        genome_comparator comparator;
+        neat_algorithm(int inputs, int outputs, int population_size, genome_comparator comparator);
+        void add_generation();
+        void assign_species(const genome& g);
+        int geometric_random_index(double p, int max);
     };
 }
 #endif //CHESSENGINE_NEAT_H
