@@ -41,6 +41,7 @@ namespace chess::neural::neat {
         int id;
         std::unordered_map<int, connection> connections;
         bool contains(int connection) const {
+            if (connections.empty()) return false;
             return connections.find(connection) != connections.end();
         }
     };
@@ -136,6 +137,8 @@ namespace chess::neural::neat {
 
     template<typename T>
     int binary_search_reposition(std::vector<T>& v, int index, std::function<int(const T&, const T&)> comp) {
+//        std::vector<int> indices(index, 0);
+//        for (int i = 0; i < index; i++) indices[i] = i;
         std::vector<T> subvector(v.begin(), v.begin() + index + 1);
         int pos = binary_search_insert(subvector, v[index], comp);
         for (int i = pos; i <= index; i++) {
@@ -145,6 +148,7 @@ namespace chess::neural::neat {
     }
 
     struct species {
+        int id;
         genome_comparator comparator;
         std::vector<genome> population;
         int num_stale_generations;
@@ -158,6 +162,7 @@ namespace chess::neural::neat {
         std::mt19937 mt{rd()};
     public:
         int last_id = 0;
+        int last_species_id = 0;
         int population_size;
         neat_genepool pool;
         std::vector<species> all_species;

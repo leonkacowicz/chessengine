@@ -79,6 +79,20 @@ double eval_xor(nn_graph&& nn) {
     return std::sqrt(e / 4);
 }
 
+double eval_xor3(nn_graph&& nn) {
+    double e = 0;
+    auto squared = [] (auto x) { return x * x; };
+    e += squared(nn.evaluate({0, 0, 0})[0]);
+    e += squared(nn.evaluate({0, 1, 1})[0]);
+    e += squared(1 - nn.evaluate({0, 0, 1})[0]);
+    e += squared(1 - nn.evaluate({0, 1, 0})[0]);
+    e += squared(1 - nn.evaluate({1, 0, 0})[0]);
+    e += squared(1 - nn.evaluate({1, 1, 1})[0]);
+    e += squared(nn.evaluate({1, 0, 1})[0]);
+    e += squared(nn.evaluate({1, 1, 0})[0]);
+    return std::sqrt(e / 8);
+}
+
 std::vector<int> randomperm(int n) {
     std::vector<int> perm(n, 0);
     for (int i = 0; i < n; i++) perm[i] = i;
@@ -182,18 +196,18 @@ TEST(neat, bin_search_insert) {
 
 TEST(neat, speciation) {
     int comparations = 0;
-    genome_comparator comp = [&](const genome& g1, const genome& g2) { comparations++; return eval_xor(nn_graph(g1, 2, 1)) < eval_xor(nn_graph(g2, 2, 1)) ? -1 : 1; };
-    neat_algorithm ga(2, 1, 200, comp);
-    for (int gen = 0; gen < 100; gen++) {
+    const int inputs = 3;
+    genome_comparator comp = [&](const genome& g1, const genome& g2) { comparations++; return eval_xor3(nn_graph(g1, inputs, 1)) < eval_xor3(nn_graph(g2, inputs, 1)) ? -1 : 1; };
+    neat_algorithm ga(inputs, 1, 10, comp);
+    for (int gen = 0; gen < 1000; gen++) {
         std::cout << "generation " << gen << std::endl;
         std::cout << "comparisons: " << comparations << std::endl;
-        int connections = 0;
-        for (const auto& kv : ga.all_species.front().population.front().connections)
-            if (kv.second.enabled) connections++;
-        std::cout << "connections: " << connections << std::endl;
         for (int s = 0; s < ga.all_species.size(); s++) {
-            std::cout << "species " << s << ": " << ga.all_species[s].population.size() << " - "
-                    << ga.all_species[s].num_stale_generations << " - " << eval_xor(nn_graph(ga.all_species[s].population.front(), 2, 1)) << std::endl;
+            int connections = 0;
+            for (const auto& kv : ga.all_species[s].population.front().connections)
+                if (kv.second.enabled) connections++;
+            std::cout << "species " << ga.all_species[s].id << ": " << ga.all_species[s].population.size() << " - "
+                    << ga.all_species[s].num_stale_generations << " - <" << connections << "> - " << eval_xor3(nn_graph(ga.all_species[s].population.front(), inputs, 1)) << std::endl;
         }
         std::cout << std::endl;
         ga.add_generation();
