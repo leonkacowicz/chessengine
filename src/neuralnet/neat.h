@@ -25,6 +25,7 @@ namespace chess::neural::neat {
     struct connection_gene {
         int from;
         int to;
+        int new_connection_base_index;
     };
 
     struct connection {
@@ -37,6 +38,9 @@ namespace chess::neural::neat {
 
     struct genome {
         std::unordered_map<int, connection> connections;
+        bool contains(int connection) const {
+            return connections.find(connection) != connections.end();
+        }
     };
 
     struct nn_graph {
@@ -55,6 +59,15 @@ namespace chess::neural::neat {
         void dfs(int start, std::vector<bool>& visited);
     };
 
+    struct pair_hash
+    {
+        template <class T1, class T2>
+        std::size_t operator() (const std::pair<T1, T2> &pair) const
+        {
+            return std::hash<T1>()(pair.first) ^ std::hash<T2>()(pair.second);
+        }
+    };
+
     class neat_genepool {
 
         std::random_device rd;
@@ -65,17 +78,16 @@ namespace chess::neural::neat {
         int outputs;
         std::vector<node_gene> node_genes;
         std::vector<connection_gene> connection_genes;
+        std::unordered_map<std::pair<int, int>, int, pair_hash> connections_map;
         int innovation = -1;
 
         neat_genepool(int inputs, int outputs);
 
-        bool mutate_add_random_connection(genome& original);
+        int mutate_add_random_connection(genome& original);
 
         void mutate_add_node_at_random(genome& original);
 
-        void mutate_random_connection_weight(genome& original);
-
-        bool mutate_add_connection(genome& original, int from, int to, double weight);
+        int mutate_add_connection(genome& original, int from, int to, double weight);
 
         void mutate_add_node(genome& original, int connection_to_break);
 
@@ -83,7 +95,15 @@ namespace chess::neural::neat {
 
         connection& select_random_connection(genome& original);
 
+        int select_random_from_node(const genome& g, const std::vector<int>& except);
+
+        int select_random_to_node(const genome& g, int from);
+
         void random_mutation(genome& original);
+
+        bool genome_has_connection(const genome& g, int from, int to) const;
+
+        void flip_random_connection(genome& g, bool to_value);
     };
 }
 #endif //CHESSENGINE_NEAT_H

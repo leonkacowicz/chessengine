@@ -69,7 +69,7 @@ TEST(neat, cross_over) {
 }
 
 
-double eval_xor(nn_graph nn) {
+double eval_xor(nn_graph&& nn) {
     double e = 0;
     auto squared = [] (auto x) { return x * x; };
     e += squared(nn.evaluate({0, 0})[0]);
@@ -88,7 +88,7 @@ std::vector<int> randomperm(int n) {
 
 TEST(neat, detcrowd) {
 
-    int pop_size = 150;
+    int pop_size = 250;
     std::random_device rd;
     std::mt19937 mt(rd());
     std::uniform_real_distribution unif;
@@ -98,8 +98,6 @@ TEST(neat, detcrowd) {
     neat_genepool pool(2, 1);
     for (int i = 0; i < pop_size; i++) {
         genome g;
-        pool.mutate_add_random_connection(g);
-        pool.mutate_add_random_connection(g);
         pool.mutate_add_random_connection(g);
         double e = eval_xor(nn_graph(g, 2, 1));
         population.emplace_back(e, g);
@@ -113,30 +111,35 @@ TEST(neat, detcrowd) {
         std::vector<std::pair<double, genome>> new_population(pop_size, std::make_pair(0, genome()));
         for (int i = 0; i < pop_size - 1; i += 2) {
             for (int j = 0; j < 2; j++) {
-                genome child;
-                bool mut = false;
-                if (unif(mt) < .75) {
-                    child = population[i + j].second;
-                } else {
-                    mut = true;
-                    child = pool.crossover(population[i + j].second, population[i + 1 - j].second);
-                }
+                genome child = pool.crossover(population[i + j].second, population[i + 1 - j].second);;
                 pool.random_mutation(child);
                 double eval = eval_xor(nn_graph(child, 2, 1));
                 total_evals++;
                 if (eval < population[i + j].first) {
                     new_population[permutation[i + j]] = std::make_pair(eval, child);
-                    if (mut) improved_after_cross++; else improved_after_no_cross++;
+                    improved_after_cross++;
                 } else {
-                    new_population[permutation[i + j]] = std::make_pair(population[i + j].first, population[i + j].second);
+                    child = population[i + j].second;
+                    pool.random_mutation(child);
+                    eval = eval_xor(nn_graph(child, 2, 1));
+                    total_evals++;
+                    if (eval < population[i + j].first) {
+                        new_population[permutation[i + j]] = std::make_pair(eval, child);
+                        improved_after_no_cross++;
+                    } else
+                        new_population[permutation[i + j]] = std::make_pair(population[i + j].first, population[i + j].second);
                 }
             }
         }
         population = new_population;
         double min = 1;
+        int min_idx = -1;
         double avg = 0;
         for (int i = 0; i < pop_size; i++) {
-            min = std::min(min, population[i].first);
+            if (population[i].first < min) {
+                min = population[i].first;
+                min_idx = i;
+            }
             avg += population[i].first;
         }
         avg /= pop_size;
@@ -144,9 +147,16 @@ TEST(neat, detcrowd) {
         std::cout << min << "; " << avg;
         std::cout << std::endl;
 
+        auto connections = population[min_idx].second.connections;
+        for (int i = 0; i < pool.connection_genes.size(); i++) {
+            auto iter = connections.find(i);
+            if (iter != connections.end() && iter->second.enabled)
+                std::cout << iter->second.weight << "     " << iter->second.from << " -> " << iter->second.to << std::endl;
+        }
     }
-    std::cout << "improved after mutation: " << improved_after_cross << "; improved after no crossover: " << improved_after_no_cross
+    std::cout << "improved after mutation: " << improved_after_cross
+        << "; improved after no crossover: " << improved_after_no_cross
         << "; total evaluations: " << total_evals
+        << std::endl
         << std::endl;
-    std::cout << std::endl;
 }
