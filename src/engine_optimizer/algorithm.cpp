@@ -5,13 +5,13 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/process.hpp>
 
-#include <neuralnet.h>
+#include <mlp.h>
 #include <iostream>
 #include "algorithm.h"
 #include "message_queue.h"
 
 using namespace chess::optimizer;
-using chess::neural::neuralnet;
+using chess::neural::mlp;
 
 std::vector<int> algorithm::random_permutation(int size) {
     std::vector<int> indices;
@@ -89,7 +89,7 @@ void algorithm::run() {
 }
 
 algorithm::player algorithm::generate_random_player() {
-    return save_player(neuralnet(std::move(rd), {832, 1}));
+    return save_player(mlp(std::move(rd), {832, 1}));
 }
 
 void algorithm::cross_over(algorithm::parent& p1, algorithm::parent& p2) {
@@ -133,10 +133,10 @@ void algorithm::cross_over(algorithm::parent& p1, algorithm::parent& p2) {
 }
 
 algorithm::player algorithm::save_player(const Eigen::VectorXd& theta) {
-    return save_player(neuralnet({832, 1}, theta));
+    return save_player(mlp({832, 1}, theta));
 }
 
-algorithm::player algorithm::save_player(const neuralnet& nn) {
+algorithm::player algorithm::save_player(const mlp& nn) {
     using namespace boost::process;
     algorithm::player p;
     p.theta = nn.to_eigen_vector();

@@ -11,7 +11,7 @@
 #include <board.h>
 #include <Eigen/Dense>
 #include <Eigen/Core>
-#include <neuralnet.h>
+#include <mlp.h>
 #include "evaluator.h"
 
 constexpr int INPUT_SIZE = 832;
@@ -23,7 +23,7 @@ constexpr int in_check_offset = turn_offset + 1;
 class nn_eval : public evaluator {
 
     Eigen::Vector<double, 832> input_vector;
-    chess::neural::neuralnet net;
+    chess::neural::mlp net;
 
 public:
 

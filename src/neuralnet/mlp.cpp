@@ -1,9 +1,9 @@
 #include <fstream>
-#include "neuralnet.h"
+#include "mlp.h"
 
 using namespace chess::neural;
 
-neuralnet::neuralnet(std::istream& fin) {
+mlp::mlp(std::istream& fin) {
     int num_layers;
     fin >> num_layers;
     while (num_layers--) {
@@ -17,11 +17,11 @@ neuralnet::neuralnet(std::istream& fin) {
     }
 }
 
-neuralnet::neuralnet(const std::vector<Eigen::MatrixXd>& matrices) : matrices(matrices) {
+mlp::mlp(const std::vector<Eigen::MatrixXd>& matrices) : matrices(matrices) {
 
 }
 
-neuralnet::neuralnet(const std::vector<int>& layer_sizes, const std::vector<double>& theta) {
+mlp::mlp(const std::vector<int>& layer_sizes, const std::vector<double>& theta) {
     int k = 0;
     for (int layer = 0; layer < layer_sizes.size() - 1; layer++) {
         int rows = layer_sizes[layer + 1], cols = layer_sizes[layer] + 1;
@@ -33,7 +33,7 @@ neuralnet::neuralnet(const std::vector<int>& layer_sizes, const std::vector<doub
     }
 }
 
-neuralnet::neuralnet(const std::vector<int>& layer_sizes, const Eigen::VectorXd& theta) {
+mlp::mlp(const std::vector<int>& layer_sizes, const Eigen::VectorXd& theta) {
     int k = 0;
     for (int layer = 0; layer < layer_sizes.size() - 1; layer++) {
         int rows = layer_sizes[layer + 1], cols = layer_sizes[layer] + 1;
@@ -45,7 +45,7 @@ neuralnet::neuralnet(const std::vector<int>& layer_sizes, const Eigen::VectorXd&
     }
 }
 
-Eigen::VectorXd neuralnet::operator()(const Eigen::VectorXd& input_vector) {
+Eigen::VectorXd mlp::operator()(const Eigen::VectorXd& input_vector) {
     Eigen::VectorXd v(input_vector);
     for (auto& M : matrices) {
         auto size = M.cols();
@@ -57,7 +57,7 @@ Eigen::VectorXd neuralnet::operator()(const Eigen::VectorXd& input_vector) {
     return v;
 }
 
-void neuralnet::output_to_stream(std::ostream&& os) const {
+void mlp::output_to_stream(std::ostream&& os) const {
     os << matrices.size() << std::endl;
     for (auto& matrix : matrices) {
         os << matrix.rows() << " " << matrix.cols() << std::endl;
@@ -65,7 +65,7 @@ void neuralnet::output_to_stream(std::ostream&& os) const {
     }
 }
 
-std::vector<double> neuralnet::to_vector() const {
+std::vector<double> mlp::to_vector() const {
 
     int theta_size = 0;
     for (auto& M : matrices) theta_size += M.rows() * M.cols();
@@ -80,7 +80,7 @@ std::vector<double> neuralnet::to_vector() const {
     return ret;
 }
 
-Eigen::VectorXd neuralnet::to_eigen_vector() const {
+Eigen::VectorXd mlp::to_eigen_vector() const {
 
     int theta_size = 0;
     for (auto& M : matrices) theta_size += M.rows() * M.cols();
@@ -95,7 +95,7 @@ Eigen::VectorXd neuralnet::to_eigen_vector() const {
     return ret;
 }
 
-neuralnet::neuralnet(std::random_device&& rd, const std::vector<int>& layers) {
+mlp::mlp(std::random_device&& rd, const std::vector<int>& layers) {
     std::mt19937 mt(rd());
     std::normal_distribution dis(0.0, 1.0);
     int num_layers = layers.size();

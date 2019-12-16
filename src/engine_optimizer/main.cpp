@@ -5,10 +5,10 @@
 #include <boost/process.hpp>
 #include <Eigen/Core>
 #include <Eigen/Dense>
-#include <neuralnet.h>
+#include <mlp.h>
 #include "algorithm.h"
 
-using chess::neural::neuralnet;
+using chess::neural::mlp;
 using boost::filesystem::path;
 
 const std::vector<int> layers{832, 50, 40, 30, 20, 10, 1};
@@ -17,7 +17,7 @@ std::random_device rd;
 std::mt19937 mt(rd());
 std::uniform_int_distribution<int> rand_dist;
 
-neuralnet random_net() {
+mlp random_net() {
     std::normal_distribution dis(0.0, 1.0);
     std::vector<Eigen::MatrixXd> matrices;
     matrices.reserve(layers.size());
@@ -28,7 +28,7 @@ neuralnet random_net() {
         for (int row = 0; row < rows; row++) for (int col = 0; col < cols; col++) M(row, col) = .1 * dis(mt) / dis(mt);
         matrices.push_back(M);
     }
-    return neuralnet(matrices);
+    return mlp(matrices);
 }
 
 std::vector<std::string> list_files_with_extension(const std::string& ext, const path& location) {
@@ -51,7 +51,7 @@ int num_files_with_extension(const std::string& ext, const path& location) {
     return num_files;
 }
 
-void write_nn_to_file(const neuralnet nn, const path& location) {
+void write_nn_to_file(const mlp nn, const path& location) {
     path file = path(location) /= "output.txt";
     nn.output_to_stream(std::ofstream(file.string()));
     boost::process::ipstream out;
@@ -90,7 +90,7 @@ void swap(Eigen::VectorXd& v1, Eigen::VectorXd& v2) {
     }
 }
 
-int get_score(const neuralnet& nn1, const neuralnet& nn2) {
+int get_score(const mlp& nn1, const mlp& nn2) {
     nn1.output_to_stream(std::ofstream("white.txt"));
     nn2.output_to_stream(std::ofstream("black.txt"));
 
@@ -180,8 +180,8 @@ int main() {
 
             std::ifstream parent1_ifs(parent1_path.string());
             std::ifstream parent2_ifs(parent2_path.string());
-            neuralnet parent1_nn(parent1_ifs);
-            neuralnet parent2_nn(parent2_ifs);
+            mlp parent1_nn(parent1_ifs);
+            mlp parent2_nn(parent2_ifs);
 
             Eigen::VectorXd parent1_vec = parent1_nn.to_eigen_vector();
             Eigen::VectorXd parent2_vec = parent2_nn.to_eigen_vector();
@@ -204,7 +204,7 @@ int main() {
 
             {
                 int score1 = 0;
-                neuralnet child1_nn(layers, child1_vec);
+                mlp child1_nn(layers, child1_vec);
 
                 if (rand_dist(mt) % 2 == 0) score1 = get_score(parent1_nn, child1_nn);
                 else score1 = -get_score(child1_nn, parent1_nn);
@@ -220,7 +220,7 @@ int main() {
             }
             {
                 int score2 = 0;
-                neuralnet child2_nn(layers, child2_vec);
+                mlp child2_nn(layers, child2_vec);
 
                 if (rand_dist(mt) % 2 == 0) score2 = get_score(parent2_nn, child2_nn);
                 else score2 = -get_score(child2_nn, parent2_nn);

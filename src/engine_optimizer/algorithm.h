@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <Eigen/Core>
 #include <random>
-#include <neuralnet.h>
+#include <mlp.h>
 #include "message_queue.h"
 
 namespace chess::optimizer {
@@ -38,7 +38,7 @@ namespace chess::optimizer {
         player generate_random_player();
         void cross_over(parent& p1, parent& p2);
         player save_player(const Eigen::VectorXd& theta);
-        player save_player(const chess::neural::neuralnet& nn);
+        player save_player(const chess::neural::mlp& nn);
 
         struct game_result {
             int generation;

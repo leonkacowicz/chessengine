@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <neuralnet.h>
+#include <mlp.h>
 
 TEST(neuralnet, neuralnet_happycase_test) {
     std::srand(0);
@@ -20,7 +20,7 @@ TEST(neuralnet, neuralnet_happycase_test) {
     in << M3.rows() << " " << M3.cols() << std::endl;
     in << M3 << std::endl;
 
-    chess::neural::neuralnet n(in);
+    chess::neural::mlp n(in);
 
     auto y = n(v);
     ASSERT_DOUBLE_EQ(y[0], 0.45544813274873913);
@@ -35,7 +35,7 @@ TEST(neuralnet, neuralnet_from_matrices) {
     matrices.push_back(Eigen::MatrixXd::Random(4, 7));
     matrices.push_back(Eigen::MatrixXd::Random(2, 5));
 
-    chess::neural::neuralnet n(matrices);
+    chess::neural::mlp n(matrices);
 
     auto v = Eigen::VectorXd::Random(input_size);
 
@@ -52,11 +52,11 @@ TEST(neuralnet, to_vector_from_vector) {
     matrices.push_back(Eigen::MatrixXd::Random(4, 7));
     matrices.push_back(Eigen::MatrixXd::Random(2, 5));
 
-    chess::neural::neuralnet n(matrices);
+    chess::neural::mlp n(matrices);
 
     auto v = Eigen::VectorXd::Random(input_size);
 
-    chess::neural::neuralnet n2({832, 6, 4, 2}, n.to_vector());
+    chess::neural::mlp n2({832, 6, 4, 2}, n.to_vector());
 
     auto y = n2(v);
 
