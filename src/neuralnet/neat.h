@@ -99,6 +99,8 @@ public:
 
     void mutate_add_node(genome& original, int connection_to_break);
 
+    void mutate_add_random_gate(genome& original);
+
     genome crossover(const genome& g1, const genome& g2);
 
     connection& select_random_connection(genome& original);

@@ -250,6 +250,7 @@ TEST(neat, mutation_only) {
             g = child;
         }
         std::printf("generation %d: p = %.4f; e = %.6f; connections = %d\n", i, p, current, g.active_connetions_count());
+        if (e < 0.001) break;
     }
     auto connections = g.connections;
     std::unordered_set<int> nodes;

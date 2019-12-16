@@ -168,23 +168,25 @@ connection& neat_genepool::select_random_connection(genome& original) {
 
 void neat_genepool::random_mutation(genome& original) {
     const double weight_mutation_prob = .8;
-    const double weight_perturbation_prob = .9;
-    const double new_connection_prob = 0.25;
-    const double new_node_prob = 0.03;
+    const double weight_perturbation_prob = .99;
+    const double new_connection_prob = 0.15;
+    const double new_node_prob = 0.05;
     const double enable_prob = 0.2;
     const double disable_prob = 0.4;
+    const double gate_prob = 0.01;
 
     std::uniform_real_distribution unif(.0, 1.);
 
-    if (!original.connections.empty() && unif(mt) < weight_mutation_prob) {
-        auto& connection = select_random_connection(original);
+    for (int i = 0; i < 10; i++)
+        if (!original.connections.empty() && unif(mt) < weight_mutation_prob) {
+            auto& connection = select_random_connection(original);
 
-        if (unif(mt) < weight_perturbation_prob) {
-            connection.weight += (4 * unif(mt) - 2);
-        } else {
-            connection.weight = (4 * unif(mt) - 2);
+            if (unif(mt) < weight_perturbation_prob) {
+                connection.weight += (unif(mt) - .5);
+            } else {
+                connection.weight = (4 * unif(mt) - 2);
+            }
         }
-    }
 
     if (unif(mt) < new_connection_prob) {
         mutate_add_random_connection(original);
@@ -200,6 +202,11 @@ void neat_genepool::random_mutation(genome& original) {
     if (unif(mt) < disable_prob) {
         flip_random_connection(original, false);
     }
+
+    if (unif(mt) < gate_prob) {
+        mutate_add_random_gate(original);
+    }
+
 //    int connections = 0;
 //    for (const auto& kv : original.connections)
 //        if (kv.second.enabled) connections++;
@@ -293,6 +300,40 @@ double neat_genepool::distance(const genome& g1, const genome& g2) const {
     //disjoint /= std::max(g1.connections.size(), g2.connections.size());
     weight_diff /= coincident;
     return disjoint + 0.01 * weight_diff;
+}
+
+void neat_genepool::mutate_add_random_gate(genome& original) {
+
+    std::uniform_real_distribution unif;
+    bool combination_found = false;
+    std::vector<int> from1_except({0});
+    while (!combination_found) {
+        int from1 = select_random_from_node(original, from1_except);
+        if (from1 < 0) return;
+        int from2 = select_random_from_node(original, {0, from1});
+        int to = select_random_to_node(original, from1);
+        if (to < 0 || from2 < 0) {
+            from1_except.push_back(from1);
+            continue;
+        }
+        if (from2 == to) continue;
+        assert(from1 != 0);
+        assert(from2 != 0);
+        assert(to != 0);
+        assert(from1 != from2);
+        assert(from1 != to);
+        assert(from2 != to);
+        nn_graph nn(original, inputs, outputs);
+        if (nn.has_path(to, from2)) continue;
+        else combination_found = true;
+        int node = node_genes.size();
+        node_genes.push_back({HIDDEN});
+
+        mutate_add_connection(original, 0, node, unif(mt) * 1. - .5);
+        mutate_add_connection(original, from1, node, unif(mt) * 1. - .5);
+        mutate_add_connection(original, from2, node, unif(mt) * 1. - .5);
+        mutate_add_connection(original, node, to, unif(mt) * 1. - .5);
+    }
 }
 
 void neat_algorithm::add_generation() {
