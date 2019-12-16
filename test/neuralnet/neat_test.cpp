@@ -79,17 +79,17 @@ double eval_xor(nn_graph&& nn) {
     return std::sqrt(e / 4);
 }
 
-double eval_xor3(nn_graph&& nn) {
+double eval_xor3(const nn_graph& nn) {
     double e = 0;
     auto squared = [] (auto x) { return x * x; };
-    e += squared(0.0 - nn.evaluate({0, 0, 0})[0]);
-    e += squared(0.0 - nn.evaluate({0, 1, 1})[0]);
+    e += squared(-1.0 - nn.evaluate({0, 0, 0})[0]);
     e += squared(1.0 - nn.evaluate({0, 0, 1})[0]);
     e += squared(1.0 - nn.evaluate({0, 1, 0})[0]);
+    e += squared(-1.0 - nn.evaluate({0, 1, 1})[0]);
     e += squared(1.0 - nn.evaluate({1, 0, 0})[0]);
+    e += squared(-1.0 - nn.evaluate({1, 0, 1})[0]);
+    e += squared(-1.0 - nn.evaluate({1, 1, 0})[0]);
     e += squared(1.0 - nn.evaluate({1, 1, 1})[0]);
-    e += squared(0.0 - nn.evaluate({1, 0, 1})[0]);
-    e += squared(0.0 - nn.evaluate({1, 1, 0})[0]);
     return std::sqrt(e);
 }
 
@@ -102,8 +102,11 @@ std::vector<int> randomperm(int n) {
 
 TEST(neat, detcrowd) {
 
+    std::random_device rd;
+    std::mt19937 mt(rd());
+    std::uniform_real_distribution unif;
     const int inputs = 3;
-    int pop_size = 50;
+    int pop_size = 10;
 
     std::vector<std::pair<double, genome>> population;
     neat_genepool pool(inputs, 1);
@@ -166,7 +169,7 @@ TEST(neat, detcrowd) {
                 std::cout << iter->second.weight << "     " << iter->second.from << " -> " << iter->second.to << std::endl;
         }
     }
-    std::cout << "improved after mutation: " << improved_after_cross
+    std::cout << "improved after crossover: " << improved_after_cross
         << "; improved after no crossover: " << improved_after_no_cross
         << "; total evaluations: " << total_evals
         << std::endl
@@ -203,7 +206,7 @@ TEST(neat, speciation) {
         return e1 < e2 ? -1 : 1;
     };
     neat_algorithm ga(inputs, 1, 150, comp);
-    for (int gen = 0; gen < 500; gen++) {
+    for (int gen = 0; gen < 200; gen++) {
         std::cout << "generation " << gen << std::endl;
         std::cout << "comparisons: " << comparations << std::endl;
         for (int s = 0; s < ga.all_species.size(); s++) {
@@ -217,4 +220,46 @@ TEST(neat, speciation) {
         std::cout << std::endl;
         ga.add_generation();
     }
+}
+
+TEST(neat, mutation_only) {
+
+    std::random_device rd;
+    std::mt19937 mt(rd());
+    std::uniform_real_distribution unif;
+    const int inputs = 3;
+    double p = .9;
+    neat_genepool pool(inputs, 1);
+    genome g;
+    for (int i = 0; i < 1; i++) pool.random_mutation(g);
+    const nn_graph n(g, inputs, 1);
+    double current = eval_xor3(n);
+    for (int i = 0; i < 5000; i++) {
+        genome child = g;
+        pool.random_mutation(child);
+        const nn_graph child_n(child, inputs, 1);
+        double e = eval_xor3(child_n);
+        p *= .99;
+        if (e < current) {
+            //p *= 0.5;
+            current = e;
+            g = child;
+        } else if (unif(mt) < p) {
+            std::cout << "randomly changing" << std::endl;
+            current = e;
+            g = child;
+        }
+        std::printf("generation %d: p = %.4f; e = %.6f; connections = %d\n", i, p, current, g.active_connetions_count());
+    }
+    auto connections = g.connections;
+    std::unordered_set<int> nodes;
+    for (int i = 0; i < pool.connection_genes.size(); i++) {
+        auto iter = connections.find(i);
+        if (iter != connections.end() && iter->second.enabled) {
+            nodes.insert(iter->second.from);
+            nodes.insert(iter->second.to);
+            std::cout << iter->second.weight << "     " << iter->second.from << " -> " << iter->second.to << std::endl;
+        }
+    }
+    std::printf("nodes: %ld\n", nodes.size());
 }

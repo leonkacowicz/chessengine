@@ -20,7 +20,7 @@ nn_graph::nn_graph(const genome& genome_, int inputs, int outputs) : inputs(inpu
     }
 }
 
-std::vector<double> nn_graph::evaluate(const std::vector<double>& input) {
+std::vector<double> nn_graph::evaluate(const std::vector<double>& input) const {
     std::vector<double> all_values(g.size(), 0);
     std::vector<bool> evaluated(g.size(), false);
 
@@ -40,22 +40,22 @@ std::vector<double> nn_graph::evaluate(const std::vector<double>& input) {
     return output;
 }
 
-void nn_graph::evaluate(int node, std::vector<double>& all_values, std::vector<bool>& evaluated) {
+void nn_graph::evaluate(int node, std::vector<double>& all_values, std::vector<bool>& evaluated) const {
     for (const auto& con : g[node]) if (con.enabled) {
         if (!evaluated[con.from]) evaluate(con.from, all_values, evaluated);
         all_values[node] += con.weight * all_values[con.from];
     }
-    all_values[node] = 1.0 / (1.0 + std::exp(-all_values[node]));
+    all_values[node] = 2.0 / (1.0 + std::exp(-all_values[node])) - 1;
     evaluated[node] = true;
 }
 
-bool nn_graph::has_path(int from, int to) {
+bool nn_graph::has_path(int from, int to) const {
     std::vector<bool> visited(g.size(), false);
     dfs(to, visited);
     return visited[from];
 }
 
-void nn_graph::dfs(int start, std::vector<bool>& visited) {
+void nn_graph::dfs(int start, std::vector<bool>& visited) const {
     for (const auto& c : g[start]) {
         if (!visited[c.from]) {
             visited[c.from] = true;
@@ -108,6 +108,7 @@ int neat_genepool::mutate_add_connection(genome& original, int from, int to, dou
 void neat_genepool::mutate_add_node_at_random(genome& original) {
     std::uniform_int_distribution dis(0);
     int size = original.connections.size();
+    if (size == 0) return;
     int connection = dis(mt) % size;
     for (auto it = original.connections.begin(); it != original.connections.end(); it++) {
         if (connection-- == 0) {
@@ -196,9 +197,9 @@ void neat_genepool::random_mutation(genome& original) {
     if (unif(mt) < enable_prob) {
         flip_random_connection(original, true);
     }
-//    if (unif(mt) < disable_prob) {
-//        flip_random_connection(original, false);
-//    }
+    if (unif(mt) < disable_prob) {
+        flip_random_connection(original, false);
+    }
 //    int connections = 0;
 //    for (const auto& kv : original.connections)
 //        if (kv.second.enabled) connections++;
@@ -300,10 +301,10 @@ void neat_algorithm::add_generation() {
 
     for (auto iter = all_species.begin(); iter != all_species.end();) {
         species_counted++;
-        if (iter->num_stale_generations >= 10 && species_counted > 3)
+        if ((iter->num_stale_generations >= 10 && species_counted > 3) || species_counted > 10)
             all_species.erase(iter);
         else {
-            iter->population.resize(std::max(1uL, iter->population.size() / 2));
+            iter->population.resize(1);
             iter->num_stale_generations++;
             current_population += iter->population.size();
             iter++;
@@ -317,22 +318,26 @@ void neat_algorithm::add_generation() {
     for (int i = 0; i < offspring_count; i++) {
         if (unif(mt) < crossover_prob) {
             if (unif(mt) < 0.1) {
-                int s1 = random_index(4, all_species.size());
-                int s2 = random_index(4, all_species.size());
+                int s1 = random_index(3, all_species.size());
+                int s2 = random_index(3, all_species.size());
                 if (s1 > s2) {
                     int tmp = s1; s1 = s2; s2 = tmp;
                 } else if (s1 == s2) {
-                    if (s1 == 0) s2 = 1;
+                    if (s1 == 0) {
+                        if (all_species.size() > 0) s2 = 1;
+                    }
                     else s1 = s2 - 1;
                 }
+                s1 = std::min<int>(s1, all_species.size() - 1);
+                s2 = std::min<int>(s2, all_species.size() - 1);
                 assert(all_species[s1].population[0].id <= last_id);
                 assert(all_species[s2].population[0].id <= last_id);
                 genome child = pool.crossover(all_species[s1].population[0], all_species[s2].population[0]);
                 offspring.push_back(child);
             } else {
-                int s = random_index(4, all_species.size());
-                int p1 = random_index(4, all_species[s].population.size());
-                int p2 = random_index(4, all_species[s].population.size());
+                int s = random_index(1, all_species.size());
+                int p1 = random_index(2, all_species[s].population.size());
+                int p2 = random_index(2, all_species[s].population.size());
                 if (p1 > p2) { int tmp = p1; p1 = p2; p2 = tmp; }
                 assert(all_species[s].population[p1].id <= last_id);
                 assert(all_species[s].population[p2].id <= last_id);
@@ -372,7 +377,7 @@ neat_algorithm::neat_algorithm(int inputs, int outputs, int population_size, gen
 
     for (int i = 0; i < population_size; i++) {
         auto g = genome{last_id++};
-        pool.mutate_add_random_connection(g);
+        for (int j = 0; j < 1; j++) pool.mutate_add_random_connection(g);
         population.push_back(g);
         assign_species(g);
     }
