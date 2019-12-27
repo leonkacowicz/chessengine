@@ -19,3 +19,7 @@ foreach(lib ${libs})
     set_target_properties(${libname} PROPERTIES "IMPORTED_LOCATION" ${CMAKE_BINARY_DIR}/external/src/boost_external/stage/lib/lib${libname}.a)
     target_include_directories(${libname} INTERFACE ${CMAKE_BINARY_DIR}/external/src/boost_external)
 endforeach()
+
+add_library(boost_include INTERFACE)
+add_dependencies(boost_include boost_external)
+target_include_directories(boost_include INTERFACE ${CMAKE_BINARY_DIR}/external/src/boost_external)

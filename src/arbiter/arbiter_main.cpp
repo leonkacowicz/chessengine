@@ -1,5 +1,6 @@
-#include <iostream>
 #include <boost/program_options.hpp>
+#include <boost/process.hpp>
+#include <iostream>
 #include <core.h>
 #include "settings.h"
 #include "process.h"
@@ -89,11 +90,15 @@ int main(int argc, char** argv) {
     if (!settings.valid) return 1;
     if (settings.verbose) print_settings(settings);
 
-    process white_proc(settings.white_settings.executable);
-    process black_proc(settings.black_settings.executable);
-    player white(WHITE, white_proc.stdin, white_proc.stdout);
-    player black(BLACK, black_proc.stdin, black_proc.stdout);
-    //arbiter arb(white, black, settings.white_settings.initial_time, settings.white_settings.time_increment, settings.verbose);
+    boost::process::ipstream white_stdout;
+    boost::process::opstream white_stdin;
+    boost::process::ipstream black_stdout;
+    boost::process::opstream black_stdin;
+
+    boost::process::child white_child(settings.white_settings.executable, boost::process::std_in < white_stdin, boost::process::std_out > white_stdout);
+    boost::process::child black_child(settings.black_settings.executable, boost::process::std_in < black_stdin, boost::process::std_out > black_stdout);
+    player white(WHITE, white_stdin, white_stdout);
+    player black(BLACK, black_stdin, black_stdout);
     arbiter arb(white, black, settings);
 
     std::string white_options = file_contents(settings.white_settings.input_filename);
