@@ -28,7 +28,8 @@ TEST(arbiter_test, arbiter_can_start_players) {
     player white(color::WHITE, white_in, white_out);
     player black(color::BLACK, black_in, black_out);
 
-    arbiter arb(white, black, 1000ms, 0ms, true);
+    game_settings gs = {};
+    arbiter arb(white, black, gs);
 
     arb.start_players("", "");
     arb.start_game();
@@ -55,7 +56,7 @@ TEST(arbiter_test, arbiter_passes_moves_from_one_player_another) {
     black_out << "bestmove a7a5" << std::endl;
     black_out << "bestmove (none)" << std::endl;
 
-    arbiter arb(white, black, 10000ms, 0ms, true);
+    arbiter arb(white, black, {});
 
     arb.start_players();
     arb.start_game();
@@ -64,21 +65,21 @@ TEST(arbiter_test, arbiter_passes_moves_from_one_player_another) {
     expect_line(white_in, "isready");
     expect_line(white_in, "ucinewgame");
     expect_line(white_in, "position startpos");
-    expect_line_starting_with(white_in, "go ");
+    expect_line_starting_with(white_in, "go");
     expect_line(white_in, "position startpos moves e2e4 e7e5");
-    expect_line_starting_with(white_in, "go ");
+    expect_line_starting_with(white_in, "go");
     expect_line(white_in, "position startpos moves e2e4 e7e5 a2a4 a7a5");
-    expect_line_starting_with(white_in, "go ");
+    expect_line_starting_with(white_in, "go");
 
     expect_line(black_in, "uci");
     expect_line(black_in, "isready");
     expect_line(black_in, "ucinewgame");
     expect_line(black_in, "position startpos moves e2e4");
-    expect_line_starting_with(black_in, "go ");
+    expect_line_starting_with(black_in, "go");
     expect_line(black_in, "position startpos moves e2e4 e7e5 a2a4");
-    expect_line_starting_with(black_in, "go ");
+    expect_line_starting_with(black_in, "go");
     expect_line(black_in, "position startpos moves e2e4 e7e5 a2a4 a7a5 h2h4");
-    expect_line_starting_with(black_in, "go ");
+    expect_line_starting_with(black_in, "go");
 }
 
 TEST(arbiter_test, test_arbitraty_initial_pos_1) {
@@ -105,7 +106,7 @@ TEST(arbiter_test, test_arbitraty_initial_pos_1) {
     arb.start_game();
     expect_line(white_in, "ucinewgame");
     expect_line(white_in, "position startpos moves e2e4 e7e5");
-    expect_line_starting_with(white_in, "go ");
+    expect_line_starting_with(white_in, "go");
 }
 
 TEST(test_a, test_b) {

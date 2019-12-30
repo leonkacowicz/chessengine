@@ -63,18 +63,17 @@ public:
     void calculate_next_move(std::chrono::milliseconds white_time,
                              std::chrono::milliseconds black_time,
                              std::chrono::milliseconds white_increment,
-                             std::chrono::milliseconds black_increment) {
-        in << "go wtime " << white_time.count()
-           << " btime " << black_time.count()
-           << " winc " << white_increment.count()
-           << " binc " << black_increment.count()
-           << std::endl;
-        in.flush();
-        last_saved_time = std::chrono::system_clock::now();
-    }
-
-    void calculate_next_move(std::chrono::milliseconds movetime) {
-        in << "go movetime " << movetime.count() << std::endl;
+                             std::chrono::milliseconds black_increment,
+                             std::chrono::milliseconds movetime,
+                             int max_depth) {
+        in << "go";
+        if (white_time.count() > 0) in << " wtime " << white_time.count();
+        if (black_time.count() > 0) in << " btime " << black_time.count();
+        if (white_increment.count() > 0) in << " winc " << white_increment.count();
+        if (black_increment.count() > 0) in << " binc " << black_increment.count();
+        if (movetime.count() > 0) in << " movetime " << movetime.count();
+        if (max_depth > 0) in << " depth " << max_depth;
+        in << std::endl;
         in.flush();
         last_saved_time = std::chrono::system_clock::now();
     }

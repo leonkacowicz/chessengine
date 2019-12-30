@@ -21,11 +21,13 @@ game_settings parse_cmd_line(int argc, char** argv) {
                 ("white-input", value<std::string>()->default_value(""), "path to white options input file")
                 ("white-init-time", value<int>()->default_value(0), "initial time for white in milliseconds")
                 ("white-move-time", value<int>()->default_value(0), "move time for white in milliseconds")
+                ("white-max-depth", value<int>()->default_value(0), "max depth for white in plys")
                 ("white-time-increment", value<int>()->default_value(0), "time increment per move for white in milliseconds")
                 ("black-exec", value<std::string>()->required(), "[REQUIRED] path to engine executable that will play with black pieces")
                 ("black-input", value<std::string>()->default_value(""), "path to black options input file")
                 ("black-init-time", value<int>()->default_value(0), "initial time for black in milliseconds")
                 ("black-move-time", value<int>()->default_value(0), "move time for white in milliseconds")
+                ("black-max-depth", value<int>()->default_value(0), "max depth for black in plys")
                 ("black-time-increment", value<int>()->default_value(0), "time increment per move for black in milliseconds")
                 ("output", value<std::string>()->default_value(""), "location of pgn output file")
                 ("initial-pos", value<std::string>()->default_value("startpos"),
@@ -46,12 +48,14 @@ game_settings parse_cmd_line(int argc, char** argv) {
         gs.white_settings.input_filename = variables["white-input"].as<std::string>();
         gs.white_settings.initial_time = milliseconds(variables["white-init-time"].as<int>());
         gs.white_settings.move_time = milliseconds(variables["white-move-time"].as<int>());
+        gs.white_settings.max_depth = variables["white-max-depth"].as<int>();
         gs.white_settings.time_increment = milliseconds(variables["white-time-increment"].as<int>());
 
         gs.black_settings.executable = variables["black-exec"].as<std::string>();
         gs.black_settings.input_filename = variables["black-input"].as<std::string>();
         gs.black_settings.initial_time = milliseconds(variables["black-init-time"].as<int>());
         gs.black_settings.move_time = milliseconds(variables["black-move-time"].as<int>());
+        gs.black_settings.max_depth = variables["black-max-depth"].as<int>();
         gs.black_settings.time_increment = milliseconds(variables["black-time-increment"].as<int>());
 
         gs.valid = true;
@@ -69,11 +73,13 @@ void print_settings(const game_settings& gs) {
     std::cout << "     --white-init-time         = " << gs.white_settings.initial_time.count() << std::endl;
     std::cout << "     --white-time-increment    = " << gs.white_settings.time_increment.count() << std::endl;
     std::cout << "     --white-move-time         = " << gs.white_settings.move_time.count() << std::endl;
+    std::cout << "     --white-max-depth         = " << gs.white_settings.max_depth << std::endl;
     std::cout << "     --black-exec              = " << gs.black_settings.executable << std::endl;
     std::cout << "     --black-input             = " << gs.black_settings.input_filename << std::endl;
     std::cout << "     --black-init-time         = " << gs.black_settings.initial_time.count() << std::endl;
     std::cout << "     --black-time-increment    = " << gs.black_settings.time_increment.count() << std::endl;
     std::cout << "     --black-move-time         = " << gs.black_settings.move_time.count() << std::endl;
+    std::cout << "     --black-max-depth         = " << gs.black_settings.max_depth << std::endl;
     std::cout << "     --output                  = " << gs.output_location << std::endl;
     std::cout << "     --initial-pos             = " << gs.initial_position << std::endl;
 }

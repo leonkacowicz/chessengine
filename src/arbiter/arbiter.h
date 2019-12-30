@@ -19,16 +19,10 @@ struct mutexes {
 };
 
 class arbiter {
-    const std::string initial_pos;
     std::string initial_pos_fen;
     std::chrono::milliseconds white_time;
     std::chrono::milliseconds black_time;
-    std::chrono::milliseconds white_increment;
-    std::chrono::milliseconds black_increment;
-    std::chrono::milliseconds white_move_time;
-    std::chrono::milliseconds black_move_time;
-
-    const std::string output_file;
+    const game_settings settings;
 
     player& white;
     player& black;
@@ -37,18 +31,15 @@ class arbiter {
     mutexes white_mutexes;
     mutexes black_mutexes;
 
-    const bool verbose;
     bool game_finished = false;
 
     std::vector<std::string> moves;
     std::vector<std::string> pgn_moves;
 
-    void player_loop(player& p, mutexes &m);
-    void player_loop(player& p, mutexes &m, std::chrono::milliseconds move_time);
+    void player_loop(player& p, mutexes &m, const player_settings& psettings);
     board get_initial_board();
 public:
     arbiter(player& white_player, player& black_player, const game_settings & settings);
-    arbiter(player& white_player, player& black_player, std::chrono::milliseconds initial_time, std::chrono::milliseconds increment, bool verbose);
     void start_players();
     void start_players(const std::string & white_options, const std::string & black_options);
     void start_game();
