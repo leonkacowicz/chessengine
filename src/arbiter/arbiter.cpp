@@ -7,6 +7,7 @@
 #include <move_gen.h>
 #include <fen.h>
 #include "arbiter.h"
+#include "player.h"
 
 arbiter::arbiter(player& white_player,
                  player& black_player,
@@ -23,17 +24,8 @@ void arbiter::start_players() {
 }
 
 void arbiter::start_players(const std::string & white_options, const std::string & black_options) {
-    white.start_player(white_options);
-    black.start_player(black_options);
-
-    white_mutexes.ready.lock();
-    black_mutexes.ready.lock();
-
-    white_mutexes.time_to_play.lock();
-    black_mutexes.time_to_play.lock();
-
-    white_thread = std::thread([&] { player_loop(white, white_mutexes, settings.white_settings); });
-    black_thread = std::thread([&] { player_loop(black, black_mutexes, settings.black_settings); });
+    white.start_player(*this, white_options, settings.white_settings);
+    black.start_player(*this, black_options, settings.black_settings);
 
     std::cout << "[DEBUG] Engines started" << std::endl;
 }
@@ -91,11 +83,11 @@ void arbiter::start_game() {
     black.start_game();
 
     // lock again (only works after each thread has started and unlocked the thread_ready mutex
-    white_mutexes.ready.lock();
-    black_mutexes.ready.lock();
+    white.ready.lock();
+    black.ready.lock();
 
-    white_mutexes.has_played.lock();
-    black_mutexes.has_played.lock();
+    white.has_played.lock();
+    black.has_played.lock();
 
     board b = get_initial_board();
 
@@ -108,7 +100,6 @@ void arbiter::start_game() {
         std::cout << i << std::endl;
         if (settings.verbose) b.print();
         const bool white_to_play = b.side_to_play == WHITE;
-        mutexes& current = white_to_play ? white_mutexes : black_mutexes;
         auto& current_time = white_to_play ? white_time : black_time;
         auto& current_player = white_to_play ? white : black;
         const auto& current_settings = white_to_play ? settings.white_settings : settings.black_settings;
@@ -127,13 +118,13 @@ void arbiter::start_game() {
             break;
         }
 
-        current.time_to_play.unlock();
+        current_player.time_to_play.unlock();
         std::chrono::milliseconds wait_time(INT64_MAX);
         if (current_settings.move_time > 0ms) wait_time = std::min(wait_time, current_settings.move_time);
         if (current_time > 0ms) wait_time = std::min(wait_time, current_time);
 
         std::cout << "Wait for player move for " << wait_time.count() << "ms\n";
-        if (current.has_played.try_lock_for(wait_time + 10ms)) {
+        if (current_player.has_played.try_lock_for(wait_time + 10ms)) {
             // all good
         } else {
             player_won[opposite(b.side_to_play)] = true;
@@ -194,10 +185,8 @@ void arbiter::start_game() {
         std::cout << side << " moves " << moves.back() << " / " << pgn_moves.back() << std::endl;
     }
     game_finished = true;
-    white_mutexes.time_to_play.unlock();
-    black_mutexes.time_to_play.unlock();
-    white_thread.join();
-    black_thread.join();
+    white.stop_player();
+    black.stop_player();
 
     int k = 0;
     std::stringstream pgn_output;
@@ -222,23 +211,3 @@ void arbiter::start_game() {
     }
 }
 
-void arbiter::player_loop(player& p, mutexes &m, const player_settings& psettings) {
-    //std::cout << "Starting player " << p.player_color << std::endl;
-    m.ready.unlock();
-    while (!game_finished) {
-        //std::cout << "Waiting for player " << p.player_color << " turn" << std::endl;
-        m.time_to_play.lock();
-        if (game_finished) {
-            //std::cout << "Game finished while player " << p.player_color << " waited to play" << std::endl;
-            break;
-        }
-        //std::cout << "Time for player " << p.player_color << " to play" << std::endl;
-        p.set_position(moves, initial_pos_fen);
-        p.calculate_next_move(white_time, black_time, settings.white_settings.time_increment, settings.black_settings.time_increment, psettings.move_time, psettings.max_depth);
-        std::string player_move = p.get_next_move();
-        moves.push_back(player_move);
-
-        m.has_played.unlock();
-        //std::cout << "Player " << p.player_color << " released play lock and aquiring wait lock" << std::endl;
-    }
-}

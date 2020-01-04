@@ -1,12 +1,13 @@
 #include <string>
 #include <gtest/gtest.h>
-#include <process.h>
+#include <color.h>
 #include <arbiter.h>
-#include <thread>
+#include <player.h>
 #include <mutex>
 #include <deque>
 
 using namespace std;
+using namespace chess::core;
 
 void expect_line(std::istream& stream, const std::string& expected) {
     std::string actual;
