@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
+#include <random>
 #include <core.h>
 #include <move_gen.h>
 #include <game.h>

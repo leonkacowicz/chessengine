@@ -2,7 +2,7 @@
 #include <vector>
 #include <string>
 #include <algorithm>
-#include "color.h"
+#include "core.h"
 #include "board.h"
 #include "move.h"
 #include "magic_bitboard.h"

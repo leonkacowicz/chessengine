@@ -57,20 +57,6 @@ namespace chess::core {
         return r;
     }
 
-    constexpr int min_dist(square sq1, square sq2) {
-        int r = rank_dist(sq1, sq2);
-        int f = file_dist(sq1, sq2);
-        int d = r < f ? r : f;
-        return d;
-    }
-
-    constexpr int max_dist(square sq1, square sq2) {
-        int r = rank_dist(sq1, sq2);
-        int f = file_dist(sq1, sq2);
-        int d = r > f ? r : f;
-        return d;
-    }
-
     constexpr square operator+(square sq, int i) {
         return square(int(sq) + i);
     }

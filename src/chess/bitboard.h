@@ -7,8 +7,7 @@
 #include <initializer_list>
 #include <sstream>
 #include "square.h"
-#include "color.h"
-#include "piece.h"
+#include "core.h"
 
 namespace chess {
     namespace core {

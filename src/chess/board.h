@@ -2,11 +2,10 @@
 #define CHESSENGINE_BOARD_H
 
 #include <vector>
+#include "core.h"
 #include "bitboard.h"
 #include "square.h"
 #include "move.h"
-#include "piece.h"
-#include "color.h"
 
 class board {
 public:

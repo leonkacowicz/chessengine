@@ -1,6 +1,6 @@
 #include <string>
 #include <gtest/gtest.h>
-#include <color.h>
+#include <core.h>
 #include <arbiter.h>
 #include <player.h>
 #include <mutex>

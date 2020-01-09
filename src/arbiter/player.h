@@ -5,7 +5,7 @@
 #include <vector>
 #include <sstream>
 #include <iostream>
-#include <color.h>
+#include <core.h>
 #include <chrono>
 #include <mutex>
 #include <thread>
@@ -28,9 +28,9 @@ public:
     std::timed_mutex time_to_play;
     std::timed_mutex has_played;
     std::chrono::milliseconds last_move_duration{0};
-    color player_color;
+    chess::core::color player_color;
 
-    player(color c, std::ostream& in, std::istream& out) : player_color(c), in(in), out(out) {}
+    player(chess::core::color c, std::ostream& in, std::istream& out) : player_color(c), in(in), out(out) {}
 
     void start_player(arbiter& arb, const std::string& options, const player_settings& psettings);
 
