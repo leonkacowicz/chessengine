@@ -15,8 +15,8 @@ class move_gen {
     const board& b;
     move moves_array[220];
     move *last_move = moves_array;
-    bitboard checkers;
-    bitboard king;
+    bitboard checkers = 0;
+    bitboard king = 0;
     bitboard pinned = 0;
     color us;
     color them;
@@ -29,11 +29,11 @@ class move_gen {
         EVASIVE, NON_EVASIVE
     };
 
-    bool square_attacked(square sq);
+    inline bool square_attacked(square sq);
 
-    void generate_king_moves();
+    inline void generate_king_moves();
 
-    void reset();
+    inline void reset();
 
     template <evasiveness e>
     inline void generate_non_king_moves();
