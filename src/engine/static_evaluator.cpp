@@ -4,6 +4,8 @@
 
 #include "static_evaluator.h"
 
+using namespace chess::core;
+
 int static_evaluator::eval(const board & b) {
 
     int accum[2] = {0, 0};

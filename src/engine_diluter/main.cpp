@@ -9,7 +9,7 @@
 
 using std::stringstream;
 using std::string;
-using chess::core::game;
+using namespace chess::core;
 
 struct cmdline_options {
     double random_move_prob;

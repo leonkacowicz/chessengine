@@ -7,6 +7,8 @@
 #include <engine.h>
 #include <nn_eval.h>
 
+using namespace chess::core;
+
 TEST(evaluator_test, test_single_matrix) {
     board b;
     b.set_king_position(WHITE, SQ_E1);

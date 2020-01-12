@@ -7,6 +7,8 @@
 #include <move_gen.h>
 #include "../test_common.h"
 
+using namespace chess::core;
+
 void list_moves(const std::vector<move>& moves) {
     std::cout << "Moves found:" << std::endl;
     for (auto& m: moves) {

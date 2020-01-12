@@ -10,7 +10,7 @@ find_package(Threads REQUIRED)
 
 add_link_options(-pthread)
 if ("${CMAKE_BUILD_TYPE}" MATCHES "Release")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -msse -msse3 -mpopcnt -DUSE_POPCNT -msse4 -mbmi2")
 else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0")
 endif()

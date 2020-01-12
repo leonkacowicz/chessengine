@@ -10,7 +10,7 @@
 
 class static_evaluator : public evaluator {
 public:
-    int eval(const board& b) override;
+    int eval(const chess::core::board& b) override;
 };
 
 

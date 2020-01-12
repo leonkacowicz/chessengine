@@ -27,7 +27,7 @@ public:
     std::vector<std::string> moves;
     std::vector<std::string> pgn_moves;
 
-    board get_initial_board();
+    chess::core::board get_initial_board();
 
     arbiter(player& white_player, player& black_player, const game_settings& settings);
 

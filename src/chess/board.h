@@ -7,6 +7,7 @@
 #include "square.h"
 #include "move.h"
 
+namespace chess::core {
 class board {
 public:
     void move_piece(square from, square to, piece p, color c);
@@ -60,5 +61,5 @@ public:
         return piece_of_color[BLACK] & p ? BLACK : WHITE;
     }
 };
-
+}
 #endif //CHESSENGINE_BOARD_H

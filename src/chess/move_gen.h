@@ -10,11 +10,11 @@
 #include "magic_bitboard.h"
 
 
-
+namespace chess::core {
 class move_gen {
     const board& b;
     move moves_array[220];
-    move *last_move = moves_array;
+    move* last_move = moves_array;
     bitboard checkers = 0;
     bitboard king = 0;
     bitboard pinned = 0;
@@ -35,21 +35,21 @@ class move_gen {
 
     inline void reset();
 
-    template <evasiveness e>
+    template<evasiveness e>
     inline void generate_non_king_moves();
 
     inline void scan_board();
 
-    template <evasiveness e>
+    template<evasiveness e>
     inline void rook_moves(bitboard origin);
 
-    template <evasiveness e>
+    template<evasiveness e>
     inline void bishop_moves(bitboard origin);
 
-    template <evasiveness e>
+    template<evasiveness e>
     inline void knight_moves(bitboard origin);
 
-    template <evasiveness e, shift_direction d>
+    template<evasiveness e, shift_direction d>
     inline void pawn_moves(bitboard origin);
 
     template<evasiveness e>
@@ -68,9 +68,6 @@ public:
 
     std::vector<move> generate();
 };
-
-
-
-
+}
 
 #endif //CHESSENGINE_MOVE_GEN_H

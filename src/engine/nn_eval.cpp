@@ -6,6 +6,8 @@
 #include <cstring>
 #include "nn_eval.h"
 
+using namespace chess::core;
+
 #ifndef DEBUG
 #define DEBUG(x)
 #endif

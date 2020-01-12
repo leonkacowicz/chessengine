@@ -10,6 +10,8 @@
 #include <static_evaluator.h>
 #include <chrono>
 
+using namespace chess::core;
+
 TEST(engine_test, engine_call) {
     using namespace std::chrono_literals;
     board b;
@@ -26,8 +28,6 @@ TEST(engine_test, engine_call) {
         g.states.back().b.print();
     }
 }
-
-using namespace chess::core;
 
 TEST(engine_test, engine_should_find_mate_in_one) {
     board b = fen::board_from_fen("6k1/5ppp/8/8/8/8/5PPP/3R2K1 w - -");

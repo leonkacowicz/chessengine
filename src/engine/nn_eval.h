@@ -29,9 +29,9 @@ public:
 
     nn_eval(std::istream& fin);
 
-    int eval(const board& b) override;
+    int eval(const chess::core::board& b) override;
 
-    void fill_input_vector(const board& b);
+    void fill_input_vector(const chess::core::board& b);
 };
 
 

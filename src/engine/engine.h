@@ -16,6 +16,10 @@
 #include "transposition_table.h"
 
 class engine {
+    typedef chess::core::move move;
+    typedef chess::core::board board;
+    typedef chess::core::game game;
+
     static constexpr int max_depth = 30;
 
     std::vector<std::pair<move, move>> killers;
@@ -57,6 +61,5 @@ public:
 
     void sort_moves(std::vector<std::pair<move, int>>& moves, int first);
 };
-
 
 #endif //CHESSENGINE_ENGINE_H

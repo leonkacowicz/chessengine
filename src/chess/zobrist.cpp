@@ -4,7 +4,7 @@
 
 #include "zobrist.h"
 
-using namespace chess::core::zobrist;
+using namespace chess::core;
 
 uint64_t zobrist::table[64][6][2];
 uint64_t zobrist::side = 0;

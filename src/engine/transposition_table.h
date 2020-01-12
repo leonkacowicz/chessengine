@@ -18,7 +18,7 @@ struct tt_node {
     int depth;
     int value;
     tt_node_type type;
-    move bestmove;
+    chess::core::move bestmove;
 };
 
 template<uint64_t size>
@@ -30,7 +30,7 @@ public:
         nodes.resize(size);
     }
 
-    void save(uint64_t hash, int depth, int value, tt_node_type type, move bestmove) {
+    void save(uint64_t hash, int depth, int value, tt_node_type type, chess::core::move bestmove) {
         assert(bestmove != 0);
         assert(!(value < 31950 && value > 31000 && type == EXACT));
         assert(!(-value < 31950 && -value > 31000 && type == EXACT));

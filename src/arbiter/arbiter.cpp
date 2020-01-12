@@ -9,6 +9,8 @@
 #include "arbiter.h"
 #include "player.h"
 
+using namespace chess::core;
+
 arbiter::arbiter(player& white_player,
                  player& black_player,
                  const game_settings& settings) :

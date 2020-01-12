@@ -4,6 +4,8 @@
 
 #include "move_gen.h"
 
+using namespace chess::core;
+
 move_gen::move_gen(const board& b) : b(b) {
     us = b.side_to_play;
     them = opposite(us);

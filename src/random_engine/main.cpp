@@ -8,7 +8,7 @@
 
 using std::stringstream;
 using std::string;
-using chess::core::game;
+using namespace chess::core;
 
 std::vector<string> split(const string& input, const string& delimiter = " ") {
     auto start = 0U;

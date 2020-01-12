@@ -16,7 +16,7 @@ class arbiter;
 
 #define LOG_DEBUG(x) std::cout << \
     pretty_time() << \
-    " [DEBUG] [" << (player_color == WHITE ? "WHITE" : "BLACK") << "] " << x << std::endl
+    " [DEBUG] [" << (player_color == chess::core::color::WHITE ? "WHITE" : "BLACK") << "] " << x << std::endl
 
 class player {
     std::ostream& in;

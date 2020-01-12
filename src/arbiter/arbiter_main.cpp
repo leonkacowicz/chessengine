@@ -7,6 +7,8 @@
 #include "player.h"
 #include "arbiter.h"
 
+using namespace chess::core;
+
 game_settings parse_cmd_line(int argc, char** argv) {
     using namespace boost::program_options;
     using std::chrono::milliseconds;
