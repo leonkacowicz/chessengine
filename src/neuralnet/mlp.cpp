@@ -45,7 +45,7 @@ mlp::mlp(const std::vector<int>& layer_sizes, const Eigen::VectorXd& theta) {
     }
 }
 
-Eigen::VectorXd mlp::operator()(const Eigen::VectorXd& input_vector) {
+Eigen::VectorXd mlp::operator()(const Eigen::VectorXd& input_vector) const {
     Eigen::VectorXd v(input_vector);
     for (auto& M : matrices) {
         auto size = M.cols();
