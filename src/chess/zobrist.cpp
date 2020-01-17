@@ -3,6 +3,7 @@
 //
 
 #include "zobrist.h"
+#include <random>
 
 using namespace chess::core;
 
