@@ -89,7 +89,7 @@ void algorithm::run() {
 }
 
 algorithm::player algorithm::generate_random_player() {
-    return save_player(mlp(std::move(rd), {832, 1}));
+    return save_player(mlp(rd, {832, 1}));
 }
 
 void algorithm::cross_over(algorithm::parent& p1, algorithm::parent& p2) {

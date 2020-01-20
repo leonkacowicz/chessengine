@@ -52,7 +52,7 @@ Eigen::VectorXd mlp::operator()(const Eigen::VectorXd& input_vector) const {
         Eigen::VectorXd w(size);
         w << 1, v;
         v = M * w;
-        for (int j = 0; j < v.size(); j++) v[j] = 1 / (1 + std::exp(-v[j]));
+        for (int j = 0; j < v.size(); j++) v[j] = 2.0 / (1.0 + std::exp(-v[j])) - 1.0;
     }
     return v;
 }
@@ -95,7 +95,7 @@ Eigen::VectorXd mlp::to_eigen_vector() const {
     return ret;
 }
 
-mlp::mlp(std::random_device&& rd, const std::vector<int>& layers) {
+mlp::mlp(std::random_device& rd, const std::vector<int>& layers) {
     std::mt19937 mt(rd());
     std::normal_distribution dis(0.0, 1.0);
     int num_layers = layers.size();
@@ -106,4 +106,12 @@ mlp::mlp(std::random_device&& rd, const std::vector<int>& layers) {
         for (int row = 0; row < rows; row++) for (int col = 0; col < cols; col++) M(row, col) = .1 * dis(mt) / dis(mt);
         matrices.push_back(M);
     }
+}
+
+int mlp::num_vector_dimensions(const std::vector<int>& layers) {
+    int ret = 0;
+    int size = layers.size();
+    for (int i = 1; i < size; i++)
+        ret += layers[i] * (layers[i - 1] + 1);
+    return ret;
 }

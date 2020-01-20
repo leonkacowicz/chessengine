@@ -14,13 +14,13 @@ TEST(neat, test1) {
 
     nn_graph nn(g1, 2, 1);
     auto eval = nn.evaluate({2, 3});
-    ASSERT_DOUBLE_EQ(eval[0], 1.0 / (1.0 + std::exp(-3)));
+    ASSERT_DOUBLE_EQ(eval[0], 2.0 / (1.0 + std::exp(-3)) - 1.0);
     std::cout << eval[0] << std::endl;
 
     gp.mutate_add_connection(g1, 2, 3, -1);
     nn_graph nn2(g1, 2, 1);
     auto eval2 = nn2.evaluate({2, 3});
-    ASSERT_DOUBLE_EQ(eval2[0], 0.5);
+    ASSERT_DOUBLE_EQ(eval2[0], 0.);
 
     gp.mutate_add_node(g1, 0);
 
@@ -206,7 +206,7 @@ TEST(neat, speciation) {
         return e1 < e2 ? -1 : 1;
     };
     neat_algorithm ga(inputs, 1, 150, comp);
-    for (int gen = 0; gen < 200; gen++) {
+    for (int gen = 0; gen < 50; gen++) {
         std::cout << "generation " << gen << std::endl;
         std::cout << "comparisons: " << comparations << std::endl;
         for (int s = 0; s < ga.all_species.size(); s++) {

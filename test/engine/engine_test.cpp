@@ -178,3 +178,9 @@ TEST(engine_test, engine_should_find_mate_in_7ply) {
     move m = e.search_iterate(g);
     ASSERT_TRUE(m == get_move(SQ_C8, SQ_C5));
 }
+
+TEST(engine_test, static_eval_should_be_simmetric) {
+    auto b = fen::board_from_fen("kq6/p7/8/7N/8/8/PP6/4K2R w K--- - 0 1");
+    static_evaluator e;
+    ASSERT_EQ(e.eval(b), -e.eval(b.flip_colors()));
+}

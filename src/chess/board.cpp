@@ -33,23 +33,23 @@ string board::to_string() const {
     for (int y = 7; y >= 0; y--) {
         ret << " " << (y + 1) << "  ";
         for (int x = 0; x <= 7; x++) {
-            bitboard sq = get_bb(x, y);
-            if (sq & piece_of_color[WHITE]) {
-                if (sq & piece_of_type[BISHOP]) ret << " ♗";
-                else if (sq & piece_of_type[ROOK]) ret << " ♖";
-                else if (sq & piece_of_type[KNIGHT]) ret << " ♘";
-                else if (sq & piece_of_type[QUEEN]) ret << " ♕";
-                else if (sq & piece_of_type[PAWN]) ret << " ♙";
-                else if (sq & get_bb(king_pos[WHITE])) ret << " ♔";
+            bitboard bb = get_bb(x, y);
+            if (bb & piece_of_color[WHITE]) {
+                if (bb & piece_of_type[BISHOP]) ret << " ♗";
+                else if (bb & piece_of_type[ROOK]) ret << " ♖";
+                else if (bb & piece_of_type[KNIGHT]) ret << " ♘";
+                else if (bb & piece_of_type[QUEEN]) ret << " ♕";
+                else if (bb & piece_of_type[PAWN]) ret << " ♙";
+                else if (bb & get_bb(king_pos[WHITE])) ret << " ♔";
                 else ret << " X";
             }
-            else if (sq & piece_of_color[BLACK]) {
-                if (sq & piece_of_type[BISHOP]) ret << " ♝";
-                else if (sq & piece_of_type[ROOK]) ret << " ♜";
-                else if (sq & piece_of_type[KNIGHT]) ret << " ♞";
-                else if (sq & piece_of_type[QUEEN]) ret << " ♛";
-                else if (sq & piece_of_type[PAWN]) ret << " ♟";
-                else if (sq & get_bb(king_pos[BLACK])) ret << " ♚";
+            else if (bb & piece_of_color[BLACK]) {
+                if (bb & piece_of_type[BISHOP]) ret << " ♝";
+                else if (bb & piece_of_type[ROOK]) ret << " ♜";
+                else if (bb & piece_of_type[KNIGHT]) ret << " ♞";
+                else if (bb & piece_of_type[QUEEN]) ret << " ♛";
+                else if (bb & piece_of_type[PAWN]) ret << " ♟";
+                else if (bb & get_bb(king_pos[BLACK])) ret << " ♚";
                 else ret << " x";
             } else {
                 ret << " ◦";
@@ -85,7 +85,7 @@ void board::set_initial_position() {
 }
 
 void board::put_piece(piece p, color c, square s) {
-
+    assert(p != NO_PIECE);
     if ((s == king_pos[WHITE] && (p != KING || c != WHITE))
         || (s == king_pos[BLACK] && (p != KING || c != BLACK))) {
         std::__throw_runtime_error("Can't put other piece where king is.");
@@ -312,5 +312,25 @@ void board::make_move(square from, square to) {
 }
 
 board::board() {
+}
+
+board board::flip_colors() const {
+    board b;
+    for (square sq = SQ_A1; sq < SQ_NONE; ++sq) {
+        bitboard bb = get_bb(sq);
+        piece p = piece_at(bb);
+        if (p == NO_PIECE) continue;
+        color c = color_at(bb);
+        b.put_piece(p, opposite(c), get_square(get_file(sq), 7 - get_rank(sq)));
+    }
+    b.can_castle_queen_side[color::WHITE] = can_castle_queen_side[color::BLACK];
+    b.can_castle_queen_side[color::BLACK] = can_castle_queen_side[color::WHITE];
+    b.can_castle_king_side[color::WHITE] = can_castle_king_side[color::BLACK];
+    b.can_castle_king_side[color::BLACK] = can_castle_king_side[color::WHITE];
+    if (en_passant != SQ_NONE) {
+        b.en_passant = get_square(get_file(en_passant), 7 - get_rank(en_passant));
+    }
+    b.side_to_play = opposite(side_to_play);
+    return b;
 }
 

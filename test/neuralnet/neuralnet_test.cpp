@@ -23,8 +23,8 @@ TEST(neuralnet, neuralnet_happycase_test) {
     chess::neural::mlp n(in);
 
     auto y = n(v);
-    ASSERT_DOUBLE_EQ(y[0], 0.45544813274873913);
-    ASSERT_DOUBLE_EQ(y[1], 0.43429309196963267);
+    ASSERT_DOUBLE_EQ(y[0], -0.28003407628518084);
+    ASSERT_DOUBLE_EQ(y[1], 0.10217931885433251);
 }
 
 TEST(neuralnet, neuralnet_from_matrices) {
@@ -40,8 +40,8 @@ TEST(neuralnet, neuralnet_from_matrices) {
     auto v = Eigen::VectorXd::Random(input_size);
 
     auto y = n(v);
-    ASSERT_DOUBLE_EQ(y[0], 0.45544807229718143);
-    ASSERT_DOUBLE_EQ(y[1], 0.43429319350312512);
+    ASSERT_DOUBLE_EQ(y[0], -0.28003427272713755);
+    ASSERT_DOUBLE_EQ(y[1], 0.10217950387624608);
 }
 
 TEST(neuralnet, to_vector_from_vector) {
@@ -60,6 +60,6 @@ TEST(neuralnet, to_vector_from_vector) {
 
     auto y = n2(v);
 
-    ASSERT_DOUBLE_EQ(y[0], 0.45544807229718143);
-    ASSERT_DOUBLE_EQ(y[1], 0.43429319350312512);
+    ASSERT_DOUBLE_EQ(y[0], -0.28003427272713755);
+    ASSERT_DOUBLE_EQ(y[1], 0.10217950387624608);
 }

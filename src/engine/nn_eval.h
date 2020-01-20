@@ -14,24 +14,26 @@
 #include <mlp.h>
 #include "evaluator.h"
 
-constexpr int INPUT_SIZE = 832;
 constexpr int en_passant_offset = 64 * 12;
 constexpr int castling_rights_offset = en_passant_offset + 8;
-constexpr int turn_offset = castling_rights_offset + 4;
-constexpr int in_check_offset = turn_offset + 1;
+//constexpr int turn_offset = castling_rights_offset + 4;
+//constexpr int in_check_offset = turn_offset + 1;
+constexpr int half_move_counter_offset = castling_rights_offset + 4;
+constexpr int INPUT_SIZE = half_move_counter_offset + 100;
 
 class nn_eval : public evaluator {
 
-    Eigen::Vector<double, 832> input_vector;
+    using board = chess::core::board;
+    Eigen::Vector<double, INPUT_SIZE> input_vector;
     chess::neural::mlp net;
 
 public:
 
-    nn_eval(std::istream& fin);
+    nn_eval(const chess::neural::mlp& net);
 
-    int eval(const chess::core::board& b) override;
+    int eval(const board& b) override;
 
-    void fill_input_vector(const chess::core::board& b);
+    void fill_input_vector(const board& b);
 };
 
 

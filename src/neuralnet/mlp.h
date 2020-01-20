@@ -11,7 +11,7 @@ class mlp {
     std::vector<Eigen::MatrixXd> matrices;
 public:
     mlp(std::istream&);
-    mlp(std::random_device&& rd, const std::vector<int>& layers);
+    mlp(std::random_device& rd, const std::vector<int>& layers);
     mlp(const std::vector<Eigen::MatrixXd>&);
     mlp(const std::vector<int>&, const std::vector<double>&);
     mlp(const std::vector<int>&, const Eigen::VectorXd&);
@@ -19,6 +19,7 @@ public:
     void output_to_stream(std::ostream&& os) const;
     std::vector<double> to_vector() const;
     Eigen::VectorXd to_eigen_vector() const;
+    static int num_vector_dimensions(const std::vector<int>& layers);
 };
 
 }

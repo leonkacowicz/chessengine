@@ -119,3 +119,23 @@ TEST(board_test, assert_its_checkmate) {
 TEST(board_test, print_sizeof_board) {
     std::cout << sizeof(board) << std::endl;
 }
+
+TEST(board_test, flip_colors_test) {
+
+    board b;
+    b.set_king_position(color::WHITE, SQ_E1);
+    b.put_piece(piece::ROOK, color::WHITE, SQ_H1);
+    b.put_piece(piece::PAWN, color::WHITE, SQ_A2);
+    b.put_piece(piece::PAWN, color::WHITE, SQ_B2);
+    b.put_piece(piece::KNIGHT, color::WHITE, SQ_H5);
+    b.set_king_position(color::BLACK, SQ_A8);
+    b.put_piece(piece::PAWN, color::BLACK, SQ_A7);
+    b.put_piece(piece::QUEEN, color::BLACK, SQ_B8);
+    b.print();
+    b.can_castle_king_side[color::WHITE] = true;
+    std::cout << fen::to_string(b) << std::endl;
+    board f = b.flip_colors();
+    f.print();
+    std::cout << fen::to_string(f) << std::endl;
+
+}
