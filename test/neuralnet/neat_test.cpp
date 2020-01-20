@@ -4,6 +4,7 @@
 
 #include <gtest/gtest.h>
 #include <neat.h>
+#include "../test_common.h"
 
 using namespace chess::neural::neat;
 TEST(neat, test1) {
@@ -91,13 +92,6 @@ double eval_xor3(const nn_graph& nn) {
     e += squared(-1.0 - nn.evaluate({1, 1, 0})[0]);
     e += squared(1.0 - nn.evaluate({1, 1, 1})[0]);
     return std::sqrt(e);
-}
-
-std::vector<int> randomperm(int n) {
-    std::vector<int> perm(n, 0);
-    for (int i = 0; i < n; i++) perm[i] = i;
-    std::shuffle(perm.begin(), perm.end(), std::random_device());
-    return perm;
 }
 
 TEST(neat, detcrowd) {
