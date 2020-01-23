@@ -24,10 +24,10 @@ constexpr int INPUT_SIZE = half_move_counter_offset + 100;
 class nn_eval : public evaluator {
 
     using board = chess::core::board;
+public:
     Eigen::Vector<double, INPUT_SIZE> input_vector;
     chess::neural::mlp net;
 
-public:
 
     nn_eval(const chess::neural::mlp& net);
 

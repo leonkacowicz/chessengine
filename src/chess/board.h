@@ -24,6 +24,7 @@ public:
     board();
 
     bool under_check(color c) const;
+    bool under_check() const { return under_check(side_to_play); };
 
     void set_initial_position();
 

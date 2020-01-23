@@ -7,6 +7,7 @@
 #include <mlp.h>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <particle_swarm_optimizer.h>
 #include "../test_common.h"
 
 using namespace chess::optimizer;
@@ -90,10 +91,10 @@ TEST(algorithm_test, particle_swarm) {
         auto val = eval_xor3(mlp(layers, p));
         best_values.push_back(val);
         cmp++;
-        if (val < best_value) {
-            best_value = val;
-            best = i;
-        }
+//        if (val < best_value) {
+//            best_value = val;
+//            best = i;
+//        }
     }
 
     for (int t = 0; t < T; t++) {
@@ -117,12 +118,28 @@ TEST(algorithm_test, particle_swarm) {
                 if (val < best_value) {
                     best = p;
                     best_value = val;
-                    std::printf("*");
+                    //std::printf("*");
                 }
             }
             std::printf("%.4f, ", best_values[p]);
         }
         std::printf("%.4f\n", best_value);
+    }
+}
+
+TEST(algorithm_test, particle_swarm2) {
+
+    particle_swarm_optimizer pso;
+    pso.vector_size = mlp::num_vector_dimensions({3, 3, 1});
+    auto comp = [](const particle_swarm_optimizer::particle& p1, const particle_swarm_optimizer::particle& p2) {
+        return eval_xor3(mlp({3, 3, 1}, p2)) < eval_xor3(mlp({3, 3, 1}, p1));
+    };
+    pso.steps = 1;
+    for (int i = 0; i < 300; i++) {
+        pso.run(comp);
+        for (int p = 0; p < pso.particle_count; p++)
+            std::printf("%.4f, ", eval_xor3(mlp({3, 3, 1}, pso.particles_best_pos[p])));
+        std::cout << std::endl;
     }
 }
 

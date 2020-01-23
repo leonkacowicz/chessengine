@@ -16,12 +16,17 @@
 
 using namespace chess::core;
 
-move engine::search_iterate(game& g) {
+std::pair<move, int> engine::search_iterate(game& g) {
 
     time_over = false;
     initial_search_time = std::chrono::system_clock::now();
     auto legal_moves = move_gen(g.states.back().b).generate();
-    if (legal_moves.empty()) return null_move;
+    if (legal_moves.empty()) {
+        if (g.states.back().b.under_check())
+            return std::make_pair(null_move, -MATE);
+        else
+            return std::make_pair(null_move, 0);
+    }
 
     for (int c = 0; c < 2; c++)
         for (int i = 0; i < 64; i++)
@@ -40,10 +45,10 @@ move engine::search_iterate(game& g) {
     int val = search_root(g, current_depth, -INF, +INF);
 
     for (current_depth = 2; current_depth <= max_depth; current_depth++) {
-        if (val > MATE - current_depth) return bestmove;
+        if (val > MATE - current_depth) return std::make_pair(bestmove, val);
         val = search_widen(g, current_depth, val);
     }
-    return bestmove;
+    return std::make_pair(bestmove, val);
 }
 
 int engine::search_widen(game& g, int depth, int val) {
@@ -292,7 +297,7 @@ void engine::sort_moves(std::vector<std::pair<move, int>>& moves, int first) {
     }
 }
 
-engine::engine(evaluator& e) : eval(e) {
+engine::engine(evaluator& e, int max_depth) : eval(e), max_depth(max_depth) {
     for (int c = 0; c < 2; c++)
         for (int i = 0; i < 64; i++)
             for (int j = 0; j < 64; j++)

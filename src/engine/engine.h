@@ -20,7 +20,7 @@ class engine {
     typedef chess::core::board board;
     typedef chess::core::game game;
 
-    static constexpr int max_depth = 30;
+    int max_depth;
 
     std::vector<std::pair<move, move>> killers;
     int nodes = 0;
@@ -37,11 +37,11 @@ class engine {
     evaluator& eval;
 
 public:
-    engine(evaluator& e);
+    engine(evaluator& e, int max_depth = 30);
 
     move timed_search(game& g, const std::chrono::milliseconds& time);
 
-    move search_iterate(game& g);
+    std::pair<move, int> search_iterate(game& g);
 
     int search_widen(game& g, int depth, int val);
 

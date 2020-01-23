@@ -36,9 +36,9 @@ TEST(engine_test, engine_should_find_mate_in_one) {
     engine e(eval);
 
     auto g = game(b);
-    move m = e.search_iterate(g);
+    auto m = e.search_iterate(g);
 
-    ASSERT_EQ(m, get_move(SQ_D1, SQ_D8));
+    ASSERT_EQ(m.first, get_move(SQ_D1, SQ_D8));
 }
 
 TEST(engine_test, engine_should_find_mate_in_one_b) {
@@ -47,9 +47,9 @@ TEST(engine_test, engine_should_find_mate_in_one_b) {
     engine e(eval);
 
     auto g = game(b);
-    move m = e.search_iterate(g);
+    auto m = e.search_iterate(g);
 
-    ASSERT_EQ(m, get_move(SQ_D5, SQ_E6));
+    ASSERT_EQ(m.first, get_move(SQ_D5, SQ_E6));
 }
 
 TEST(engine_test, engine_should_find_mate_in_3ply) {
@@ -58,9 +58,9 @@ TEST(engine_test, engine_should_find_mate_in_3ply) {
     engine e(eval);
 
     auto g = game(b);
-    move m = e.search_iterate(g);
+    auto m = e.search_iterate(g);
 
-    ASSERT_EQ(m, get_move(SQ_F1, SQ_F7));
+    ASSERT_EQ(m.first, get_move(SQ_F1, SQ_F7));
 }
 
 TEST(engine_test, engine_should_find_mate_in_5ply) {
@@ -69,9 +69,9 @@ TEST(engine_test, engine_should_find_mate_in_5ply) {
     engine e(eval);
 
     auto g = game(b);
-    move m = e.search_iterate(g);
+    auto m = e.search_iterate(g);
 
-    ASSERT_EQ(m, get_move(SQ_B7, SQ_F7));
+    ASSERT_EQ(m.first, get_move(SQ_B7, SQ_F7));
 }
 
 TEST(engine_test, engine_should_find_mate_in_8ply) {
@@ -80,9 +80,9 @@ TEST(engine_test, engine_should_find_mate_in_8ply) {
     engine e(eval);
 
     auto g = game(b);
-    move m = e.search_iterate(g);
+    auto m = e.search_iterate(g);
 
-    ASSERT_EQ(m, get_move(SQ_D3, SQ_C5));
+    ASSERT_EQ(m.first, get_move(SQ_D3, SQ_C5));
 }
 
 TEST(engine_test, engine_should_find_mate_in_9ply) {
@@ -92,9 +92,9 @@ TEST(engine_test, engine_should_find_mate_in_9ply) {
     engine e(eval);
 
     auto g = game(b);
-    move m = e.search_iterate(g);
+    auto m = e.search_iterate(g);
 
-    ASSERT_EQ(m, get_move(SQ_A7, SQ_C6));
+    ASSERT_EQ(m.first, get_move(SQ_A7, SQ_C6));
 
 }
 
@@ -133,8 +133,8 @@ TEST(engine_test, engine_should_stick_to_mate1) {
     engine e(eval);
 
     auto g = game(b);
-    move m = e.search_iterate(g);
-    ASSERT_EQ(m, get_move(SQ_E4, SQ_E1));
+    auto m = e.search_iterate(g);
+    ASSERT_EQ(m.first, get_move(SQ_E4, SQ_E1));
 }
 
 //
@@ -154,8 +154,8 @@ TEST(engine_test, engine_should_stick_to_mate2) {
     engine e(eval);
 
     auto g = game(b);
-    move m = e.search_iterate(g);
-    ASSERT_TRUE(m == get_move(SQ_G4, SQ_E4) || get_move(SQ_G4, SQ_D4));
+    auto m = e.search_iterate(g);
+    ASSERT_TRUE(m.first == get_move(SQ_G4, SQ_E4) || m.first == get_move(SQ_G4, SQ_D4));
 }
 
 TEST(engine_test, engine_should_find_mate_in_7ply) {
@@ -175,8 +175,8 @@ TEST(engine_test, engine_should_find_mate_in_7ply) {
     game g(b);
     zero_eval eval;
     engine e(eval);
-    move m = e.search_iterate(g);
-    ASSERT_TRUE(m == get_move(SQ_C8, SQ_C5));
+    auto m = e.search_iterate(g);
+    ASSERT_TRUE(m.first == get_move(SQ_C8, SQ_C5));
 }
 
 TEST(engine_test, static_eval_should_be_simmetric) {
