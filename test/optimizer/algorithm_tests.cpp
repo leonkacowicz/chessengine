@@ -8,6 +8,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <particle_swarm_optimizer.h>
+#include <supervised_trainer.h>
 #include "../test_common.h"
 
 using namespace chess::optimizer;
@@ -106,7 +107,8 @@ TEST(algorithm_test, particle_swarm) {
                 double rr = unif(mt);
                 velocities[p][d] = 0.95 * velocities[p][d] +
                         0.2 * rp * (best_pos[p][d] - positions[p][d]) +
-                        0.2 * rg * (best_pos[best][d] - positions[p][d]) + (rr - .5) / 10;
+                        0.2 * rg * (best_pos[best][d] - positions[p][d]) +
+                        0.1 * (rr - .5);
             }
             positions[p] += velocities[p];
             auto val = eval_xor3(mlp(layers, positions[p]));
@@ -141,6 +143,40 @@ TEST(algorithm_test, particle_swarm2) {
             std::printf("%.4f, ", eval_xor3(mlp({3, 3, 1}, pso.particles_best_pos[p])));
         std::cout << std::endl;
     }
+}
+
+TEST(supervised_trainer, train_xor) {
+
+    supervised_trainer st({3, 3, 1});
+    st.training_set_outputs.push_back((Eigen::VectorXd(1) << -1.0).finished());
+    st.training_set_outputs.push_back((Eigen::VectorXd(1) << 1.0).finished());
+    st.training_set_outputs.push_back((Eigen::VectorXd(1) << 1.0).finished());
+    st.training_set_outputs.push_back((Eigen::VectorXd(1) << -1.0).finished());
+    st.training_set_outputs.push_back((Eigen::VectorXd(1) << 1.0).finished());
+    st.training_set_outputs.push_back((Eigen::VectorXd(1) << -1.0).finished());
+    st.training_set_outputs.push_back((Eigen::VectorXd(1) << -1.0).finished());
+    st.training_set_outputs.push_back((Eigen::VectorXd(1) << 1.0).finished());
+
+    st.training_set.push_back((Eigen::VectorXd(3) << 0, 0, 0).finished());
+    st.training_set.push_back((Eigen::VectorXd(3) << 0, 0, 1).finished());
+    st.training_set.push_back((Eigen::VectorXd(3) << 0, 1, 0).finished());
+    st.training_set.push_back((Eigen::VectorXd(3) << 0, 1, 1).finished());
+    st.training_set.push_back((Eigen::VectorXd(3) << 1, 0, 0).finished());
+    st.training_set.push_back((Eigen::VectorXd(3) << 1, 0, 1).finished());
+    st.training_set.push_back((Eigen::VectorXd(3) << 1, 1, 0).finished());
+    st.training_set.push_back((Eigen::VectorXd(3) << 1, 1, 1).finished());
+    /*
+    e += squared(-1.0 - nn(Eigen::Vector3d(0, 0, 0))[0]);
+    e += squared(1.0 - nn(Eigen::Vector3d(0, 0, 1))[0]);
+    e += squared(1.0 - nn(Eigen::Vector3d(0, 1, 0))[0]);
+    e += squared(-1.0 - nn(Eigen::Vector3d(0, 1, 1))[0]);
+    e += squared(1.0 - nn(Eigen::Vector3d(1, 0, 0))[0]);
+    e += squared(-1.0 - nn(Eigen::Vector3d(1, 0, 1))[0]);
+    e += squared(-1.0 - nn(Eigen::Vector3d(1, 1, 0))[0]);
+    e += squared(1.0 - nn(Eigen::Vector3d(1, 1, 1))[0]);
+     */
+
+    st.train();
 }
 
 Eigen::VectorXd crossover(const Eigen::VectorXd& v1, const Eigen::VectorXd& v2) {

@@ -21,13 +21,13 @@ public:
     using velocity = Eigen::VectorXd;
     using comparator = std::function<int(const particle&, const particle&)>;
 
-    int particle_count = 50;
-    int steps = 100;
+    int particle_count = 20;
+    int steps = 20;
     int vector_size;
     double inertia = 0.95;
-    double global_best_param = 0.2;
-    double local_best_param = 0.2;
-    double random_vec_param = 0.1;
+    double global_best_param = .1;
+    double local_best_param = .1;
+    double random_vec_param = 0.01;
     int current_best_particle = 0;
 
     std::vector<particle> particles_current_pos;
@@ -42,7 +42,7 @@ public:
         std::uniform_real_distribution unif(0., 1.);
 
         while (particles_current_pos.size() < particle_count)
-            particles_current_pos.push_back(Eigen::VectorXd::Random(vector_size));
+            particles_current_pos.push_back(Eigen::VectorXd::Random(vector_size) * random_vec_param);
 
         while (particles_best_pos.size() < particle_count)
             particles_best_pos.push_back(particles_current_pos[particles_best_pos.size()]);
