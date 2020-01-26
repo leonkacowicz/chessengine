@@ -3,7 +3,6 @@
 //
 
 #include <fstream>
-#include <cstring>
 #include "nn_eval.h"
 
 using namespace chess::core;
@@ -12,7 +11,7 @@ using namespace chess::core;
 #define DEBUG(x)
 #endif
 
-nn_eval::nn_eval(const chess::neural::mlp& net): net(net) {
+nn_eval::nn_eval(chess::neural::mlp  net): net(std::move(net)) {
 }
 
 int nn_eval::eval(const board& b) {
@@ -54,6 +53,6 @@ void nn_eval::fill_input_vector(const board& b) {
     input_vector[castling_rights_offset + 3] = b.can_castle_queen_side[BLACK];
 //    input_vector[turn_offset] = b.side_to_play;
 //    input_vector[in_check_offset] = b.under_check(b.side_to_play);
-    for (int i = 0; i < b.half_move_counter; i++)
-        input_vector[half_move_counter_offset + i] = 1;
+//    for (int i = 0; i < b.half_move_counter; i++)
+//        input_vector[half_move_counter_offset + i] = 1;
 }
