@@ -21,12 +21,12 @@ struct tt_node {
     chess::core::move bestmove;
 };
 
-template<uint64_t size>
 class transposition_table {
+    size_t size;
     std::vector<tt_node> nodes;
 
 public:
-    transposition_table() {
+    explicit transposition_table(size_t size) : size(size) {
         nodes.resize(size);
     }
 

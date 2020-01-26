@@ -28,7 +28,7 @@ class engine {
     int current_depth = -1;
     int cache_hit_count = 0;
     int history[2][64][64];
-    transposition_table<10'000'000> tt;
+    transposition_table tt{10'000'000};
     move bestmove;
     bool can_do_null_move = true;
     bool time_over = false;
