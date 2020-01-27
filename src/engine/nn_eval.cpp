@@ -25,34 +25,30 @@ int nn_eval::eval(const board& b) {
 }
 
 void nn_eval::fill_input_vector(const board& b) {
-
-    constexpr int WHITE_OFFSET = 0;
-    constexpr int BLACK_OFFSET = 6;
-    constexpr int BITS_PER_SQUARE = 12;
     input_vector = Eigen::VectorXd::Zero(INPUT_SIZE);
     int i = 0;
-    bitboard bb = 1;
-    for (square sq = SQ_A1; sq <= SQ_H8; ++sq, i += BITS_PER_SQUARE, bb <<= 1uL) {
-        if (!((b.piece_of_color[WHITE] | b.piece_of_color[BLACK]) & bb)) continue;
-        int offset = WHITE_OFFSET;
-        color c = (color)((b.piece_of_color[BLACK] & bb) != 0);
-        offset += c * (BLACK_OFFSET - WHITE_OFFSET);
-        input_vector[i + PAWN + offset] = (b.piece_of_type[PAWN] & bb) != 0;
-        input_vector[i + KNIGHT + offset] = (b.piece_of_type[KNIGHT] & bb) != 0;
-        input_vector[i + BISHOP + offset] = (b.piece_of_type[BISHOP] & bb) != 0;
-        input_vector[i + ROOK + offset] = (b.piece_of_type[ROOK] & bb) != 0;
-        input_vector[i + QUEEN + offset] = (b.piece_of_type[QUEEN] & bb) != 0;
-        input_vector[i + KING + offset] = b.king_pos[c] == sq;
-    }
-    if (b.en_passant != SQ_NONE)
-        input_vector[en_passant_offset + get_file(b.en_passant)] = 1;
 
-    input_vector[castling_rights_offset + 0] = b.can_castle_king_side[WHITE];
-    input_vector[castling_rights_offset + 1] = b.can_castle_king_side[BLACK];
-    input_vector[castling_rights_offset + 2] = b.can_castle_queen_side[WHITE];
-    input_vector[castling_rights_offset + 3] = b.can_castle_queen_side[BLACK];
-//    input_vector[turn_offset] = b.side_to_play;
-//    input_vector[in_check_offset] = b.under_check(b.side_to_play);
-//    for (int i = 0; i < b.half_move_counter; i++)
-//        input_vector[half_move_counter_offset + i] = 1;
+    for (color c: {color::WHITE, color::BLACK}) {
+        bitboard bb = b.piece_of_type[PAWN] & b.piece_of_color[c];
+        while (bb) {
+            square sq = pop_lsb(&bb);
+            input_vector[sq - SQ_A2 + IV_OFFSETS[c][piece::PAWN]] = 1;
+        }
+        for (piece p = piece::KNIGHT; p <= piece::QUEEN; p = piece(int(p) + 1)) {
+            bb = b.piece_of_type[p] & b.piece_of_color[c];
+            while (bb) {
+                square sq = pop_lsb(&bb);
+                input_vector[sq + IV_OFFSETS[c][p]] = 1;
+            }
+        }
+        input_vector[b.king_pos[c] + IV_OFFSETS[c][KING]] = 1;
+    }
+
+    if (b.en_passant != SQ_NONE)
+        input_vector[IV_EN_PASSANT_OFFSET + get_file(b.en_passant)] = 1;
+
+    input_vector[IF_CASTLING_RIGHTS_OFFSET + 0] = b.can_castle_king_side[WHITE];
+    input_vector[IF_CASTLING_RIGHTS_OFFSET + 1] = b.can_castle_king_side[BLACK];
+    input_vector[IF_CASTLING_RIGHTS_OFFSET + 2] = b.can_castle_queen_side[WHITE];
+    input_vector[IF_CASTLING_RIGHTS_OFFSET + 3] = b.can_castle_queen_side[BLACK];
 }
