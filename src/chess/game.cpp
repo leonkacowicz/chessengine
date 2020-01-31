@@ -3,12 +3,17 @@
 
 using namespace chess::core;
 
-game::game(const board& b) {
+game::game() {
     game_state s;
-    s.b = b;
-    s.hash = zobrist::hash(b);
+    s.b.set_initial_position();
+    s.hash = zobrist::hash(s.b);
     s.last_move = null_move;
     s.last_irreversible_index = 0;
+    states.push_back(s);
+}
+
+game::game(board b) {
+    game_state s{.b = b, .hash = zobrist::hash(b), .last_irreversible_index = 0, .last_move = null_move};
     states.push_back(s);
 }
 

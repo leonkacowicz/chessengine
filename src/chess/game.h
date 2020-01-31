@@ -20,7 +20,8 @@ namespace chess::core {
         std::string initial_pos;
         std::vector<game_state> states;
 
-        game(const board&);
+        game();
+        game(board);
 
         void do_move(move m);
 
