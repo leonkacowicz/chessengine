@@ -5,4 +5,4 @@ add_subdirectory(arbiter)
 add_subdirectory(engine_optimizer)
 add_subdirectory(neuralnet)
 add_subdirectory(engine_diluter)
-
+add_subdirectory(uci)
