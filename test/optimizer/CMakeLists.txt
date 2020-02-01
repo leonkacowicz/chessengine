@@ -1,6 +1,6 @@
 file(GLOB SRCS *.cpp)
 add_executable(optimizer_tests ${SRCS})
-target_link_libraries(optimizer_tests lib_neuralnet)
+target_link_libraries(optimizer_tests chess_neuralnet)
 target_link_libraries(optimizer_tests engine_optimizer)
 target_link_libraries(optimizer_tests libgtest)
 target_link_libraries(optimizer_tests libgmock)

@@ -6,7 +6,7 @@ target_include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(engine chess)
 target_link_libraries(engine Eigen3::Eigen)
 target_link_libraries(engine Threads::Threads)
-target_link_libraries(engine lib_neuralnet)
+target_link_libraries(engine chess_neuralnet)
 
 add_executable(chessengine main.cpp)
 target_link_libraries(chessengine engine)
