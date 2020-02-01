@@ -3,6 +3,7 @@
 //
 
 
+#include <iostream>
 #include <fstream>
 #include <Eigen/Core>
 #include "supervised_trainer.h"
@@ -11,14 +12,14 @@ int main() {
 
     std::ifstream ifs("out.txt");
     int k = 0;
-    chess::optimizer::supervised_trainer sto({880, 10, 1});
+    chess::optimizer::supervised_trainer sto({880, 1});
     while (ifs.good()) {
         std::string line;
         std::getline(ifs, line, '\n');
         if (line.empty()) break;
-        if (++k >= 500) break;
+        if (++k >= 10) break;
         std::stringstream ss(line);
-        assert(line.size() > 0);
+        assert(!line.empty());
         double y;
         ss >> y;
         std::vector<double> v;
@@ -34,5 +35,5 @@ int main() {
         sto.training_set.push_back(x);
         sto.training_set_outputs.push_back((Eigen::VectorXd(1) << y).finished());
     }
-    sto.train();
+    sto.train(100000);
 }

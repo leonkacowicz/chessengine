@@ -3,3 +3,6 @@ build
 cmake-build-*
 runtest
 out
+venv/
+*.txt
+*.csv

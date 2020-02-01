@@ -129,18 +129,22 @@ TEST(algorithm_test, particle_swarm) {
     }
 }
 
-TEST(algorithm_test, particle_swarm2) {
 
-    particle_swarm_optimizer pso;
+
+TEST(algorithm_test, particle_swarm2) {
+    particle_swarm_optimizer<double> pso;
     pso.vector_size = mlp::num_vector_dimensions({3, 3, 1});
-    auto comp = [](const particle_swarm_optimizer::particle& p1, const particle_swarm_optimizer::particle& p2) {
-        return eval_xor3(mlp({3, 3, 1}, p2)) < eval_xor3(mlp({3, 3, 1}, p1));
-    };
     pso.steps = 1;
-    for (int i = 0; i < 300; i++) {
-        pso.run(comp);
+    pso.inertia = .95;
+    pso.local_best_param = .2;
+    pso.global_best_param = .2;
+    pso.random_vec_param = 0.1;
+    std::atomic<int> cmps = 0;
+    for (int i = 0; i < 3000; i++) {
+        pso.run([] (const Eigen::VectorXd& x) { return eval_xor3(mlp({3, 3, 1}, x)); }, [&] (double x1, double x2) { ++cmps; return x2 < x1; });
+        std::cout << cmps;
         for (int p = 0; p < pso.particle_count; p++)
-            std::printf("%.4f, ", eval_xor3(mlp({3, 3, 1}, pso.particles_best_pos[p])));
+            std::printf(", %.4f", pso.particles_best_values[p]);
         std::cout << std::endl;
     }
 }
@@ -176,7 +180,7 @@ TEST(supervised_trainer, train_xor) {
     e += squared(1.0 - nn(Eigen::Vector3d(1, 1, 1))[0]);
      */
 
-    st.train();
+    st.train(300);
 }
 
 Eigen::VectorXd crossover(const Eigen::VectorXd& v1, const Eigen::VectorXd& v2) {

@@ -18,9 +18,9 @@ TEST(evaluator_test, test_single_matrix) {
 
     std::stringstream ss;
     ss << "1\n";
-    ss << "1 " << (INPUT_SIZE + 1) << std::endl;
+    ss << "1 " << (nn_eval::INPUT_SIZE + 1) << std::endl;
     ss << "0 5";
-    for (int i = 0; i < INPUT_SIZE - 1; i++) ss << " 0";
+    for (int i = 0; i < nn_eval::INPUT_SIZE - 1; i++) ss << " 0";
 
     nn_eval e(ss);
     int evaluation = e.eval(b);
@@ -35,8 +35,8 @@ TEST(evaluator_test, two_matrices) {
 
     std::stringstream ss;
     ss << "2\n";
-    ss << "5 " << (INPUT_SIZE + 1) << std::endl;
-    ss << Eigen::MatrixXd::Random(5, INPUT_SIZE + 1);
+    ss << "5 " << (nn_eval::INPUT_SIZE + 1) << std::endl;
+    ss << Eigen::MatrixXd::Random(5, nn_eval::INPUT_SIZE + 1);
     ss << "\n1 6\n";
     ss << Eigen::MatrixXd::Random(1, 6) * 0.1;
     std::cout << ss.str() << "\n\n=============\n";
@@ -53,8 +53,8 @@ TEST(evaluator_test, three_matrices) {
 
     std::stringstream ss;
     ss << "3\n";
-    ss << "20 " << INPUT_SIZE + 1 << std::endl;
-    ss << Eigen::MatrixXd::Random(20, INPUT_SIZE + 1);
+    ss << "20 " << nn_eval::INPUT_SIZE + 1 << std::endl;
+    ss << Eigen::MatrixXd::Random(20, nn_eval::INPUT_SIZE + 1);
     ss << "\n10 21\n";
     ss << Eigen::MatrixXd::Random(10, 21);
     ss << "\n1 11\n";
@@ -68,7 +68,7 @@ TEST(evaluator_test, three_matrices) {
 TEST(nn_eval_test, static_eval_should_be_simmetric) {
     auto b = fen::board_from_fen("kq6/p7/8/7N/8/8/PP6/4K2R w K--- - 0 1");
     std::random_device rd;
-    chess::neural::mlp net(rd, {INPUT_SIZE, 10, 1});
+    chess::neural::mlp net(rd, {nn_eval::INPUT_SIZE, 10, 1});
     nn_eval e(net);
     ASSERT_EQ(e.eval(b), -e.eval(b.flip_colors()));
 }
