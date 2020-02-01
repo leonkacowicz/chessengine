@@ -6,8 +6,8 @@
 #include <chess/core.h>
 #include <chess/move_gen.h>
 #include <chess/game.h>
+#include <chess/uci/uci.h>
 #include "engine.h"
-#include "uci.h"
 #include "static_evaluator.h"
 #include "nn_eval.h"
 
@@ -90,7 +90,8 @@ int main()
             }
             continue;
         } else if (words[0] == "go") {
-            uci_go_cmd cmd(words);
+            chess::uci::cmd_go cmd(words);
+            //uci_go_cmd cmd(words);
             if (move_gen(g.states.back().b).generate().empty()) {
                 std::cerr << "no legal move found to be searched" << std::endl;
                 std::cout << "bestmove (none)" << std::endl;
