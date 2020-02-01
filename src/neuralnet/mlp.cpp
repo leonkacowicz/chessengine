@@ -1,5 +1,5 @@
 #include <fstream>
-#include "mlp.h"
+#include <chess/neuralnet/mlp.h>
 
 using namespace chess::neural;
 

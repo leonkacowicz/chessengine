@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <mlp.h>
+#include <chess/neuralnet/mlp.h>
 
 TEST(neuralnet, neuralnet_happycase_test) {
     std::srand(0);

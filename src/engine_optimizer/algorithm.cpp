@@ -5,7 +5,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/process.hpp>
 
-#include <mlp.h>
+#include <chess/neuralnet/mlp.h>
 #include <iostream>
 #include "algorithm.h"
 #include "message_queue.h"

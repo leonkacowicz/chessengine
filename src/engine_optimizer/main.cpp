@@ -5,7 +5,7 @@
 #include <boost/process.hpp>
 #include <Eigen/Core>
 #include <Eigen/Dense>
-#include <mlp.h>
+#include <chess/neuralnet/mlp.h>
 #include "algorithm.h"
 
 using chess::neural::mlp;

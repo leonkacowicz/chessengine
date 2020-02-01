@@ -7,7 +7,7 @@
 
 #include <vector>
 #include <Eigen/Core>
-#include <mlp.h>
+#include <chess/neuralnet/mlp.h>
 #include "particle_swarm_optimizer.h"
 
 namespace chess::optimizer {

@@ -3,7 +3,7 @@
 //
 
 #include <cassert>
-#include "neat.h"
+#include <chess/neuralnet/neat.h>
 
 using namespace chess::neural::neat;
 

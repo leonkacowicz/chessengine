@@ -3,7 +3,7 @@
 //
 
 #include <gtest/gtest.h>
-#include <neat.h>
+#include <chess/neuralnet/neat.h>
 #include "../test_common.h"
 
 using namespace chess::neural::neat;

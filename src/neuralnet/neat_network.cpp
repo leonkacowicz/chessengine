@@ -3,9 +3,9 @@
 //
 
 #include <cmath>
-#include "neat_network.h"
+#include <chess/neuralnet/neat_network.h>
 
-using namespace chess::neural;
+using namespace chess::neural::neat;
 
 neat_network::neat_network(int num_inputs, int num_outputs, int num_hidden) :
         num_inputs(num_inputs), num_outputs(num_outputs), num_hidden(num_hidden),

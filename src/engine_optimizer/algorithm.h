@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <Eigen/Core>
 #include <random>
-#include <mlp.h>
+#include <chess/neuralnet/mlp.h>
 #include "message_queue.h"
 
 namespace chess::optimizer {

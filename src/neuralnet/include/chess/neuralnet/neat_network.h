@@ -7,7 +7,7 @@
 
 #include <vector>
 
-namespace chess::neural {
+namespace chess::neural::neat {
 
 
 class neat_network {

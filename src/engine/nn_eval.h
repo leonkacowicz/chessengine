@@ -11,7 +11,7 @@
 #include <chess/board.h>
 #include <Eigen/Dense>
 #include <Eigen/Core>
-#include <mlp.h>
+#include <chess/neuralnet/mlp.h>
 #include "evaluator.h"
 
 

@@ -4,7 +4,7 @@
 
 #include <gtest/gtest.h>
 #include <algorithm.h>
-#include <mlp.h>
+#include <chess/neuralnet/mlp.h>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <particle_swarm_optimizer.h>
