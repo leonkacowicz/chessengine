@@ -5,4 +5,5 @@ runtest
 out
 venv/
 *.txt
+!CMakeLists.txt
 *.csv
