@@ -11,9 +11,9 @@
 #include <chess/game.h>
 #include <chess/zobrist.h>
 
-#include "engine.h"
-#include "evaluator.h"
-#include "transposition_table.h"
+#include <chess/engine/engine.h>
+#include <chess/engine/evaluator.h>
+#include <chess/engine/transposition_table.h>
 
 using namespace chess::core;
 

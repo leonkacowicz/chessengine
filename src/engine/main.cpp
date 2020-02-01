@@ -7,9 +7,9 @@
 #include <chess/move_gen.h>
 #include <chess/game.h>
 #include <chess/uci/uci.h>
-#include "engine.h"
-#include "static_evaluator.h"
-#include "nn_eval.h"
+#include <chess/engine/engine.h>
+#include <chess/engine/static_evaluator.h>
+#include <chess/engine/nn_eval.h>
 
 using std::stringstream;
 using std::string;

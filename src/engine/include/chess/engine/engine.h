@@ -12,8 +12,8 @@
 #include <chrono>
 #include <chess/game.h>
 #include <chess/zobrist.h>
-#include "evaluator.h"
-#include "transposition_table.h"
+#include <chess/engine/evaluator.h>
+#include <chess/engine/transposition_table.h>
 
 class engine {
     typedef chess::core::move move;

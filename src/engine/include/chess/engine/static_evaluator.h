@@ -6,7 +6,7 @@
 #define CHESSENGINE_STATIC_EVALUATOR_H
 
 
-#include "evaluator.h"
+#include <chess/engine/evaluator.h>
 
 class static_evaluator : public evaluator {
 public:

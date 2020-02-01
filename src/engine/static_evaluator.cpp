@@ -2,7 +2,7 @@
 // Created by leon on 2019-11-02.
 //
 
-#include "static_evaluator.h"
+#include <chess/engine/static_evaluator.h>
 
 using namespace chess::core;
 

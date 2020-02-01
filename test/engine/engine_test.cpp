@@ -4,10 +4,10 @@
 
 #include <gtest/gtest.h>
 #include <chess/square.h>
-#include <engine.h>
+#include <chess/engine/engine.h>
 #include <chess/game.h>
 #include <chess/fen.h>
-#include <static_evaluator.h>
+#include <chess/engine/static_evaluator.h>
 #include <chrono>
 
 using namespace chess::core;

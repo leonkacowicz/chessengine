@@ -4,8 +4,8 @@
 
 #include <gtest/gtest.h>
 #include <chess/square.h>
-#include <engine.h>
-#include <nn_eval.h>
+#include <chess/engine/engine.h>
+#include <chess/engine/nn_eval.h>
 #include <chess/fen.h>
 
 using namespace chess::core;

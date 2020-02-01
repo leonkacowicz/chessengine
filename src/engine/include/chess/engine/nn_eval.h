@@ -12,7 +12,7 @@
 #include <Eigen/Dense>
 #include <Eigen/Core>
 #include <chess/neuralnet/mlp.h>
-#include "evaluator.h"
+#include <chess/engine/evaluator.h>
 
 
 class nn_eval : public evaluator {

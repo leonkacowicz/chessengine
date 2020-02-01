@@ -3,7 +3,7 @@
 //
 
 #include <fstream>
-#include "nn_eval.h"
+#include <chess/engine/nn_eval.h>
 
 using namespace chess::core;
 
