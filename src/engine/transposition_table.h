@@ -7,7 +7,7 @@
 
 #include <cstdint>
 #include <vector>
-#include <move.h>
+#include <chess/move.h>
 
 enum tt_node_type {
     EXACT, ALPHA, BETA

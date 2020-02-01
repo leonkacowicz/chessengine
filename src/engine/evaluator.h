@@ -5,7 +5,7 @@
 #ifndef CHESSENGINE_EVALUATOR_H
 #define CHESSENGINE_EVALUATOR_H
 
-#include <board.h>
+#include <chess/board.h>
 
 enum value : int {
     INF = 32001, MATE = 32000, DRAW = 0, CERTAIN_VICTORY = 10000

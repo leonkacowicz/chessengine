@@ -2,10 +2,10 @@
 #include <vector>
 #include <thread>
 #include <mutex>
-#include <board.h>
+#include <chess/board.h>
 #include <algorithm>
-#include <move_gen.h>
-#include <fen.h>
+#include <chess/move_gen.h>
+#include <chess/fen.h>
 #include "arbiter.h"
 #include "player.h"
 

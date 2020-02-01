@@ -1,6 +1,6 @@
 #include <string>
 #include <gtest/gtest.h>
-#include <core.h>
+#include <chess/core.h>
 #include <arbiter.h>
 #include <player.h>
 #include <mutex>

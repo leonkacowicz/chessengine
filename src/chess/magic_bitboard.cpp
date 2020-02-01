@@ -5,8 +5,8 @@
 #include <vector>
 #include <random>
 #include <functional>
-#include "magic_bitboard.h"
-#include "bitboard.h"
+#include <chess/magic_bitboard.h>
+#include <chess/bitboard.h>
 
 namespace chess {
     namespace core {

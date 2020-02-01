@@ -2,11 +2,11 @@
 #include <vector>
 #include <string>
 #include <algorithm>
-#include "core.h"
-#include "board.h"
-#include "move.h"
-#include "magic_bitboard.h"
-#include "move_gen.h"
+#include <chess/core.h>
+#include <chess/board.h>
+#include <chess/move.h>
+#include <chess/magic_bitboard.h>
+#include <chess/move_gen.h>
 
 using namespace chess::core;
 using std::string;

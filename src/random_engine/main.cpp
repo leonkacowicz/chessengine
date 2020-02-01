@@ -2,9 +2,9 @@
 #include <string>
 #include <algorithm>
 #include <random>
-#include <core.h>
-#include <move_gen.h>
-#include <game.h>
+#include <chess/core.h>
+#include <chess/move_gen.h>
+#include <chess/game.h>
 
 using std::stringstream;
 using std::string;

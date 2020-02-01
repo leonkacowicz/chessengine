@@ -6,7 +6,7 @@
 #define CHESSENGINE_FEN_H
 
 
-#include "board.h"
+#include <chess/board.h>
 
 namespace chess::core::fen {
     char fen_char(piece p, color c);

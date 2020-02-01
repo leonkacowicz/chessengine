@@ -5,12 +5,12 @@
 //
 
 #include <gtest/gtest.h>
-#include <move.h>
-#include <board.h>
-#include <fen.h>
-#include <move_gen.h>
+#include <chess/move.h>
+#include <chess/board.h>
+#include <chess/fen.h>
+#include <chess/move_gen.h>
 #include <random>
-#include <zobrist.h>
+#include <chess/zobrist.h>
 
 using namespace chess::core;
 

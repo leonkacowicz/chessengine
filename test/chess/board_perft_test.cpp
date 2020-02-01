@@ -4,10 +4,10 @@
 
 #include <vector>
 #include <algorithm>
-#include <board.h>
+#include <chess/board.h>
 #include <gtest/gtest.h>
-#include <move_gen.h>
-#include <fen.h>
+#include <chess/move_gen.h>
+#include <chess/fen.h>
 #include "../test_common.h"
 
 #define DEBUG(x)

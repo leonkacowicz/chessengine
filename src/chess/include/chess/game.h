@@ -4,7 +4,7 @@
 
 #include <string>
 #include <vector>
-#include <board.h>
+#include <chess/board.h>
 
 namespace chess::core {
 

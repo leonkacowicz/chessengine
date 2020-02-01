@@ -2,7 +2,7 @@
 // Created by leon on 22/06/18.
 //
 
-#include "bitboard.h"
+#include <chess/bitboard.h>
 
 namespace chess::core {
 bitboard piece_attacks_bb[6][64];

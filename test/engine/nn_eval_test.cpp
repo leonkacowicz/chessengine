@@ -3,10 +3,10 @@
 //
 
 #include <gtest/gtest.h>
-#include <square.h>
+#include <chess/square.h>
 #include <engine.h>
 #include <nn_eval.h>
-#include <fen.h>
+#include <chess/fen.h>
 
 using namespace chess::core;
 

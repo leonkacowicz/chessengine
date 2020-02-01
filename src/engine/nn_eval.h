@@ -8,7 +8,7 @@
 
 #include <string>
 #include <vector>
-#include <board.h>
+#include <chess/board.h>
 #include <Eigen/Dense>
 #include <Eigen/Core>
 #include <mlp.h>

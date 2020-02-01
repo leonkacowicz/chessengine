@@ -2,10 +2,10 @@
 // Created by leon on 2020-01-08.
 //
 
-#include "core.h"
-#include <bitboard.h>
-#include <magic_bitboard.h>
-#include <zobrist.h>
+#include <chess/core.h>
+#include <chess/bitboard.h>
+#include <chess/magic_bitboard.h>
+#include <chess/zobrist.h>
 
 void chess::core::init() {
     init_bitboards();

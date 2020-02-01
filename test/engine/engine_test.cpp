@@ -3,10 +3,10 @@
 //
 
 #include <gtest/gtest.h>
-#include <square.h>
+#include <chess/square.h>
 #include <engine.h>
-#include <game.h>
-#include <fen.h>
+#include <chess/game.h>
+#include <chess/fen.h>
 #include <static_evaluator.h>
 #include <chrono>
 

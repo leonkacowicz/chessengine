@@ -1,7 +1,7 @@
 #include <boost/program_options.hpp>
 #include <boost/process.hpp>
 #include <iostream>
-#include <core.h>
+#include <chess/core.h>
 #include "settings.h"
 #include "process.h"
 #include "player.h"

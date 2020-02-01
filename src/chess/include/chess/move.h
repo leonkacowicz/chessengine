@@ -4,7 +4,7 @@
 #include <cassert>
 #include <string>
 #include <sstream>
-#include "square.h"
+#include <chess/square.h>
 
 namespace chess::core {
 enum special_move : char {

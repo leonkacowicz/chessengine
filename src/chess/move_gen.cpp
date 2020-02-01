@@ -2,7 +2,7 @@
 // Created by leon on 2019-08-03.
 //
 
-#include "move_gen.h"
+#include <chess/move_gen.h>
 
 using namespace chess::core;
 

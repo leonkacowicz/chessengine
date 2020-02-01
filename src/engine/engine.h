@@ -6,12 +6,12 @@
 #define CHESSENGINE_ENGINE_H
 
 
-#include <move.h>
-#include <board.h>
+#include <chess/move.h>
+#include <chess/board.h>
 #include <unordered_map>
 #include <chrono>
-#include <game.h>
-#include <zobrist.h>
+#include <chess/game.h>
+#include <chess/zobrist.h>
 #include "evaluator.h"
 #include "transposition_table.h"
 

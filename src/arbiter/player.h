@@ -5,7 +5,7 @@
 #include <vector>
 #include <sstream>
 #include <iostream>
-#include <core.h>
+#include <chess/core.h>
 #include <chrono>
 #include <mutex>
 #include <thread>

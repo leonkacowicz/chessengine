@@ -5,7 +5,7 @@
 #ifndef CHESSENGINE_MAGIC_BITBOARD_H
 #define CHESSENGINE_MAGIC_BITBOARD_H
 
-#include "bitboard.h"
+#include <chess/bitboard.h>
 
 namespace chess {
     namespace core {

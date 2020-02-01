@@ -4,14 +4,15 @@
 
 #include <deque>
 #include <algorithm>
-#include <move_gen.h>
 #include <thread>
 #include <mutex>
-#include <game.h>
+
+#include <chess/move_gen.h>
+#include <chess/game.h>
+#include <chess/zobrist.h>
 
 #include "engine.h"
 #include "evaluator.h"
-#include "zobrist.h"
 #include "transposition_table.h"
 
 using namespace chess::core;

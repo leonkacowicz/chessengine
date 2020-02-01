@@ -1,5 +1,5 @@
-#include "game.h"
-#include "zobrist.h"
+#include <chess/game.h>
+#include <chess/zobrist.h>
 
 using namespace chess::core;
 

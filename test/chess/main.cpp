@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <core.h>
+#include <chess/core.h>
 
 int main(int argc, char **argv) {
     chess::core::init();

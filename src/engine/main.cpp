@@ -2,10 +2,10 @@
 #include <string>
 #include <memory>
 #include <algorithm>
-#include <core.h>
 #include <fstream>
-#include <move_gen.h>
-#include <game.h>
+#include <chess/core.h>
+#include <chess/move_gen.h>
+#include <chess/game.h>
 #include "engine.h"
 #include "uci.h"
 #include "static_evaluator.h"

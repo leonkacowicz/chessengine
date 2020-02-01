@@ -5,7 +5,7 @@
 #ifndef CHESSENGINE_ZOBRIST_H
 #define CHESSENGINE_ZOBRIST_H
 
-#include <board.h>
+#include <chess/board.h>
 
 namespace chess::core::zobrist {
     extern uint64_t table[64][6][2];

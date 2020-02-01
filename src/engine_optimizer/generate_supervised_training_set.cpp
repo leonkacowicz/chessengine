@@ -4,10 +4,10 @@
 
 #include <fstream>
 #include <random>
-#include <core.h>
-#include <board.h>
-#include <game.h>
-#include <move_gen.h>
+#include <chess/core.h>
+#include <chess/board.h>
+#include <chess/game.h>
+#include <chess/move_gen.h>
 #include <engine.h>
 #include <static_evaluator.h>
 #include <nn_eval.h>

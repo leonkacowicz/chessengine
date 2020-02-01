@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include <square.h>
-#include <bitboard.h>
+#include <chess/square.h>
+#include <chess/bitboard.h>
 #include <random>
 
 using namespace chess::core;

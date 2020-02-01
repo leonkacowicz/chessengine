@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <square.h>
+#include <chess/square.h>
 
 using namespace chess::core;
 

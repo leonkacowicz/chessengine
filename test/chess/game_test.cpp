@@ -5,11 +5,11 @@
 #include <gtest/gtest.h>
 #include <vector>
 #include <algorithm>
-#include <board.h>
-#include <square.h>
-#include <fen.h>
-#include <move_gen.h>
-#include <game.h>
+#include <chess/board.h>
+#include <chess/square.h>
+#include <chess/fen.h>
+#include <chess/move_gen.h>
+#include <chess/game.h>
 #include "../test_common.h"
 
 

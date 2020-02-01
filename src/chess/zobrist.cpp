@@ -2,7 +2,7 @@
 // Created by leon on 2019-07-30.
 //
 
-#include "zobrist.h"
+#include <chess/zobrist.h>
 #include <random>
 
 using namespace chess::core;

@@ -6,7 +6,7 @@
 #include <vector>
 #include <thread>
 
-#include <board.h>
+#include <chess/board.h>
 #include "settings.h"
 #include "process.h"
 
