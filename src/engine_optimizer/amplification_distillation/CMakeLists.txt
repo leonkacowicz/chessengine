@@ -1,0 +1,5 @@
+file(GLOB SRCS *.cpp)
+add_executable(ampdist ${SRCS})
+target_link_libraries(ampdist chess_neuralnet)
+target_link_libraries(ampdist engine)
+target_link_libraries(ampdist chess)

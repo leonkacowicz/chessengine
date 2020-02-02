@@ -41,8 +41,8 @@ int main(int argc, char** argv) {
     for (int i = 0; i < nn_eval::INPUT_SIZE; i++) ofs << " attr" << i;
     ofs << std::endl;
 
-    for (int num_moves = 1; num_moves < 300; num_moves++) {
-        for (int k = 0; k < 250; k++) {
+    for (int num_moves = 1; num_moves < 400; num_moves++) {
+        for (int k = 0; k < 150; k++) {
             game g;
 
             bool terminal = false;
@@ -114,6 +114,8 @@ int main(int argc, char** argv) {
             double y = double(std::min(std::max(value, -2000), 2000));
             y = y / 2000.0;
             ofs << y << " " << nne.input_vector.transpose() << std::endl;
+            nne.fill_input_vector(b.side_to_play == WHITE ? b.flip_colors() : b);
+            ofs << (-y) << " " << nne.input_vector.transpose() << std::endl;
         }
     }
 }
