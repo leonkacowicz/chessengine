@@ -103,7 +103,7 @@ mlp::mlp(std::random_device& rd, const std::vector<int>& layers) {
     for (int i = 1; i < num_layers; i++) {
         int rows = layers[i], cols = layers[i - 1] + 1;
         Eigen::MatrixXd M = Eigen::MatrixXd::Zero(rows, cols);
-        for (int row = 0; row < rows; row++) for (int col = 0; col < cols; col++) M(row, col) = .1 * dis(mt) / dis(mt);
+        for (int row = 0; row < rows; row++) for (int col = 0; col < cols; col++) M(row, col) = .01 * dis(mt);
         matrices.push_back(M);
     }
 }
