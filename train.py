@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-df = pd.read_csv('work/train.csv')
+df = pd.read_csv('train.csv')
 X = df.iloc[:, 1:].to_numpy()
 y = df.iloc[:, 0].to_numpy()
 # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.10, random_state=1)
@@ -12,7 +12,7 @@ km.add(tf.keras.layers.Dense(100, input_shape=(748,), activation='tanh'))
 km.add(tf.keras.layers.Dense(1, activation='tanh'))
 km.compile(optimizer='rmsprop', loss='mse')
 
-with open('work/weights.txt') as weights_file:
+with open('weights.txt') as weights_file:
     layers = int(weights_file.readline())
     for layer in range(layers):
         rows, cols = [int(x) for x in weights_file.readline().split()]
@@ -24,7 +24,7 @@ with open('work/weights.txt') as weights_file:
 
 m = km.fit(X, y, epochs=150)
 
-with open('work/weights.new.txt', 'w') as weights_file:
+with open('weights.new.txt', 'w') as weights_file:
     layers = len(km.layers)
     weights_file.write("%d\n" % layers)
     for layer in range(layers):

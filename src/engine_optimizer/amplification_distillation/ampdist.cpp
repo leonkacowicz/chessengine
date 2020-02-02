@@ -46,7 +46,8 @@ void simulate_game(const chess::neural::mlp& net, int num_random_moves) {
     std::mt19937 mt((std::random_device())());
     std::uniform_int_distribution unif;
     nn_eval eval(net);
-    engine eng(eval, 4);
+    engine engs[] = {engine(eval, 8), engine(eval, 8)};
+
     game g;
     std::vector<move> legal(0);
     legal = move_gen(g.states.back().b).generate();
@@ -58,10 +59,11 @@ void simulate_game(const chess::neural::mlp& net, int num_random_moves) {
     }
 
     while (!legal.empty() && !g.is_draw()) {
-        std::cout << (g.states.back().b.side_to_play ? "\n\nblack turn\n": "\n\nwhite turn\n");
-        g.states.back().b.print();
-        std::pair<move, int> pair = eng.search_iterate(g);
-        add_training_sample(g.states.back().b, pair.second, eval);
+        board b = g.states.back().b;
+        std::cout << (b.side_to_play ? "\n\nblack turn\n": "\n\nwhite turn\n");
+        b.print();
+        std::pair<move, int> pair = engs[b.side_to_play].search_iterate(g);
+        add_training_sample(b, pair.second, eval);
         g.do_move(pair.first);
         legal = move_gen(g.states.back().b).generate();
     }
@@ -71,7 +73,7 @@ void simulate_games(int num_games) {
     std::ifstream ifs("weights.txt");
     chess::neural::mlp net(ifs);
     for (int i = 0; i < num_games; i++) {
-        simulate_game(net, 2);
+        simulate_game(net, 8);
     }
 }
 
@@ -91,7 +93,7 @@ int main() {
     Eigen::setNbThreads(8);
     initialize_weights();
     initialize_training_set_file();
-    simulate_games(10);
+    simulate_games(20);
     run_supervised_trainer();
 
 
