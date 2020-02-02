@@ -11,7 +11,7 @@ using namespace chess::core;
 #define DEBUG(x)
 #endif
 
-nn_eval::nn_eval(chess::neural::mlp  net): net(std::move(net)) {
+nn_eval::nn_eval(chess::neural::mlp net): net(std::move(net)) {
 }
 
 int nn_eval::eval(const board& b) {
