@@ -4,6 +4,8 @@
 
 #include <fstream>
 #include <random>
+#include <Eigen/Core>
+#include <Eigen/Dense>
 #include <chess/game.h>
 #include <chess/move_gen.h>
 #include <chess/neuralnet/mlp.h>
@@ -89,8 +91,6 @@ int main() {
 // 5. go to step 2
 
     chess::core::init();
-    Eigen::initParallel();
-    Eigen::setNbThreads(8);
     initialize_weights();
     initialize_training_set_file();
     simulate_games(20);
