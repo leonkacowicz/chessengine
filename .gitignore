@@ -6,4 +6,5 @@ out
 venv/
 *.txt
 !CMakeLists.txt
+!doc/*
 *.csv
