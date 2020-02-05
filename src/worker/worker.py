@@ -1,3 +1,4 @@
+import sys
 import os
 import tempfile
 import boto3
@@ -5,9 +6,6 @@ import json
 import logging
 import subprocess
 from boto3_type_annotations import sqs, s3
-
-REQUEST_QUEUE_URL = "https://sqs.us-west-2.amazonaws.com/284217563291/games.fifo"
-RESPONSE_QUEUE_URL = "https://sqs.us-west-2.amazonaws.com/284217563291/game_results"
 
 
 class EngineConfiguration:
@@ -74,12 +72,12 @@ def normal_path(p: str):
 def get_request_from_queue(sqs_client: sqs.Client) -> GameRequest:
     while True:
         logging.info("Waiting for messages")
-        response = sqs_client.receive_message(QueueUrl=REQUEST_QUEUE_URL, VisibilityTimeout=30, WaitTimeSeconds=20,
+        response = sqs_client.receive_message(QueueUrl=os.getenv('REQUEST_QUEUE_URL'), VisibilityTimeout=30, WaitTimeSeconds=20,
                                               MaxNumberOfMessages=1)
         logging.debug('Got response: ' + str(response))
         if 'Messages' in response and len(response['Messages']) > 0:
             message = response['Messages'][0]
-            sqs_client.delete_message(QueueUrl=REQUEST_QUEUE_URL, ReceiptHandle=message['ReceiptHandle'])
+            sqs_client.delete_message(QueueUrl=os.getenv('REQUEST_QUEUE_URL'), ReceiptHandle=message['ReceiptHandle'])
             try:
                 body = json.loads(message['Body'])
                 if 'game_id' not in body:
@@ -180,6 +178,9 @@ def main():
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format='%(asctime)-15s %(message)s')
+    if not os.getenv('REQUEST_QUEUE_URL'):
+        logging.fatal('REQUEST_QUEUE_URL env variable not set')
+        sys.exit(1)
     logger = logging.getLogger("main")
     logger.setLevel(logging.INFO)
     logger.info("Starting worker")

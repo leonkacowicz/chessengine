@@ -1,7 +1,9 @@
 import random
 import boto3
 import json
-from boto3_type_annotations import sqs
+import sys
+if sys.version_info.major >= 3 and sys.version_info.minor >= 6:
+    from boto3_type_annotations import sqs
 
 BUCKET = "leonkacowicz"
 QUEUE_URL = "https://sqs.us-west-2.amazonaws.com/284217563291/games.fifo"
@@ -30,5 +32,5 @@ message = {
     "initial_pos": "startpos moves e2e4"
 }
 
-client: sqs.Client = boto3.client('sqs')
+client = boto3.Session(profile_name='leon2', region_name='us-west-2').client('sqs')
 client.send_message(QueueUrl=QUEUE_URL, MessageBody=json.dumps(message), MessageGroupId='1', MessageDeduplicationId="%.12f" % random.random())
