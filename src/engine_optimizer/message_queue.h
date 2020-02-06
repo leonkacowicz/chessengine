@@ -9,15 +9,27 @@
 #include <chrono>
 #include <utility>
 
+struct request_engine_config {
+    std::string exec;
+    std::string options_file;
+    std::string weights_file;
+    int movetime = 0;
+    int depth = 0;
+    int initial_time = 0;
+    int time_increment = 0;
+};
+
 struct request_message {
     std::string bucket;
-    std::string white;
-    std::string black;
+    std::string queue;
+    request_engine_config white;
+    request_engine_config black;
     std::string outputdir;
-    int generation;
-    int id;
-    int array_index;
-    int movetime;
+    std::string game_id;
+    std::string initial_pos;
+    int generation = 0;
+    int id = 0;
+    int array_index = 0;
 };
 
 struct response_message {

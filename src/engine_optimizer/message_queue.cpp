@@ -9,25 +9,44 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <iostream>
 
+std::string to_json(const request_engine_config& rec) {
+    std::stringstream ss;
+    ss << "{"
+       << R"("exec": ")" << rec.exec << "\""
+       << R"(, "options_file": ")" << rec.options_file << "\""
+       << R"(, "weights_file": ")" << rec.weights_file << "\""
+       << R"(, "movetime": )" << rec.movetime
+       << R"(, "depth": )" << rec.depth
+       << R"(, "initial_time": )" << rec.initial_time
+       << R"(, "time_increment": )" << rec.time_increment
+       << "}";
+    return ss.str();
+}
 
-void message_queue::send_message(const request_message& rm) {
-    using namespace boost::process;
-    std::stringstream msg;
-    msg << "{"
+std::string to_json(const request_message& rm) {
+    std::stringstream ss;
+    ss << "{"
         << R"("id": )" << rm.id
         << R"(, "generation": )" << rm.generation
         << R"(, "array_index": )" << rm.array_index
         << R"(, "bucket": ")" << rm.bucket << "\""
+        << R"(, "queue": ")" << rm.queue << "\""
         << R"(, "outputdir": ")" << rm.outputdir << "\""
-        << R"(, "white": ")" << rm.white << "\""
-        << R"(, "black": ")" << rm.black << "\""
-        << R"(, "movetime": ")" << rm.movetime << "\""
+        << R"(, "game_id": ")" << rm.game_id << "\""
+        << R"(, "initial_pos": ")" << rm.initial_pos << "\""
+        << R"(, "white": )" << to_json(rm.white)
+        << R"(, "black": )" << to_json(rm.black)
         << "}";
+    return ss.str();
+}
+
+void message_queue::send_message(const request_message& rm) {
+    using namespace boost::process;
     ipstream ips;
     system(search_path("aws"), "sqs", "send-message",
             "--region", "us-west-2",
             "--queue-url", queue_send,
-            "--message-body", msg.str(),
+            "--message-body", to_json(rm),
             "--message-group-id", "1",
             std_out > ips);
 }

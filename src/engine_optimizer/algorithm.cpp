@@ -177,28 +177,36 @@ algorithm::game_result algorithm::get_next_game_result() {
 }
 
 void algorithm::enqueue_game(int generation, int index, bool parent_as_white) {
-    if (parent_as_white)
-        mq.send_message({
-                .bucket = "leonkacowicz",
-                .white = players[generations[generation][index].id].hash,
-                .black = players[generations[generation][index].child_id].hash,
-                .outputdir = "chess/2019-12-08-0002/generations/",
-                .generation = generation,
-                .id = generations[generation][index].id,
-                .array_index = index,
-                .movetime = 50
-        });
-    else
-        mq.send_message({
-                .bucket = "leonkacowicz",
-                .white = players[generations[generation][index].child_id].hash,
-                .black = players[generations[generation][index].id].hash,
-                .outputdir = "chess/2019-12-08-0002/generations/",
-                .generation = generation,
-                .id = generations[generation][index].id,
-                .array_index = index,
-                .movetime = 50
-        });
+    auto parent_hash = players[generations[generation][index].id].hash;
+    auto child_hash = players[generations[generation][index].child_id].hash;
+
+    request_engine_config parent;
+    parent.movetime = 50;
+    parent.exec = "./chessengine";
+    parent.weights_file = parent_hash + ".txt";
+
+    request_engine_config child;
+    child.movetime = 50;
+    child.exec = "./chessengine";
+    child.weights_file = child_hash + ".txt";
+
+    request_message msg;
+    msg.bucket = "leonkacowicz";
+    msg.outputdir = "chess/2019-12-08-0002/generations/";
+    msg.array_index = index;
+    msg.generation = generation;
+    msg.id = generations[generation][index].id;
+
+    if (parent_as_white) {
+        msg.white = parent;
+        msg.black = child;
+        msg.game_id = parent_hash + "_" + child_hash;
+    } else {
+        msg.white = child;
+        msg.black = parent;
+        msg.game_id = child_hash + "_" + parent_hash;
+    }
+    mq.send_message(msg);
 }
 
 void algorithm::serialize_state(std::ostream& os) {
