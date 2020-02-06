@@ -9,6 +9,9 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <particle_swarm_optimizer.h>
 #include <supervised_trainer.h>
+#include <rapidjson/document.h>
+#include <rapidjson/ostreamwrapper.h>
+#include <rapidjson/prettywriter.h>
 #include "../test_common.h"
 
 using namespace chess::optimizer;
@@ -44,6 +47,25 @@ TEST(ptree_test, ptree_test1) {
     }
 
     std::cout << json.size();
+}
+
+TEST(rapidjson, happy_caseP_parse) {
+    rapidjson::Document doc;
+    doc.Parse(R"({
+    "Messages": [
+        {
+            "MessageId": "13fa6165-a669-4d91-8a4d-f69c63a98b4b",
+            "ReceiptHandle": "AQEBquqQzliyjPRkdAxi/bIvxqKUjrsTcPbxuJDWDGyPxHmLs4hmP+mhxuPaqJ7lZyY2A3Htv5f+nZ2Y1PWZRdAZTHgeiZ0yFhRa1bCID1s/Fa7MHcMgrKp3/vVo+No+kd7P9eFoZSh1nx8S/B6+3i2k74fdAm0cRCn8daW3FJNrPDdd4xd3aXKquIDdIKtVJRJ5tXk6/atXEYfkmddtXgUWKdIKxNJhlQYwZEWp4PcZOtzvz2fJbv0XffcIj/SBhT2NpCTml2oIt+6BiM7g3SIPufCT+de3hMJLnzt7Bb+TNYKBze9Jh8Six5RploBi3I2/D/qYtjk8tAEVCTqYWy8tdo6dxsTwvClgpEl+RqPeIPyM7lkcrVziim0qcSuiTm9amNj/QrUpCL1zov/sADM3tg==",
+            "MD5OfBody": "096b20222eda1e0fa35c9ef6a157795e",
+            "Body": "{\n  \"bucket\": \"leonkacowicz\",\n  \"outputdir\": \"chess/generations/\",\n  \"white\": \"3f0c559dfa7954d375835967edb155587c0091dcb62c2b5de44b194a25934268\",\n  \"black\": \"bccc97094406a7dd19fa5f785301f1fd34bf2b7d9aafd2a91942981e74bc7d48\",\n  \"movetime\": \"100\",\n  \"result\": \"1-0\"\n}"
+        }
+    ]
+}
+)");
+    assert(doc["Messages"][0]["MessageId"] == "13fa6165-a669-4d91-8a4d-f69c63a98b4b");
+    rapidjson::OStreamWrapper wrapper(std::cout);
+    rapidjson::PrettyWriter<rapidjson::OStreamWrapper> writer(wrapper);
+    doc.Accept(writer);
 }
 
 double eval_xor(const mlp& nn) {

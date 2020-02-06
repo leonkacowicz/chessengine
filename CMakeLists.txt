@@ -20,6 +20,7 @@ endif()
 
 include(dependencies/boost.cmake)
 include(dependencies/eigen.cmake)
+include(dependencies/rapidjson.cmake)
 
 enable_testing()
 add_subdirectory(src)

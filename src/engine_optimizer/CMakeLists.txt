@@ -12,6 +12,7 @@ target_include_directories(engine_optimizer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(engine_optimizer chess)
 target_link_libraries(engine_optimizer chess_neuralnet)
 target_link_libraries(engine_optimizer boost_filesystem)
+target_link_libraries(engine_optimizer rapidjson)
 
 add_executable(chessengine_optimizer ${MAINCPP})
 target_link_libraries(chessengine_optimizer engine_optimizer)
