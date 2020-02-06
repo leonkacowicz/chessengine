@@ -4,6 +4,7 @@
 
 #include <chess/uci/uci.h>
 #include <cassert>
+#include <sstream>
 
 using namespace chess::uci;
 using namespace std::chrono_literals;
@@ -87,4 +88,27 @@ std::ostream& operator<<(std::ostream& os, const cmd_position& cmd) {
     }
     os << std::endl;
     return os;
+}
+
+cmd_position chess::uci::parse_cmd_position(const std::vector<std::string>& tokens) {
+    cmd_position command;
+    command.is_valid = false;
+    if (tokens.size() <= 1 || tokens[0] != "position") return command;
+    int moves_pos = 0;
+    if (tokens[1] == "startpos") {
+        command.initial_position = "startpos";
+        moves_pos = 2;
+    } else {
+        std::stringstream ss;
+        int fen_start = 1;
+        if (tokens[1] == "fen") fen_start = 2;
+        ss << tokens[fen_start];
+        for (int i = fen_start + 1; i < tokens.size(); moves_pos = ++i)
+            if (tokens[i] == "moves") break;
+            else ss << " " << tokens[i];
+        command.initial_position = ss.str();
+    }
+    for (int i = moves_pos + 1; i < tokens.size(); i++) command.moves.push_back(tokens[i]);
+    command.is_valid = true;
+    return command;
 }

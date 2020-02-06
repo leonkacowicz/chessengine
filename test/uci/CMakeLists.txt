@@ -1,0 +1,6 @@
+file(GLOB SRCS *.cpp)
+add_executable(test_chess_uci ${SRCS})
+target_link_libraries(test_chess_uci chess_uci)
+target_link_libraries(test_chess_uci libgtest)
+target_link_libraries(test_chess_uci libgmock)
+add_test(NAME chess_uci_tests COMMAND test_chess_uci)

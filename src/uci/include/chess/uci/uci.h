@@ -39,8 +39,11 @@ struct cmd_basic {
 struct cmd_position {
     std::string initial_position;
     std::vector<std::string> moves;
+    bool is_valid = false;
     friend std::ostream& operator<<(std::ostream& os, const cmd_position& cmd);
 };
+
+cmd_position parse_cmd_position(const std::vector<std::string>& tokens);
 
 
 }
