@@ -9,5 +9,5 @@ add_executable(parselog ${SRCS})
 target_link_libraries(parselog chess_neuralnet)
 target_link_libraries(parselog engine)
 target_link_libraries(parselog chess)
-target_link_libraries(parselog boost_program_options)
+target_link_libraries(parselog chess_uci)
 
