@@ -11,3 +11,6 @@ target_link_libraries(parselog engine)
 target_link_libraries(parselog chess)
 target_link_libraries(parselog chess_uci)
 
+file(GLOB SRCS gen_games.cpp)
+add_executable(gengames ${SRCS})
+target_link_libraries(gengames chess)
