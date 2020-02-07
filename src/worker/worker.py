@@ -89,13 +89,14 @@ def get_request_from_queue(sqs_client: sqs.Client) -> GameRequest:
 
 def prepare_player(s3_client: s3.Client, game_request: GameRequest, player: EngineConfiguration):
     if player.weights_file:
-        local_weights_file = "./players/" + player.weights_file
+        local_weights_file = "./players/" + player.color + ".txt"
         if not os.path.exists(local_weights_file):
-            os.mkdir("./players")
-            s3_client.download_file(game_request.bucket, 'chess/players/' + player.weights_file, local_weights_file)
+            if not os.path.exists("./players"):
+                os.mkdir("./players")
+            s3_client.download_file(game_request.bucket, player.weights_file, local_weights_file)
         player.options_file = tempfile.mktemp()
         with open(player.options_file, 'w') as temp:
-            temp.write("setoption name evaluator value ./players/" + player.weights_file)
+            temp.write("setoption name evaluator value " + local_weights_file)
 
 
 def run_game(game_request: GameRequest) -> GameResult:
@@ -156,6 +157,8 @@ def clean_up(game_result: GameResult):
     os.remove(game_result.log_file)
     os.remove(game_result.request.white_player.options_file)
     os.remove(game_result.request.black_player.options_file)
+    os.remove("./players/white.txt")
+    os.remove("./players/black.txt")
     pass
 
 

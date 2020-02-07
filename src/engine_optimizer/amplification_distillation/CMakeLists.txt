@@ -14,3 +14,8 @@ target_link_libraries(parselog chess_uci)
 file(GLOB SRCS gen_games.cpp)
 add_executable(gengames ${SRCS})
 target_link_libraries(gengames chess)
+
+if ("${CMAKE_BUILD_TYPE}" MATCHES "Release")
+    add_custom_command(TARGET gengames POST_BUILD COMMAND aws s3 cp ${CMAKE_CURRENT_BINARY_DIR}/gengames s3://leonkacowicz/chess/worker/ || echo "Skipped")
+    add_custom_command(TARGET parselog POST_BUILD COMMAND aws s3 cp ${CMAKE_CURRENT_BINARY_DIR}/parselog s3://leonkacowicz/chess/worker/ || echo "Skipped")
+endif()
