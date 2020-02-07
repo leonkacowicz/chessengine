@@ -126,7 +126,7 @@ void arbiter::start_game() {
         if (current_time > 0ms) wait_time = std::min(wait_time, current_time);
 
         std::cout << "Wait for player move for " << wait_time.count() << "ms\n";
-        if (current_player.has_played.try_lock_for(wait_time + 10ms)) {
+        if (current_player.has_played.try_lock_for(wait_time + 50ms)) {
             // all good
         } else {
             player_won[opposite(b.side_to_play)] = true;

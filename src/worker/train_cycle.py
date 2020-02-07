@@ -58,6 +58,7 @@ def get_next_game_result():
         if 'Messages' in response and len(response['Messages']) > 0:
             message = response['Messages'][0]
             sqs_client.delete_message(QueueUrl=RESULTS_QUEUE_URL, ReceiptHandle=message['ReceiptHandle'])
+            logging.info("Received message: " + message['Body'])
             try:
                 body = json.loads(message['Body'])
                 return body['log_file']
@@ -93,8 +94,10 @@ def main():
 
         # send game requests
         for g in range(num_games):
-            send_game_request(weights_file, initial_positions[g], "chess/ampdist/%03d" % (g,), "%d_%d" % (k, g))
+            send_game_request(weights_file, initial_positions[g], "chess/ampdist/%03d" % (k,), "%d_%d" % (k, g))
 
+        if os.path.exists("train.csv"):
+            os.remove("train.csv")
         for g in range(num_games):
             remote_log_file = get_next_game_result()
             local_log_file = download_game_log(remote_log_file)
@@ -104,7 +107,6 @@ def main():
         # train model starting on weights.txt to fit created training set
         os.system("python3 train.py")
         os.system("cp weights.new.txt weights.txt")
-        os.remove("train.csv")
     pass
 
 
