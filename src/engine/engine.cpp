@@ -381,25 +381,27 @@ int engine::qsearch(game& g, int ply, int alpha, int beta) {
 }
 
 void engine::log_score(const board& b, int val) {
+    if (time_over) return;
     int mate = MATE - std::abs(val);
-    std::cout << "info depth " << current_depth;
+    std::stringstream ss;
+    ss << "info depth " << current_depth;
     if (mate < 30) {
         if (val < 0)
-            std::cout << " score mate -" << mate;
+            ss << " score mate -" << mate;
         else
-            std::cout << " score mate " << mate;
+            ss << " score mate " << mate;
 
     } else {
-        std::cout << " score cp " << val;
+        ss << " score cp " << val;
     }
 
     long time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now() - initial_search_time).count();
-    std::cout << " nodes " << nodes;
-    std::cout << " qnodes " << qnodes;
-    std::cout << " nps " << int(double(nodes) * 1'000'000'000 / double(time));
-    std::cout << " time " << (time / 1'000'000);
-    std::cout << " tthit " << cache_hit_count;
-    std::cout << " pv " << to_long_move(bestmove);
+    ss << " nodes " << nodes;
+    ss << " qnodes " << qnodes;
+    ss << " nps " << int(double(nodes) * 1'000'000'000 / double(time));
+    ss << " time " << (time / 1'000'000);
+    ss << " tthit " << cache_hit_count;
+    ss << " pv " << to_long_move(bestmove);
     tt_node node{};
     board b2 = b;
     b2.make_move(bestmove);
@@ -407,14 +409,14 @@ void engine::log_score(const board& b, int val) {
     for (int i = 1; i < current_depth; i++) {
         auto hash = zobrist::hash(b2);
         if (tt.load(hash, 0, &node) && node.bestmove != null_move) {
-            std::cout << " " << to_long_move(node.bestmove);
+            ss << " " << to_long_move(node.bestmove);
             b2.make_move(node.bestmove);
         } else {
             break;
         }
     }
-
-    std::cout << std::endl;
+    ss << std::endl;
+    if (!time_over) std::cout << ss.str();
 }
 
 move engine::timed_search(game& g, const std::chrono::milliseconds& time) {
