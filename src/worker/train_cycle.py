@@ -21,7 +21,10 @@ def generate_games(num_games: int, num_moves: int) -> List[str]:
 
 def upload_weights_file(filename: str, remote_filename: str):
     s3 = boto3.client('s3')
-    s3.upload_file(filename, 'leonkacowicz', 'chess/players/ampdist/' + remote_filename)
+    key = 'chess/players/ampdist/' + remote_filename
+    s3.upload_file(filename, BUCKET, key)
+    waiter = s3.get_waiter('object_exists')
+    waiter.wait(Bucket=BUCKET, Key=key)
     pass
 
 

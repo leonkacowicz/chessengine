@@ -132,14 +132,19 @@ def run_game(game_request: GameRequest) -> GameResult:
 def upload_game_result(s3_client: s3.Client, game_result: GameResult):
     os.system("gzip -f " + game_result.log_file)
     game_result.log_file += ".gz"
+    log_key = normal_path(game_result.request.outputdir + "/" + game_result.log_file.split('/')[-1])
     s3_client.upload_file(
         game_result.log_file,
         Bucket=game_result.request.bucket,
-        Key=normal_path(game_result.request.outputdir + "/" + game_result.log_file.split('/')[-1]))
+        Key=log_key)
+    pgn_key = normal_path(game_result.request.outputdir + "/" + game_result.pgn_file.split('/')[-1])
     s3_client.upload_file(
         game_result.pgn_file,
         Bucket=game_result.request.bucket,
-        Key=normal_path(game_result.request.outputdir + "/" + game_result.pgn_file.split('/')[-1]))
+        Key=pgn_key)
+    waiter = s3.get_waiter('object_exists')
+    waiter.wait(Bucket=game_result.request.bucket, Key=log_key)
+    waiter.wait(Bucket=game_result.request.bucket, Key=pgn_key)
 
 
 def notify_result_queue(sqs_client: sqs.Client, game_result: GameResult):
