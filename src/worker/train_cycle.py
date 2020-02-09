@@ -42,8 +42,7 @@ def send_game_request(weights_file: str, initial_pos: str, outputdir: str, game_
         },
         "black": {
             "exec": "stockfish10",
-            "movetime": 200,
-            "weights_file": "chess/players/ampdist/" + weights_file
+            "movetime": 200
         },
         "game_id": game_id,
         "initial_pos": initial_pos
