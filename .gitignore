@@ -8,3 +8,4 @@ venv/
 !CMakeLists.txt
 !doc/*
 *.csv
+work/

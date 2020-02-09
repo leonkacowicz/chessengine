@@ -9,6 +9,7 @@ y = df.iloc[:, 0].to_numpy()
 
 km = tf.keras.models.Sequential()
 km.add(tf.keras.layers.Dense(100, input_shape=(748,), activation='tanh'))
+km.add(tf.keras.layers.Dense(10, activation='tanh'))
 km.add(tf.keras.layers.Dense(1, activation='tanh'))
 km.compile(optimizer='rmsprop', loss='mse')
 
@@ -22,7 +23,7 @@ with open('weights.txt') as weights_file:
         km.weights[2 * layer].assign(matrix[:, 1:].T)
         km.weights[2 * layer + 1].assign(matrix[:, 0].T)
 
-m = km.fit(X, y, epochs=150)
+m = km.fit(X, y, epochs=100)
 
 with open('weights.new.txt', 'w') as weights_file:
     layers = len(km.layers)

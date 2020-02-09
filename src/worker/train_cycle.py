@@ -12,8 +12,11 @@ QUEUE_URL = "https://sqs.us-west-2.amazonaws.com/284217563291/games.fifo"
 RESULTS_QUEUE_URL = "https://sqs.us-west-2.amazonaws.com/284217563291/game_results"
 
 
-def generate_games(num_games: int) -> List[str]:
-    return subprocess.check_output(["./gengames", str(num_games), "4"]).decode('utf-8').split('\n')
+def generate_games(num_games: int, num_moves: int) -> List[str]:
+    if num_moves == 0:
+        return [""] * num_games
+    else:
+        return subprocess.check_output(["./gengames", str(num_games), str(num_moves)]).decode('utf-8').split('\n')
 
 
 def upload_weights_file(filename: str, remote_filename: str):
@@ -29,12 +32,12 @@ def send_game_request(weights_file: str, initial_pos: str, outputdir: str, game_
         "queue": RESULTS_QUEUE_URL,
         "white": {
             "exec": "chessengine",
-            "movetime": 100,
+            "movetime": 200,
             "weights_file": "chess/players/ampdist/" + weights_file
         },
         "black": {
-            "exec": "chessengine",
-            "movetime": 100,
+            "exec": "stockfish10",
+            "movetime": 200,
             "weights_file": "chess/players/ampdist/" + weights_file
         },
         "game_id": game_id,
@@ -82,11 +85,11 @@ def add_game_log_to_training_set(log_file: str, trainset_file: str):
 
 def main():
     # initial weights in weights.txt
-    num_games = 10
-    num_iter = 10
+    num_games = 48
+    num_iter = 1000
     for k in range(num_iter):
         # generate random initial positions
-        initial_positions = generate_games(num_games)
+        initial_positions = generate_games(num_games, 0)
 
         # upload weights to S3
         weights_file = "weights_%d.txt" % (k,)
@@ -99,10 +102,13 @@ def main():
         if os.path.exists("train.csv"):
             os.remove("train.csv")
         for g in range(num_games):
-            remote_log_file = get_next_game_result()
-            local_log_file = download_game_log(remote_log_file)
-            # parse game results -> new training set
-            add_game_log_to_training_set(local_log_file, "train.csv")
+            try:
+                remote_log_file = get_next_game_result()
+                local_log_file = download_game_log(remote_log_file)
+                # parse game results -> new training set
+                add_game_log_to_training_set(local_log_file, "train.csv")
+            except Exception as e:
+                logging.error(e, exc_info=e)
 
         # train model starting on weights.txt to fit created training set
         os.system("python3 train.py")

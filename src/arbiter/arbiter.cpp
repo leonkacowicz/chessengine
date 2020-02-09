@@ -121,19 +121,23 @@ void arbiter::start_game() {
         }
 
         current_player.time_to_play.unlock();
-        std::chrono::milliseconds wait_time(INT64_MAX);
-        if (current_settings.move_time > 0ms) wait_time = std::min(wait_time, current_settings.move_time);
+        std::chrono::milliseconds wait_time(0);
+        if (current_settings.move_time > 0ms) wait_time = current_settings.move_time;
         if (current_time > 0ms) wait_time = std::min(wait_time, current_time);
 
-        std::cout << "Wait for player move for " << wait_time.count() << "ms\n";
-        if (current_player.has_played.try_lock_for(wait_time + 50ms)) {
-            // all good
+        if (wait_time > 0ms) {
+            std::cout << "Wait for player move for " << wait_time.count() << "ms\n";
+            if (current_player.has_played.try_lock_for(wait_time + 50ms)) {
+                // all good
+            } else {
+                player_won[opposite(b.side_to_play)] = true;
+                std::cout << side << " lost on time\n";
+                break;
+            }
         } else {
-            player_won[opposite(b.side_to_play)] = true;
-            std::cout << side << " lost on time\n";
-            break;
+            std::cout << "Wait for player move\n";
+            current_player.has_played.lock();
         }
-
         if (i > 2) {
             auto move_duration = duration_cast<milliseconds>(current_player.last_move_duration);
             std::cout << side << " took " << move_duration.count() << "ms." << std::endl;
