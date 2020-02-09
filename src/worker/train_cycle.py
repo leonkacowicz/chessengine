@@ -26,6 +26,11 @@ def upload_weights_file(filename: str, remote_filename: str):
 
 
 def send_game_request(weights_file: str, initial_pos: str, outputdir: str, game_id: str):
+    if len(initial_pos) > 0:
+        initial_pos = "startpos moves" + initial_pos
+    else:
+        initial_pos = "startpos"
+
     message = {
         "bucket": BUCKET,
         "outputdir": outputdir,
@@ -41,7 +46,7 @@ def send_game_request(weights_file: str, initial_pos: str, outputdir: str, game_
             "weights_file": "chess/players/ampdist/" + weights_file
         },
         "game_id": game_id,
-        "initial_pos": "startpos moves " + initial_pos
+        "initial_pos": initial_pos
     }
 
     sqs = boto3.client('sqs')
