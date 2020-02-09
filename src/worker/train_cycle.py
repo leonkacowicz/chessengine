@@ -40,12 +40,13 @@ def send_game_request(weights_file: str, initial_pos: str, outputdir: str, game_
         "queue": RESULTS_QUEUE_URL,
         "white": {
             "exec": "chessengine",
-            "movetime": 200,
+            "movetime": 50,
             "weights_file": "chess/players/ampdist/" + weights_file
         },
         "black": {
             "exec": "stockfish10",
-            "movetime": 200
+            "movetime": 50,
+            "depth": 20
         },
         "game_id": game_id,
         "initial_pos": initial_pos
@@ -55,6 +56,20 @@ def send_game_request(weights_file: str, initial_pos: str, outputdir: str, game_
     sqs.send_message(QueueUrl=QUEUE_URL, MessageBody=json.dumps(message), MessageGroupId='1',
                      MessageDeduplicationId="%.12f" % random.random())
     pass
+
+
+def drain_queue(queue_url: str):
+    sqs_client = boto3.client('sqs')
+    while True:
+        response = sqs_client.receive_message(QueueUrl=queue_url,
+                                              VisibilityTimeout=30,
+                                              WaitTimeSeconds=1,
+                                              MaxNumberOfMessages=1)
+        if 'Messages' in response and len(response['Messages']) > 0:
+            message = response['Messages'][0]
+            sqs_client.delete_message(QueueUrl=RESULTS_QUEUE_URL, ReceiptHandle=message['ReceiptHandle'])
+        else:
+            return
 
 
 def get_next_game_result():
@@ -92,9 +107,11 @@ def add_game_log_to_training_set(log_file: str, trainset_file: str):
 
 def main():
     # initial weights in weights.txt
-    num_games = 48
+    drain_queue(QUEUE_URL)
+    drain_queue(RESULTS_QUEUE_URL)
+    num_games = 80
     num_iter = 1000
-    for k in range(num_iter):
+    for k in range(81, num_iter):
         # generate random initial positions
         initial_positions = generate_games(num_games, 0)
 
