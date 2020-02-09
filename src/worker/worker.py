@@ -5,6 +5,7 @@ import boto3
 import json
 import logging
 import subprocess
+from boto3_type_annotations import sqs, s3
 
 
 class EngineConfiguration:
