@@ -5,7 +5,6 @@ import boto3
 import json
 import logging
 import subprocess
-from boto3_type_annotations import sqs, s3
 
 
 class EngineConfiguration:
@@ -142,7 +141,7 @@ def upload_game_result(s3_client: s3.Client, game_result: GameResult):
         game_result.pgn_file,
         Bucket=game_result.request.bucket,
         Key=pgn_key)
-    waiter = s3.get_waiter('object_exists')
+    waiter = s3_client.get_waiter('object_exists')
     waiter.wait(Bucket=game_result.request.bucket, Key=log_key)
     waiter.wait(Bucket=game_result.request.bucket, Key=pgn_key)
 
@@ -158,19 +157,21 @@ def notify_result_queue(sqs_client: sqs.Client, game_result: GameResult):
 
 
 def clean_up(game_result: GameResult):
-    os.remove(game_result.pgn_file)
-    os.remove(game_result.log_file)
-    os.remove(game_result.request.white_player.options_file)
-    os.remove(game_result.request.black_player.options_file)
-    os.remove("./players/white.txt")
-    os.remove("./players/black.txt")
+
+    files = [game_result.pgn_file, game_result.log_file, game_result.request.white_player.options_file,
+             game_result.request.black_player.options_file, "./players/white.txt", "./players/black.txt"]
+    for file in files:
+        if len(file) > 0:
+            if os.path.exists(file):
+                logging.info("deleting file: " + file)
+                os.remove(file)
     pass
 
 
 def main():
     session = boto3.Session(region_name='us-west-2')
-    sqs_client: sqs.Client = session.client('sqs')
-    s3_client: s3.Client = session.client('s3')
+    sqs_client = session.client('sqs')
+    s3_client = session.client('s3')
     while True:
         try:
             request = get_request_from_queue(sqs_client)
