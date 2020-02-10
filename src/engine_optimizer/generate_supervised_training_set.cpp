@@ -12,6 +12,9 @@
 #include <chess/engine/static_evaluator.h>
 #include <chess/engine/nn_eval.h>
 #include <boost/process.hpp>
+
+#define STOCKFISH false
+
 using namespace chess::core;
 
 int main(int argc, char** argv) {
@@ -23,15 +26,18 @@ int main(int argc, char** argv) {
     std::uniform_int_distribution unif;
 
     nn_eval nne((chess::neural::mlp(rd, {nn_eval::INPUT_SIZE, 1})));
-    int depth = 4;
-    static_evaluator se;
-    engine e(se, depth);
+    int depth = 0;
+#if STOCKFISH
     boost::process::opstream opstr;
     boost::process::ipstream ipstr;
     boost::process::child stockfish("./stockfish10", boost::process::std_in < opstr, boost::process::std_out > ipstr);
     opstr << "uci" << std::endl;
     opstr << "isready" << std::endl;
     opstr.flush();
+#else
+    static_evaluator se;
+    engine e(se, depth);
+#endif
     transposition_table tt(10'000'000);
     std::ofstream ofs("out.txt");
 
@@ -42,7 +48,7 @@ int main(int argc, char** argv) {
     ofs << std::endl;
 
     for (int num_moves = 1; num_moves < 400; num_moves++) {
-        for (int k = 0; k < 150; k++) {
+        for (int k = 0; k < 10; k++) {
             game g;
 
             bool terminal = false;
@@ -63,6 +69,7 @@ int main(int argc, char** argv) {
             if (tt.load(g.states.back().hash, depth, &dummy)) continue;
 
             tt.save(g.states.back().hash, depth, 0, EXACT, NULL_MOVE);
+#if STOCKFISH
             std::cout << "ucinewgame" << std::endl;
             std::cout.flush();
             opstr << "ucinewgame" << std::endl;
@@ -106,16 +113,19 @@ int main(int argc, char** argv) {
                     value = score > 0 ? 2000 : -2000;
                 }
             }
+#endif
             std::printf("k = %d, move = %d\n", k, int(g.states.size()));
             const auto& b = g.states.back().b;
             b.print();
             nne.fill_input_vector(b.side_to_play == BLACK ? b.flip_colors() : b);
-            //int value = depth <= 0 ? se.eval(b) : e.search_iterate(g).second;
-            double y = double(std::min(std::max(value, -2000), 2000));
-            y = y / 2000.0;
+#if !STOCKFISH
+            int value = depth <= 0 ? se.eval(b) : e.search_iterate(g).second;
+#endif
+            double y = double(std::min(std::max(value, -10000), 10000));
+            y = y / 10000.0;
             ofs << y << " " << nne.input_vector.transpose() << std::endl;
-            nne.fill_input_vector(b.side_to_play == WHITE ? b.flip_colors() : b);
-            ofs << (-y) << " " << nne.input_vector.transpose() << std::endl;
+//            nne.fill_input_vector(b.side_to_play == WHITE ? b.flip_colors() : b);
+//            ofs << (-y) << " " << nne.input_vector.transpose() << std::endl;
         }
     }
 }
