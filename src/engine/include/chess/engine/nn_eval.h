@@ -35,8 +35,8 @@ public:
     static constexpr int IV_BLACK_QUEEN_OFFSET = IV_BLACK_ROOK_OFFSET + IV_PIECE_NUM_SQUARES;
     static constexpr int IV_BLACK_KING_OFFSET = IV_BLACK_QUEEN_OFFSET + IV_PIECE_NUM_SQUARES;
     static constexpr int IV_EN_PASSANT_OFFSET = IV_BLACK_KING_OFFSET + IV_PIECE_NUM_SQUARES;
-    static constexpr int IF_CASTLING_RIGHTS_OFFSET = IV_EN_PASSANT_OFFSET + 8;
-    static constexpr int INPUT_SIZE = IF_CASTLING_RIGHTS_OFFSET + 4;
+    static constexpr int IV_CASTLING_RIGHTS_OFFSET = IV_EN_PASSANT_OFFSET + 8;
+    static constexpr int INPUT_SIZE = IV_CASTLING_RIGHTS_OFFSET + 4;
 
     static constexpr int IV_OFFSETS[2][6] = {
             {IV_WHITE_PAWN_OFFSET, IV_WHITE_KNIGHT_OFFSET, IV_WHITE_BISHOP_OFFSET, IV_WHITE_ROOK_OFFSET, IV_WHITE_QUEEN_OFFSET, IV_WHITE_KING_OFFSET},
@@ -51,6 +51,8 @@ public:
     int eval(const board& b) override;
 
     void fill_input_vector(const board& b);
+
+    board board_from_iv(const Eigen::Vector<double, INPUT_SIZE>& iv) const;
 };
 
 

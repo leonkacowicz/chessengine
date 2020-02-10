@@ -14,7 +14,7 @@ TEST(evaluator_test, test_single_matrix) {
     board b;
     b.set_king_position(WHITE, SQ_E1);
     b.set_king_position(BLACK, SQ_E8);
-    b.put_piece(PAWN, WHITE, SQ_A1);
+    b.put_piece(PAWN, WHITE, SQ_A2);
 
     std::stringstream ss;
     ss << "1\n";
@@ -71,4 +71,31 @@ TEST(nn_eval_test, static_eval_should_be_simmetric) {
     chess::neural::mlp net(rd, {nn_eval::INPUT_SIZE, 10, 1});
     nn_eval e(net);
     ASSERT_EQ(e.eval(b), -e.eval(b.flip_colors()));
+}
+
+TEST(nn_eval_test, test_fill_input_vector) {
+    board b;
+    b.set_initial_position();
+    std::random_device rd;
+    chess::neural::mlp net(rd, {nn_eval::INPUT_SIZE, 1});
+    nn_eval e(net);
+
+    e.fill_input_vector(b);
+
+    board b2 = e.board_from_iv(e.input_vector);
+
+    ASSERT_EQ(b, b2);
+}
+
+TEST(nn_eval_test, test_fill_input_vector2) {
+    auto b = fen::board_from_fen("kq6/p7/8/7N/8/8/PP6/4K2R b K--- - 0 1").flip_colors();
+    std::random_device rd;
+    chess::neural::mlp net(rd, {nn_eval::INPUT_SIZE, 1});
+    nn_eval e(net);
+
+    e.fill_input_vector(b);
+
+    board b2 = e.board_from_iv(e.input_vector);
+
+    ASSERT_EQ(b, b2);
 }
