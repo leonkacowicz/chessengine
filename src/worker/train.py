@@ -3,14 +3,14 @@ import pandas as pd
 import tensorflow as tf
 
 df = pd.read_csv('train.csv', header=None)
-X = df.iloc[:, 1:].to_numpy()
-y = df.iloc[:, 0].to_numpy()
+X = df.iloc[:, 1:].to_numpy().astype('float64')
+y = df.iloc[:, 0].to_numpy().astype('float64')
 # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.10, random_state=1)
 
 km = tf.keras.models.Sequential()
-km.add(tf.keras.layers.Dense(100, input_shape=(748,), activation='tanh'))
-km.add(tf.keras.layers.Dense(10, activation='tanh'))
-km.add(tf.keras.layers.Dense(1, activation='tanh'))
+km.add(tf.keras.layers.Dense(1, input_shape=(748,), activation='tanh'))
+# km.add(tf.keras.layers.Dense(1, activation='tanh'))
+
 km.compile(optimizer='rmsprop', loss='mse')
 
 with open('weights.txt') as weights_file:

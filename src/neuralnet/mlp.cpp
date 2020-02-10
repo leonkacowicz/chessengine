@@ -52,7 +52,7 @@ Eigen::VectorXd mlp::operator()(const Eigen::VectorXd& input_vector) const {
         Eigen::VectorXd w(size);
         w << 1, v;
         v = M * w;
-        for (int j = 0; j < v.size(); j++) v[j] = 2.0 / (1.0 + std::exp(-v[j])) - 1.0;
+        for (int j = 0; j < v.size(); j++) v[j] = 2.0 / (1.0 + std::exp(-2.0 * v[j])) - 1.0;
     }
     return v;
 }

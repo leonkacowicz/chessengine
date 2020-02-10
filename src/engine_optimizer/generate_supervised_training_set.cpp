@@ -13,7 +13,7 @@
 #include <chess/engine/nn_eval.h>
 #include <boost/process.hpp>
 
-#define STOCKFISH false
+#define STOCKFISH true
 
 using namespace chess::core;
 
@@ -43,12 +43,8 @@ int main(int argc, char** argv) {
 
     tt_node dummy{};
 
-    ofs << "y";
-    for (int i = 0; i < nn_eval::INPUT_SIZE; i++) ofs << " attr" << i;
-    ofs << std::endl;
-
     for (int num_moves = 1; num_moves < 400; num_moves++) {
-        for (int k = 0; k < 10; k++) {
+        for (int k = 0; k < 30; k++) {
             game g;
 
             bool terminal = false;
@@ -69,6 +65,9 @@ int main(int argc, char** argv) {
             if (tt.load(g.states.back().hash, depth, &dummy)) continue;
 
             tt.save(g.states.back().hash, depth, 0, EXACT, NULL_MOVE);
+            std::printf("k = %d, move = %d\n", k, int(g.states.size()));
+            const auto& b = g.states.back().b;
+            b.print();
 #if STOCKFISH
             std::cout << "ucinewgame" << std::endl;
             std::cout.flush();
@@ -113,19 +112,18 @@ int main(int argc, char** argv) {
                     value = score > 0 ? 2000 : -2000;
                 }
             }
+            if (b.side_to_play == BLACK) value = -value;
 #endif
-            std::printf("k = %d, move = %d\n", k, int(g.states.size()));
-            const auto& b = g.states.back().b;
-            b.print();
+
             nne.fill_input_vector(b.side_to_play == BLACK ? b.flip_colors() : b);
 #if !STOCKFISH
             int value = depth <= 0 ? se.eval(b) : e.search_iterate(g).second;
 #endif
             double y = double(std::min(std::max(value, -10000), 10000));
             y = y / 10000.0;
-            ofs << y << " " << nne.input_vector.transpose() << std::endl;
-//            nne.fill_input_vector(b.side_to_play == WHITE ? b.flip_colors() : b);
-//            ofs << (-y) << " " << nne.input_vector.transpose() << std::endl;
+            ofs << (b.side_to_play == BLACK ? -y : y) << " " << nne.input_vector.transpose() << std::endl;
+            nne.fill_input_vector(b.side_to_play == WHITE ? b.flip_colors() : b);
+            ofs << (b.side_to_play == WHITE ? -y : y) << " " << nne.input_vector.transpose() << std::endl;
         }
     }
 }
