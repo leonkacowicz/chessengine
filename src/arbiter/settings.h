@@ -14,6 +14,7 @@ struct player_settings {
     std::chrono::milliseconds time_increment;
     std::chrono::milliseconds move_time;
     int max_depth;
+    int priority;
 };
 
 struct game_settings {
