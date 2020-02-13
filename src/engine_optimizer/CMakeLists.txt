@@ -19,6 +19,7 @@ target_link_libraries(chessengine_optimizer engine_optimizer)
 
 add_executable(generate_supervised_training_set ${TRAINSET})
 target_link_libraries(generate_supervised_training_set chess)
+target_link_libraries(generate_supervised_training_set chess_uci)
 target_link_libraries(generate_supervised_training_set engine)
 target_link_libraries(generate_supervised_training_set chess_neuralnet)
 target_link_libraries(generate_supervised_training_set boost_include)

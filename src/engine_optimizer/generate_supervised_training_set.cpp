@@ -12,6 +12,7 @@
 #include <chess/engine/static_evaluator.h>
 #include <chess/engine/nn_eval.h>
 #include <boost/process.hpp>
+#include <chess/uci/engine_wrapper.h>
 
 #define STOCKFISH true
 
@@ -19,7 +20,7 @@ using namespace chess::core;
 
 int main(int argc, char** argv) {
 
-    init();
+    chess::core::init();
 
     std::random_device rd;
     std::mt19937 mt(rd());
@@ -31,9 +32,15 @@ int main(int argc, char** argv) {
     boost::process::opstream opstr;
     boost::process::ipstream ipstr;
     boost::process::child stockfish("./stockfish10", boost::process::std_in < opstr, boost::process::std_out > ipstr);
-    opstr << "uci" << std::endl;
-    opstr << "isready" << std::endl;
-    opstr.flush();
+    chess::uci::engine_wrapper eng(opstr, ipstr);
+
+    eng.send_uci();
+    eng.wait_for_uciok();
+    eng.send_isready();
+    eng.wait_for_readyok();
+
+    chess::uci::cmd_go go_command;
+    go_command.max_depth = depth;
 #else
     static_evaluator se;
     engine e(se, depth);
@@ -69,47 +76,25 @@ int main(int argc, char** argv) {
             const auto& b = g.states.back().b;
             b.print();
 #if STOCKFISH
-            std::cout << "ucinewgame" << std::endl;
-            std::cout.flush();
-            opstr << "ucinewgame" << std::endl;
-            opstr.flush();
-            std::cout << "position startpos moves";
-            opstr << "position startpos moves";
+            chess::uci::cmd_position position;
+            position.initial_position = "startpos";
             for (int m = 1; m < g.states.size(); m++) {
-                std::cout << " " << to_long_move(g.states[m].last_move);
-                opstr << " " << to_long_move(g.states[m].last_move);
+                position.moves.push_back(to_long_move(g.states[m].last_move));
             }
-            std::cout << std::endl << "go depth " << depth << std::endl;
-            opstr << std::endl;
-            opstr.flush();
-            opstr << "go depth " << depth << std::endl;
-            std::cout.flush();
-            opstr.flush();
+            eng.send_position(position);
+            eng.send_go(go_command);
             std::string line;
             int value = 0;
             while (std::getline(ipstr, line, '\n')) {
                 std::cout << line << std::endl;
-                std::stringstream ss(line);
-                std::string word;
-                ss >> word;
-                if (word == "bestmove") break;
-                if (word != "info") continue;
-                ss >> word; //depth
-                int current_depth;
-                ss >> current_depth;
-                if (current_depth < depth) continue;
-                ss >> word; //seldepth
-                ss >> word; //seldepth
-                ss >> word; //multipv
-                ss >> word; //multipv
-                ss >> word; //score
-                ss >> word; //score type
-                int score;
-                ss >> score;
-                if (word == "cp") {
-                    value = score;
+                if (line.substr(0, 8) == "bestmove") break;
+                if (line.substr(0, 4) != "info") continue;
+                chess::uci::cmd_info info = chess::uci::parse_cmd_info(line);
+                if (!info.score_informed) continue;
+                if (info.score_mate) {
+                    value = info.score > 0 ? 2000 : -2000;
                 } else {
-                    value = score > 0 ? 2000 : -2000;
+                    value = info.score;
                 }
             }
             if (b.side_to_play == BLACK) value = -value;
