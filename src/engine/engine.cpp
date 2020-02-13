@@ -416,7 +416,10 @@ void engine::log_score(const board& b, int val) {
         }
     }
     ss << std::endl;
-    if (!time_over) std::cout << ss.str();
+    if (!time_over) {
+        std::cout << ss.str();
+        std::cout.flush();
+    }
 }
 
 move engine::timed_search(game& g, const std::chrono::milliseconds& time) {
