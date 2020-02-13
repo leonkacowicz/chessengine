@@ -43,8 +43,32 @@ struct cmd_position {
     friend std::ostream& operator<<(std::ostream& os, const cmd_position& cmd);
 };
 
-cmd_position parse_cmd_position(const std::vector<std::string>& tokens);
+struct cmd_bestmove {
+    std::string bestmove;
+    std::string pondermove;
+};
 
+struct cmd_info {
+    bool is_valid = false;
+    int depth = -1;
+    int seldepth = -1;
+    int time = -1;
+    int nodes = -1;
+    std::vector<std::string> pv;
+    int multipv = -1;
+    int score;
+    bool score_mate;
+    bool score_informed = false;
+    std::string currmove;
+    int currmovenumber;
+    int nps = -1;
+    int tbhits = -1;
+    std::string infostring;
+};
+
+cmd_position parse_cmd_position(const std::vector<std::string>& tokens);
+cmd_info parse_cmd_info(const std::vector<std::string>& tokens);
+cmd_info parse_cmd_info(const std::string& cmdline);
 
 }
 

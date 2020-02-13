@@ -112,3 +112,76 @@ cmd_position chess::uci::parse_cmd_position(const std::vector<std::string>& toke
     command.is_valid = true;
     return command;
 }
+
+cmd_info chess::uci::parse_cmd_info(const std::string& cmdline) {
+    cmd_info cmd;
+    cmd.is_valid = false;
+    std::stringstream ss(cmdline);
+    std::vector<std::string> tokens;
+    while (!ss.eof()) {
+        std::string token;
+        ss >> token;
+        tokens.push_back(token);
+    }
+    return chess::uci::parse_cmd_info(tokens);
+}
+
+cmd_info chess::uci::parse_cmd_info(const std::vector<std::string>& tokens) {
+    cmd_info cmd;
+    cmd.is_valid = false;
+    if (tokens[0] != "info") return cmd;
+    cmd.is_valid = true;
+    try {
+        for (int i = 1; i < tokens.size() - 1; i++) {
+            if (tokens[i] == "depth") {
+                cmd.depth = std::stoi(tokens[i + 1]);
+                i++;
+                continue;
+            }
+            if (tokens[i] == "score") {
+                if (tokens.size() <= i + 2) {
+                    cmd.is_valid = false;
+                    return cmd;
+                }
+                if (tokens[i + 1] == "mate") cmd.score_mate = true;
+                cmd.score = std::stoi(tokens[i + 2]);
+                cmd.score_informed = true;
+                i += 2;
+                continue;
+            }
+            if (tokens[i] == "nps") {
+                cmd.depth = std::stoi(tokens[i + 1]);
+                i++;
+                continue;
+            }
+            if (tokens[i] == "multipv") {
+                cmd.multipv = std::stoi(tokens[i + 1]);
+                i++;
+                continue;
+            }
+            if (tokens[i] == "time") {
+                cmd.time = std::stoi(tokens[i + 1]);
+                i++;
+                continue;
+            }
+            if (tokens[i] == "seldepth") {
+                cmd.seldepth = std::stoi(tokens[i + 1]);
+                i++;
+                continue;
+            }
+            if (tokens[i] == "nodes") {
+                cmd.nodes = std::stoi(tokens[i + 1]);
+                i++;
+                continue;
+            }
+            if (tokens[i] == "tbhits") {
+                cmd.tbhits = std::stoi(tokens[i + 1]);
+                i++;
+                continue;
+            }
+        }
+    } catch (const std::exception& e) {
+        cmd.is_valid = false;
+    }
+    return cmd;
+}
