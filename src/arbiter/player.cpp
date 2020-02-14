@@ -64,26 +64,27 @@ void player::calculate_next_move(std::chrono::milliseconds white_time, std::chro
     if (movetime.count() > 0) in << " movetime " << movetime.count();
     if (max_depth > 0) in << " depth " << max_depth;
     in << std::endl;
-    in.flush();
     last_saved_time = std::chrono::system_clock::now();
 }
 
 std::string player::get_next_move() {
     std::string line;
+    std::stringstream buffer;
     while (out.good()) {
         std::getline(out, line);
         auto now = std::chrono::system_clock::now(); // must be very first thing after getting unblocked by std::getline
-        if (!line.empty()) LOG_DEBUG(line);
+        if (!line.empty()) LOG_DEBUG_(buffer, line);
 
         if (line.substr(0, 9) == "bestmove ") {
             last_move_duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_saved_time);
             std::stringstream ss(line.substr(9));
             std::string bestmove;
             ss >> bestmove;
+            std::cout << buffer.str() << std::endl;
             return bestmove;
         }
     }
-    LOG_DEBUG(line);
+    LOG_DEBUG(buffer.str());
     LOG_DEBUG("=================EOF================");
     return "(none)";
 }
@@ -103,6 +104,7 @@ void player::player_loop(arbiter& a, const player_settings& psettings) {
         calculate_next_move(a.white_time, a.black_time, a.settings.white_settings.time_increment,
                             a.settings.black_settings.time_increment, psettings.move_time, psettings.max_depth);
         std::string player_move = get_next_move();
+        std::cout.flush();
         a.moves.push_back(player_move);
 
         has_played.unlock();

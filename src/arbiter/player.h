@@ -14,9 +14,12 @@
 class player_settings;
 class arbiter;
 
-#define LOG_DEBUG(x) std::cout << \
+
+#define LOG_DEBUG_(X, Y) X << \
     pretty_time() << \
-    " [DEBUG] [" << (player_color == chess::core::color::WHITE ? "WHITE" : "BLACK") << "] " << x << std::endl
+    " [DEBUG] [" << (player_color == chess::core::color::WHITE ? "WHITE" : "BLACK") << "] " << Y << '\n';
+
+#define LOG_DEBUG(X) LOG_DEBUG_(std::cout, X);
 
 class player {
     std::ostream& in;
