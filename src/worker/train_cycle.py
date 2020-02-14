@@ -44,9 +44,9 @@ def send_game_request(weights_file: str, initial_pos: str, outputdir: str, game_
             "weights_file": "chess/players/ampdist/" + weights_file
         },
         "black": {
-            "exec": "stockfish10",
+            "exec": "chessengine",
             "movetime": 50,
-            "depth": 20
+            "weights_file": "chess/players/ampdist/" + weights_file
         },
         "game_id": game_id,
         "initial_pos": initial_pos
@@ -66,9 +66,12 @@ def drain_queue(queue_url: str):
                                               WaitTimeSeconds=1,
                                               MaxNumberOfMessages=1)
         if 'Messages' in response and len(response['Messages']) > 0:
-            message = response['Messages'][0]
-            sqs_client.delete_message(QueueUrl=RESULTS_QUEUE_URL, ReceiptHandle=message['ReceiptHandle'])
+            logging.info("Found %d messages in queue: %s" % (len(response['Messages']), queue_url))
+            for i in range(len(response['Messages'])):
+                message = response['Messages'][i]
+                sqs_client.delete_message(QueueUrl=RESULTS_QUEUE_URL, ReceiptHandle=message['ReceiptHandle'])
         else:
+            logging.info("Queue drained: %s" % queue_url)
             return
 
 
@@ -109,9 +112,9 @@ def main():
     # initial weights in weights.txt
     drain_queue(QUEUE_URL)
     drain_queue(RESULTS_QUEUE_URL)
-    num_games = 80
-    num_iter = 1000
-    for k in range(81, num_iter):
+    num_games = 1
+    num_iter = 200
+    for k in range(num_iter):
         # generate random initial positions
         initial_positions = generate_games(num_games, 0)
 

@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+import re
+from matplotlib import pyplot as plt
 
 df = pd.read_csv('train.csv', header=None)
 X = df.iloc[:, 1:].to_numpy().astype('float64')
@@ -11,7 +13,7 @@ km = tf.keras.models.Sequential()
 km.add(tf.keras.layers.Dense(1, input_shape=(748,), activation='tanh'))
 # km.add(tf.keras.layers.Dense(1, activation='tanh'))
 
-km.compile(optimizer='rmsprop', loss='mse')
+km.compile(optimizer='sgd', loss='mse')
 
 with open('weights.txt') as weights_file:
     layers = int(weights_file.readline())
@@ -19,20 +21,25 @@ with open('weights.txt') as weights_file:
         rows, cols = [int(x) for x in weights_file.readline().split()]
         matrix = np.zeros([rows, cols])
         for row in range(rows):
-            matrix[row, :] = np.asarray([float(x) for x in weights_file.readline().split()])
+            line = weights_file.readline()
+            matrix[row, :] = np.fromstring(line, sep=' ', dtype='float64')
         km.weights[2 * layer].assign(matrix[:, 1:].T)
         km.weights[2 * layer + 1].assign(matrix[:, 0].T)
 
-m = km.fit(X, y, epochs=100)
+m = km.fit(X, y, epochs=1)
 
 with open('weights.new.txt', 'w') as weights_file:
     layers = len(km.layers)
     weights_file.write("%d\n" % layers)
     for layer in range(layers):
-        [rows, cols] = km.weights[layer * 2].numpy().T.shape
-        weights_file.write("%d %d\n" % (rows, cols + 1))
-        for row in range(rows):
-            line = "%.8f " % km.weights[2 * layer + 1][row]
-            line += np.array2string(
-                km.weights[layer * 2].numpy().T[row], precision=8, separator=' ')[2:-1].replace('\n', ' ') + '\n'
-            weights_file.write(line)
+        weights = km.layers[layer].weights[0].numpy().T
+        bias = km.layers[layer].weights[1].numpy().T
+        matrix = np.hstack([bias.reshape(weights.shape[0], 1), weights])
+        weights_file.write("%d %d\n" % matrix.shape)
+        weights_file.write(np.array2string(matrix, max_line_width=1000000, separator=' ')
+                           .replace('[', '')
+                           .replace(']', ''))
+
+
+plt.bar(x=np.arange(748), height=km.weights[0][:, 0])
+plt.savefig('weights.png')

@@ -93,11 +93,6 @@ void add_training_sample(const board& b, int value, nn_eval& eval, std::ostream&
     os << y;
     for (int i = 0; i < eval.input_vector.size(); i++) os << "," << eval.input_vector[i];
     os << std::endl;
-
-    eval.fill_input_vector(board_.flip_colors());
-    os << -y;
-    for (int i = 0; i < eval.input_vector.size(); i++) os << "," << eval.input_vector[i];
-    os << std::endl;
 }
 
 
