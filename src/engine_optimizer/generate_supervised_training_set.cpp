@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <random>
+#include <cmath>
 #include <chess/core.h>
 #include <chess/board.h>
 #include <chess/game.h>
@@ -27,7 +28,7 @@ int main(int argc, char** argv) {
     std::uniform_int_distribution unif;
 
     nn_eval nne((chess::neural::mlp(rd, {nn_eval::INPUT_SIZE, 1})));
-    int depth = 0;
+    int depth = 2;
 #if STOCKFISH
     boost::process::opstream opstr;
     boost::process::ipstream ipstr;
@@ -50,8 +51,8 @@ int main(int argc, char** argv) {
 
     tt_node dummy{};
 
-    for (int num_moves = 1; num_moves < 400; num_moves++) {
-        for (int k = 0; k < 30; k++) {
+    for (int num_moves = 1; num_moves < 300; num_moves++) {
+        for (int k = 0; k < 1000; k++) {
             game g;
 
             bool terminal = false;
@@ -97,18 +98,15 @@ int main(int argc, char** argv) {
                     value = info.score;
                 }
             }
-            if (b.side_to_play == BLACK) value = -value;
 #endif
-
-            nne.fill_input_vector(b.side_to_play == BLACK ? b.flip_colors() : b);
+            board bw = b.side_to_play == BLACK ? b.flip_colors() : b;
+            nne.fill_input_vector(bw);
 #if !STOCKFISH
-            int value = depth <= 0 ? se.eval(b) : e.search_iterate(g).second;
+            int value = depth <= 0 ? se.eval(bw) : e.search_iterate(g).second;
 #endif
             double y = double(std::min(std::max(value, -10000), 10000));
             y = y / 10000.0;
-            ofs << (b.side_to_play == BLACK ? -y : y) << " " << nne.input_vector.transpose() << std::endl;
-            nne.fill_input_vector(b.side_to_play == WHITE ? b.flip_colors() : b);
-            ofs << (b.side_to_play == WHITE ? -y : y) << " " << nne.input_vector.transpose() << std::endl;
+            ofs << y << " " << nne.input_vector.transpose() << std::endl;
         }
     }
 }
