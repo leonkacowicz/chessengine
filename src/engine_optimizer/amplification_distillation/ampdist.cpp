@@ -18,7 +18,7 @@ void initialize_weights() {
     std::ifstream ifs("weights.txt");
     if (ifs.good()) return;
     std::random_device rd;
-    chess::neural::mlp mlp(rd, {nn_eval::INPUT_SIZE, 100, 1});
+    chess::neural::mlp mlp(rd(), {nn_eval::INPUT_SIZE, 100, 1});
     mlp.output_to_stream(std::ofstream("weights.txt"));
 }
 

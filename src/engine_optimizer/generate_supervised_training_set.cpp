@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
     std::mt19937 mt(rd());
     std::uniform_int_distribution unif;
 
-    nn_eval nne((chess::neural::mlp(rd, {nn_eval::INPUT_SIZE, 1})));
+    nn_eval nne((chess::neural::mlp(rd(), {nn_eval::INPUT_SIZE, 1})));
     int depth = 2;
 #if STOCKFISH
     boost::process::opstream opstr;

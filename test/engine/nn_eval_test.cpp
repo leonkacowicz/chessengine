@@ -67,8 +67,7 @@ TEST(evaluator_test, three_matrices) {
 
 TEST(nn_eval_test, static_eval_should_be_simmetric) {
     auto b = fen::board_from_fen("kq6/p7/8/7N/8/8/PP6/4K2R w K--- - 0 1");
-    std::random_device rd;
-    chess::neural::mlp net(rd, {nn_eval::INPUT_SIZE, 10, 1});
+    chess::neural::mlp net(0, {nn_eval::INPUT_SIZE, 10, 1});
     nn_eval e(net);
     ASSERT_EQ(e.eval(b), -e.eval(b.flip_colors()));
 }
@@ -76,8 +75,7 @@ TEST(nn_eval_test, static_eval_should_be_simmetric) {
 TEST(nn_eval_test, test_fill_input_vector) {
     board b;
     b.set_initial_position();
-    std::random_device rd;
-    chess::neural::mlp net(rd, {nn_eval::INPUT_SIZE, 1});
+    chess::neural::mlp net(0, {nn_eval::INPUT_SIZE, 1});
     nn_eval e(net);
 
     e.fill_input_vector(b);
@@ -89,8 +87,7 @@ TEST(nn_eval_test, test_fill_input_vector) {
 
 TEST(nn_eval_test, test_fill_input_vector2) {
     auto b = fen::board_from_fen("kq6/p7/8/7N/8/8/PP6/4K2R b K--- - 0 1").flip_colors();
-    std::random_device rd;
-    chess::neural::mlp net(rd, {nn_eval::INPUT_SIZE, 1});
+    chess::neural::mlp net(0, {nn_eval::INPUT_SIZE, 1});
     nn_eval e(net);
 
     e.fill_input_vector(b);

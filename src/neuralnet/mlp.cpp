@@ -95,8 +95,8 @@ Eigen::VectorXd mlp::to_eigen_vector() const {
     return ret;
 }
 
-mlp::mlp(std::random_device& rd, const std::vector<int>& layers) {
-    std::mt19937 mt(rd());
+mlp::mlp(uint64_t seed, const std::vector<int>& layers) {
+    std::mt19937 mt(seed);
     std::normal_distribution dis(0.0, 1.0);
     int num_layers = layers.size();
     matrices.reserve(num_layers);

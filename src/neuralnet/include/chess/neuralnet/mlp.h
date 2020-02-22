@@ -11,7 +11,7 @@ class mlp {
     std::vector<Eigen::MatrixXd> matrices;
 public:
     mlp(std::istream&);
-    mlp(std::random_device& rd, const std::vector<int>& layers);
+    mlp(uint64_t seed, const std::vector<int>& layers);
     mlp(const std::vector<Eigen::MatrixXd>&);
     mlp(const std::vector<int>&, const std::vector<double>&);
     mlp(const std::vector<int>&, const Eigen::VectorXd&);

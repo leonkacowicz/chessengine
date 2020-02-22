@@ -101,8 +101,7 @@ int main() {
     parsed_log log = parse_log(std::cin);
     auto initialpos = chess::uci::parse_cmd_position(log.detected_initial_pos);
     chess::core::game g = get_initial_game(initialpos);
-    std::random_device rd;
-    chess::neural::mlp net(rd, {nn_eval::INPUT_SIZE, 1});
+    chess::neural::mlp net(0, {nn_eval::INPUT_SIZE, 1});
     nn_eval eval(net);
 
     for (int i = 0; i < log.moves.size(); i++) {
