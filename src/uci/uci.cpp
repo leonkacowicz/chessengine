@@ -118,9 +118,8 @@ cmd_info chess::uci::parse_cmd_info(const std::string& cmdline) {
     cmd.is_valid = false;
     std::stringstream ss(cmdline);
     std::vector<std::string> tokens;
-    while (!ss.eof()) {
-        std::string token;
-        ss >> token;
+    std::string token;
+    while (ss >> token) {
         tokens.push_back(token);
     }
     return chess::uci::parse_cmd_info(tokens);

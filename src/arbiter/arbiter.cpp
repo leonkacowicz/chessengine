@@ -46,8 +46,7 @@ board arbiter::get_initial_board() {
     } else if (token == "fen") {
         std::stringstream fen;
         for (int i = 0; i < 6; i++) {
-            if (str.good()) {
-                str >> token;
+            if (str >> token) {
                 if (i > 0) fen << " ";
                 fen << token;
             }
@@ -57,10 +56,8 @@ board arbiter::get_initial_board() {
     } else {
         throw std::invalid_argument("initial position provided must start with 'startpos' or 'fen'");
     }
-    if (str.good()) {
-        str >> token;
-        if (token == "moves") while (str.good()) {
-            str >> token;
+    if (str >> token) {
+        if (token == "moves") while (str >> token) {
             auto legal_moves = move_gen(b).generate();
             auto move_found = std::find_if(legal_moves.begin(), legal_moves.end(), equals(token));
             if (move_found == legal_moves.end()) {

@@ -10,8 +10,8 @@ y = df.iloc[:, 0].to_numpy().astype('float64')
 # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.10, random_state=1)
 
 km = tf.keras.models.Sequential()
-km.add(tf.keras.layers.Dense(1, input_shape=(748,), activation='tanh'))
-# km.add(tf.keras.layers.Dense(1, activation='tanh'))
+km.add(tf.keras.layers.Dense(100, input_shape=(748,), activation='tanh'))
+km.add(tf.keras.layers.Dense(1, activation='tanh'))
 
 km.compile(optimizer='sgd', loss='mse')
 
@@ -26,7 +26,7 @@ with open('weights.txt') as weights_file:
         km.weights[2 * layer].assign(matrix[:, 1:].T)
         km.weights[2 * layer + 1].assign(matrix[:, 0].T)
 
-m = km.fit(X, y, epochs=1)
+m = km.fit(X, y, epochs=20)
 
 with open('weights.new.txt', 'w') as weights_file:
     layers = len(km.layers)
@@ -36,10 +36,12 @@ with open('weights.new.txt', 'w') as weights_file:
         bias = km.layers[layer].weights[1].numpy().T
         matrix = np.hstack([bias.reshape(weights.shape[0], 1), weights])
         weights_file.write("%d %d\n" % matrix.shape)
-        weights_file.write(np.array2string(matrix, max_line_width=1000000, separator=' ')
+        weights_file.write(np.array2string(matrix, max_line_width=100000000, separator=' ', threshold=1000000000)
                            .replace('[', '')
                            .replace(']', ''))
+        weights_file.write('\n')
 
 
-plt.bar(x=np.arange(748), height=km.weights[0][:, 0])
-plt.savefig('weights.png')
+# rows, cols = km.weights[0].numpy().shape
+# plt.bar(x=np.arange(rows * cols), height=km.weights[0].numpy().reshape((1, rows * cols))[0])
+# plt.savefig('weights.png')

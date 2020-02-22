@@ -22,12 +22,6 @@ struct parsed_log {
     std::vector<int> evaluations;
 };
 
-void operator<< (std::vector<std::string>& vec, std::stringstream& ss) {
-    std::string token;
-    ss >> token;
-    vec.push_back(token);
-}
-
 parsed_log parse_log(std::istream& in) {
     parsed_log output;
     std::string line;
@@ -38,15 +32,13 @@ parsed_log parse_log(std::istream& in) {
         ss >> token;
         if (token == "--initial-pos") {
             ss >> token; // = equals sign
-            while (!ss.eof()) output.detected_initial_pos << ss;
+            while (ss >> token) output.detected_initial_pos.push_back(token);
         } else if (token == "CHECKMATE" || token == "STALEMATE" || token == "DRAW" || token == "RESIGNED/ILLEGAL" || token == "RESIGNED") {
             break;
         } else {
-            while (!ss.eof()) {
-                ss >> token;
+            while (ss >> token) {
                 if (token == "info") {
-                    while (!ss.eof()) {
-                        ss >> token;
+                    while (ss >> token) {
                         if (token == "score") {
                             ss >> token;
                             if (token == "cp") {

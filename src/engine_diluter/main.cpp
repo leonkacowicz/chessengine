@@ -97,9 +97,8 @@ int main(int argc, char** argv) {
     board b;
     b.set_initial_position();
     game g(b);
-    while (!std::cin.eof()) {
-        string input;
-        std::getline(std::cin, input);
+    string input;
+    while (std::getline(std::cin, input)) {
         auto words = split(input);
         if (words[0] == "position") {
             opstream << input << std::endl;

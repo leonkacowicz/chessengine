@@ -115,15 +115,12 @@ TEST(test_a, test_b) {
     std::stringstream ss("asdf bcbc lelel");
 
     std::string line;
-    std::cout << ss.good() << "\n";
-    ss >> line;
+    std::cout << bool(ss >> line) << "\n";
     std::cout << line << "\n";
     std::cout << ss.str().substr(line.size() + 1) << "\n";
-    std::cout << ss.good() << "\n";
-    ss >> line;
+    std::cout << bool(ss >> line) << "\n";
     std::cout << line << "\n";
-    std::cout << ss.good() << "\n";
-    ss >> line;
+    std::cout << bool(ss >> line) << "\n";
     std::cout << line << "\n";
 }
 

@@ -13,9 +13,8 @@ int main() {
     std::ifstream ifs("out.txt");
     int k = 0;
     chess::optimizer::supervised_trainer sto({880, 1});
-    while (ifs.good()) {
-        std::string line;
-        std::getline(ifs, line, '\n');
+    std::string line;
+    while (std::getline(ifs, line, '\n')) {
         if (line.empty()) break;
         if (++k >= 10) break;
         std::stringstream ss(line);
@@ -23,10 +22,11 @@ int main() {
         double y;
         ss >> y;
         std::vector<double> v;
-        while (ss.good()) {
+        {
             double x;
-            ss >> x;
-            v.push_back(x);
+            while (ss >> x) {
+                v.push_back(x);
+            }
         }
         Eigen::VectorXd x(v.size());
         assert(v.size() == 880);

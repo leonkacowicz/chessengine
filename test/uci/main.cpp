@@ -20,9 +20,8 @@ TEST(uci_parse_position_cmd, startpos_with_moves) {
 TEST(uci_parse_position_cmd, fen_pos) {
     std::stringstream ss("position fen r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R w KQkq - 0 1");
     std::vector<std::string> tokens;
-    while (!ss.eof()) {
-        std::string token;
-        ss >> token;
+    std::string token;
+    while (ss >> token) {
         tokens.push_back(token);
     }
     auto position = parse_cmd_position(tokens);
@@ -33,9 +32,8 @@ TEST(uci_parse_position_cmd, fen_pos) {
 TEST(uci_parse_position_cmd, fen_pos_with_moves) {
     std::stringstream ss("position fen r1bqkb1r/pppp1ppp/2n2n2/4p3/4P3/2N2N2/PPPP1PPP/R1BQKB1R w KQkq - 0 1 moves f1c4");
     std::vector<std::string> tokens;
-    while (!ss.eof()) {
-        std::string token;
-        ss >> token;
+    std::string token;
+    while (ss >> token) {
         tokens.push_back(token);
     }
     auto position = parse_cmd_position(tokens);

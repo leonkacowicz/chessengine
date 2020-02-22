@@ -30,7 +30,7 @@ def upload_weights_file(filename: str, remote_filename: str):
 
 def send_game_request(weights_file: str, initial_pos: str, outputdir: str, game_id: str):
     if len(initial_pos) > 0:
-        initial_pos = "startpos moves" + initial_pos
+        initial_pos = "startpos moves " + initial_pos
     else:
         initial_pos = "startpos"
 
@@ -112,11 +112,11 @@ def main():
     # initial weights in weights.txt
     drain_queue(QUEUE_URL)
     drain_queue(RESULTS_QUEUE_URL)
-    num_games = 1
-    num_iter = 200
+    num_games = 8
+    num_iter = 2000
     for k in range(num_iter):
         # generate random initial positions
-        initial_positions = generate_games(num_games, 0)
+        initial_positions = generate_games(num_games, 2)
 
         # upload weights to S3
         weights_file = "weights_%d.txt" % (k,)

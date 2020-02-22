@@ -115,7 +115,7 @@ int get_score(const mlp& nn1, const mlp& nn2) {
     );
 
     std::string line;
-    while (out.good() && !out.eof() && std::getline(out, line)) {
+    while (std::getline(out, line)) {
         std::cout << line << std::endl;
         if (line == "1-0") {
             c.wait();

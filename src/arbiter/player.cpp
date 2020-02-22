@@ -54,8 +54,7 @@ void player::calculate_next_move(std::chrono::milliseconds white_time, std::chro
 std::string player::get_next_move() {
     std::string line;
     std::stringstream buffer;
-    while (out.good()) {
-        std::getline(out, line);
+    while (std::getline(out, line)) {
         auto now = std::chrono::system_clock::now(); // must be very first thing after getting unblocked by std::getline
         if (!line.empty()) LOG_DEBUG_(buffer, line);
 
