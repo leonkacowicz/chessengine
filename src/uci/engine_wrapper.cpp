@@ -82,3 +82,7 @@ void engine_wrapper::send_isready() {
     std_in << "isready" << std::endl;
     std_in.flush();
 }
+
+void engine_wrapper::send_ucinewgame() {
+    std_in << "ucinewgame" << std::endl;
+}

@@ -10,27 +10,18 @@ void player::start_player(arbiter& arb, const std::string& options, const player
     if (!ready.try_lock()) throw std::runtime_error("ready mutex should be unlocked when start_player() is called.");
     if (!time_to_play.try_lock())
         throw std::runtime_error("time_to_play mutex should be unlocked when start_player() is called.");
-    in << "uci" << std::endl;
-    in.flush();
-    std::string line;
-    do {
-        getline(out, line);
-        if (!line.empty())
-            LOG_DEBUG(line);
-    } while (line != "uciok");
+    wrapper.send_uci();
+    wrapper.wait_for_uciok();
     if (!options.empty()) in << options << std::endl;
-    in << "isready" << std::endl;
-    in.flush();
-    while (out.good() && std::getline(out, line) && line != "readyok") {
-        LOG_DEBUG(line);
-    };
+    wrapper.send_isready();
+    wrapper.wait_for_readyok();
     LOG_DEBUG("Engine Ready");
 
     thrd = std::thread([&] { player_loop(arb, psettings); });
 }
 
 void player::start_game() {
-    in << "ucinewgame" << std::endl;
+    wrapper.send_ucinewgame();
 }
 
 void player::stop_player() {
@@ -39,31 +30,24 @@ void player::stop_player() {
 }
 
 void player::set_position(const std::vector<std::string>& moves, const std::string& fen) {
-    if (fen.empty())
-        in << "position startpos";
-    else
-        in << "position fen " << fen;
-
-    if (!moves.empty()) {
-        in << " moves";
-        for (auto move = begin(moves); move != end(moves); move++) {
-            in << " " << *move;
-        }
-    }
-    in << std::endl;
+    chess::uci::cmd_position pos(moves, fen);
+    wrapper.send_position(pos);
 }
 
 void player::calculate_next_move(std::chrono::milliseconds white_time, std::chrono::milliseconds black_time,
                                  std::chrono::milliseconds white_increment, std::chrono::milliseconds black_increment,
                                  std::chrono::milliseconds movetime, int max_depth) {
-    in << "go";
-    if (white_time.count() > 0) in << " wtime " << white_time.count();
-    if (black_time.count() > 0) in << " btime " << black_time.count();
-    if (white_increment.count() > 0) in << " winc " << white_increment.count();
-    if (black_increment.count() > 0) in << " binc " << black_increment.count();
-    if (movetime.count() > 0) in << " movetime " << movetime.count();
-    if (max_depth > 0) in << " depth " << max_depth;
-    in << std::endl;
+
+    chess::uci::cmd_go cmd;
+    cmd.white_time = white_time;
+    cmd.black_time = black_time;
+    cmd.white_increment = white_increment;
+    cmd.black_increment = black_increment;
+    cmd.move_time = movetime;
+    cmd.max_depth = max_depth;
+    cmd.is_valid = true;
+    cmd.infinite = false;
+    wrapper.send_go(cmd);
     last_saved_time = std::chrono::system_clock::now();
 }
 

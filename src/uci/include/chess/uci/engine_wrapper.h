@@ -26,6 +26,8 @@ public:
     void send_go(const cmd_go& cmd);
     void send_position(const cmd_position& cmd);
     void send_stop();
+
+    void send_ucinewgame();
 };
 
 }

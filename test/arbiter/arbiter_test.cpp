@@ -23,8 +23,9 @@ void expect_line_starting_with(std::istream& stream, const std::string& expected
 
 TEST(arbiter_test, arbiter_can_start_players) {
 
-    std::stringstream white_in, white_out, black_in, black_out("uciok\n");
+    std::stringstream white_in, white_out, black_in, black_out("uciok\nreadyok\n");
     white_out << "uciok" << std::endl;
+    white_out << "readyok" << std::endl;
     white_out << "bestmove (none)" << std::endl;
     player white(color::WHITE, white_in, white_out);
     player black(color::BLACK, black_in, black_out);

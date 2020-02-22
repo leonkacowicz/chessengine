@@ -9,6 +9,7 @@
 #include <chrono>
 #include <mutex>
 #include <thread>
+#include <chess/uci/engine_wrapper.h>
 #include "time_format.h"
 
 class player_settings;
@@ -26,6 +27,7 @@ class player {
     std::istream& out;
     std::chrono::system_clock::time_point last_saved_time = std::chrono::system_clock::time_point();
     std::thread thrd;
+    chess::uci::engine_wrapper wrapper;
 public:
     std::timed_mutex ready;
     std::timed_mutex time_to_play;
@@ -33,7 +35,7 @@ public:
     std::chrono::milliseconds last_move_duration{0};
     chess::core::color player_color;
 
-    player(chess::core::color c, std::ostream& in, std::istream& out) : player_color(c), in(in), out(out) {}
+    player(chess::core::color c, std::ostream& in, std::istream& out) : player_color(c), in(in), out(out), wrapper(in, out) {}
 
     void start_player(arbiter& arb, const std::string& options, const player_settings& psettings);
 

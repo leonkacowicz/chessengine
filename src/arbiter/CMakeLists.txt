@@ -4,6 +4,7 @@ list(REMOVE_ITEM SRCS ${MAINCPP})
 add_library(arbiter STATIC ${SRCS})
 target_include_directories(arbiter PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(arbiter chess)
+target_link_libraries(arbiter chess_uci)
 
 add_executable(chessarbiter ${MAINCPP})
 target_link_libraries(chessarbiter arbiter)

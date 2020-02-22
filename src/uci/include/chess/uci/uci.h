@@ -25,7 +25,8 @@ struct cmd_go {
     bool infinite = false;
     bool is_valid = false;
 
-    cmd_go(std::vector<std::string> words = {});
+    cmd_go() {};
+    cmd_go(std::vector<std::string> words);
     friend std::ostream& operator<<(std::ostream& os, const cmd_go& cmd);
 };
 
@@ -41,6 +42,7 @@ struct cmd_position {
     std::vector<std::string> moves;
     bool is_valid = false;
     friend std::ostream& operator<<(std::ostream& os, const cmd_position& cmd);
+    cmd_position(std::vector<std::string> moves = {}, std::string initial_position = "startpos") : initial_position(initial_position.empty() ? "startpos" : std::move(initial_position)), moves(std::move(moves)), is_valid(true) {}
 };
 
 struct cmd_bestmove {
