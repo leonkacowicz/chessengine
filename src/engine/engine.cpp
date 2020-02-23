@@ -47,7 +47,7 @@ std::pair<move, int> engine::search_iterate(game& g) {
     int val = search_root(g, current_depth, -INF, +INF);
 
     for (current_depth = 2; current_depth <= max_depth; current_depth++) {
-        if (val > MATE - current_depth) return std::make_pair(bestmove, val);
+        if (val > MATE - current_depth) break;
         val = search_widen(g, current_depth, val);
     }
     return std::make_pair(bestmove, val);
@@ -65,7 +65,7 @@ int engine::search_root(game& g, int depth, int alpha, int beta) {
     if (no_more_time()) return 0;
     auto b = g.states.back().b;
     auto hash = g.states.back().hash;
-    tt_node node;
+    tt_node node{};
     move current_bestmove = bestmove;
     if (tt.load(hash, depth, alpha, beta, &node) && node.type == EXACT) {
         if (node.bestmove != null_move)
@@ -416,27 +416,28 @@ void engine::log_score(const board& b, int val) {
             break;
         }
     }
-    ss << std::endl;
-    if (!time_over) {
-        std::cout << ss.str();
-        std::cout.flush();
-    }
+    std::cout << ss.str() << std::endl;
 }
 
 move engine::timed_search(game& g, const std::chrono::milliseconds& time) {
+    using namespace std::chrono_literals;
     time_over = false;
     bestmove = null_move;
     max_time = time;
-    std::future<std::pair<move, int>> fut = std::async(std::launch::async, [&] () { return search_iterate(g); });
-    fut.wait_for(time);
-    time_over = true;
+    std::future<void> fut = std::async(std::launch::async, [&] () {
+        search_iterate(g);
+        if (!time_over) std::cout << "bestmove " << to_long_move(bestmove) << std::endl;
+    });
+    fut.get();
     return bestmove;
 }
 
 bool engine::no_more_time() {
     if (time_over) return true;
+    if (max_time.count() == 0) return false;
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - initial_search_time);
-    time_over |= elapsed >= max_time;
+    time_over = elapsed >= max_time;
+    if (time_over) std::cout << "bestmove " << to_long_move(bestmove) << std::endl;
     return time_over;
 }
 

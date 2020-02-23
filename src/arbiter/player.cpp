@@ -7,16 +7,14 @@
 #include "settings.h"
 
 void player::start_player(arbiter& arb, const std::string& options, const player_settings& psettings) {
-    if (!ready.try_lock()) throw std::runtime_error("ready mutex should be unlocked when start_player() is called.");
-    if (!time_to_play.try_lock())
-        throw std::runtime_error("time_to_play mutex should be unlocked when start_player() is called.");
     wrapper.send_uci();
     wrapper.wait_for_uciok();
     if (!options.empty()) in << options << std::endl;
     wrapper.send_isready();
     wrapper.wait_for_readyok();
     LOG_DEBUG("Engine Ready");
-
+    time_to_play.reset();
+    ready.notify();
     thrd = std::thread([&] { player_loop(arb, psettings); });
 }
 
@@ -25,8 +23,8 @@ void player::start_game() {
 }
 
 void player::stop_player() {
-    time_to_play.unlock();
-    thrd.join();
+    time_to_play.notify();
+    thrd.detach();
 }
 
 void player::set_position(const std::vector<std::string>& moves, const std::string& fen) {
@@ -74,10 +72,10 @@ std::string player::get_next_move() {
 
 void player::player_loop(arbiter& a, const player_settings& psettings) {
     //std::cout << "Starting player " << p.player_color << std::endl;
-    ready.unlock();
     while (!a.game_finished) {
         //std::cout << "Waiting for player " << p.player_color << " turn" << std::endl;
-        time_to_play.lock();
+        time_to_play.wait();
+        time_to_play.reset();
         if (a.game_finished) {
             //std::cout << "Game finished while player " << p.player_color << " waited to play" << std::endl;
             break;
@@ -88,7 +86,7 @@ void player::player_loop(arbiter& a, const player_settings& psettings) {
                             a.settings.black_settings.time_increment, psettings.move_time, psettings.max_depth);
         std::string player_move = get_next_move();
         a.moves.push_back(player_move);
-        has_played.unlock();
+        has_played.notify();
         std::cout.flush();
         //std::cout << "Player " << p.player_color << " released play lock and aquiring wait lock" << std::endl;
     }

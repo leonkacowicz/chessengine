@@ -95,10 +95,10 @@ int main()
                 std::cerr << "no legal move found to be searched" << std::endl;
                 std::cout << "bestmove (none)" << std::endl;
             } else {
-                std::cout << "info calculating move time for " << cmd.move_time.count() << "ms\n";
-                auto selected_move = eng->timed_search(g, cmd.move_time);
-                std::cout << "bestmove " << to_long_move(selected_move) << std::endl;
-                std::cout.flush();
+                std::cout << "info calculating move for " << cmd.move_time.count() << "ms\n";
+                if (cmd.max_depth > 0) eng->max_depth = cmd.max_depth;
+                else eng->max_depth = 30;
+                eng->timed_search(g, cmd.move_time);
             }
         } else if (words[0] == "print") {
             b.print();
@@ -109,6 +109,10 @@ int main()
             eng = std::make_unique<engine>(*eval.get());
             std::cout.flush();
         }
+//        else if (words[0] == "stop") {
+//            eng->time_over = true;
+//            std::cout << "bestmove " << to_long_move(eng->bestmove) << std::endl;
+//        }
     }
     return 0;
 }

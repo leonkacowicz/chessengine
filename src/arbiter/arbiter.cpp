@@ -30,6 +30,8 @@ void arbiter::start_players() {
 }
 
 void arbiter::start_players(const std::string & white_options, const std::string & black_options) {
+    white.ready.reset();
+    black.ready.reset();
     white.start_player(*this, white_options, settings.white_settings);
     black.start_player(*this, black_options, settings.black_settings);
 
@@ -95,15 +97,12 @@ void arbiter::start_game() {
     black.start_game();
 
     // lock again (only works after each thread has started and unlocked the thread_ready mutex
-    white.ready.lock();
-    black.ready.lock();
-
-    white.has_played.lock();
-    black.has_played.lock();
+    white.ready.wait();
+    black.ready.wait();
 
     board b = get_initial_board();
 
-    int i = 0;
+    int i = moves.size();
     bool player_won[2] = {false, false};
     int half_move_clock = 0;
     board last_positions[100];
@@ -130,14 +129,15 @@ void arbiter::start_game() {
             break;
         }
 
-        current_player.time_to_play.unlock();
+        current_player.has_played.reset();
+        current_player.time_to_play.notify();
         std::chrono::milliseconds wait_time(0);
         if (current_settings.move_time > 0ms) wait_time = current_settings.move_time;
         if (current_time > 0ms) wait_time = std::min(wait_time, current_time);
 
         if (wait_time > 0ms) {
-            LOG_INFO("Wait for player move for " << wait_time.count() << "ms" << std::endl);
-            if (really_try_lock_for(current_player.has_played, wait_time + 150ms)) {
+            LOG_INFO("Wait for " << side << " player move for " << wait_time.count() << "ms" << std::endl);
+            if (current_player.has_played.wait_for(wait_time + 150ms)) {
                 // all good
             } else {
                 player_won[opposite(b.side_to_play)] = true;
@@ -145,8 +145,8 @@ void arbiter::start_game() {
                 break;
             }
         } else {
-            LOG_INFO("Wait for player move" << std::endl);
-            current_player.has_played.lock();
+            LOG_INFO("Wait for " << side << " player move" << std::endl);
+            current_player.has_played.wait();
         }
         if (i > 2) {
             auto move_duration = duration_cast<milliseconds>(current_player.last_move_duration);
@@ -167,7 +167,7 @@ void arbiter::start_game() {
                           << std::endl);
             }
         }
-
+        assert(i == moves.size());
         auto move_found = std::find_if(legal_moves.begin(), legal_moves.end(), equals(moves.back()));
         if (move_found != legal_moves.end()) {
             if (b.resets_half_move_counter(*move_found)) half_move_clock = 0;

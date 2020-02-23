@@ -11,6 +11,7 @@
 #include <thread>
 #include <chess/uci/engine_wrapper.h>
 #include "time_format.h"
+#include "condition_waiter.h"
 
 class player_settings;
 class arbiter;
@@ -29,9 +30,9 @@ class player {
     std::thread thrd;
     chess::uci::engine_wrapper wrapper;
 public:
-    std::timed_mutex ready;
-    std::timed_mutex time_to_play;
-    std::timed_mutex has_played;
+    condition_waiter ready;
+    condition_waiter time_to_play;
+    condition_waiter has_played;
     std::chrono::milliseconds last_move_duration{0};
     chess::core::color player_color;
 

@@ -20,7 +20,6 @@ class engine {
     typedef chess::core::board board;
     typedef chess::core::game game;
 
-    int max_depth;
     std::chrono::milliseconds max_time;
 
     std::vector<std::pair<move, move>> killers;
@@ -30,16 +29,16 @@ class engine {
     int cache_hit_count = 0;
     int history[2][64][64];
     transposition_table tt{10'000'000};
-    move bestmove;
     bool can_do_null_move = true;
-    bool time_over = false;
-
     std::chrono::steady_clock::time_point initial_search_time;
     evaluator& eval;
 
     bool no_more_time();
-
 public:
+    bool time_over = false;
+    move bestmove;
+    int max_depth;
+
     engine(evaluator& e, int max_depth = 30);
 
     move timed_search(game& g, const std::chrono::milliseconds& time);
