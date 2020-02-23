@@ -21,6 +21,7 @@ class engine {
     typedef chess::core::game game;
 
     int max_depth;
+    std::chrono::milliseconds max_time;
 
     std::vector<std::pair<move, move>> killers;
     int nodes = 0;
@@ -33,8 +34,10 @@ class engine {
     bool can_do_null_move = true;
     bool time_over = false;
 
-    std::chrono::system_clock::time_point initial_search_time;
+    std::chrono::steady_clock::time_point initial_search_time;
     evaluator& eval;
+
+    bool no_more_time();
 
 public:
     engine(evaluator& e, int max_depth = 30);

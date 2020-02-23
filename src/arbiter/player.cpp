@@ -48,14 +48,14 @@ void player::calculate_next_move(std::chrono::milliseconds white_time, std::chro
     cmd.is_valid = true;
     cmd.infinite = false;
     wrapper.send_go(cmd);
-    last_saved_time = std::chrono::system_clock::now();
+    last_saved_time = std::chrono::steady_clock::now();
 }
 
 std::string player::get_next_move() {
     std::string line;
     std::stringstream buffer;
     while (std::getline(out, line)) {
-        auto now = std::chrono::system_clock::now(); // must be very first thing after getting unblocked by std::getline
+        auto now = std::chrono::steady_clock::now(); // must be very first thing after getting unblocked by std::getline
         if (!line.empty()) LOG_DEBUG_(buffer, line);
 
         if (line.substr(0, 9) == "bestmove ") {
@@ -63,7 +63,7 @@ std::string player::get_next_move() {
             std::stringstream ss(line.substr(9));
             std::string bestmove;
             ss >> bestmove;
-            std::cout << buffer.str() << std::endl;
+            std::cout << buffer.str() << '\n';
             return bestmove;
         }
     }
@@ -87,10 +87,9 @@ void player::player_loop(arbiter& a, const player_settings& psettings) {
         calculate_next_move(a.white_time, a.black_time, a.settings.white_settings.time_increment,
                             a.settings.black_settings.time_increment, psettings.move_time, psettings.max_depth);
         std::string player_move = get_next_move();
-        std::cout.flush();
         a.moves.push_back(player_move);
-
         has_played.unlock();
+        std::cout.flush();
         //std::cout << "Player " << p.player_color << " released play lock and aquiring wait lock" << std::endl;
     }
 }

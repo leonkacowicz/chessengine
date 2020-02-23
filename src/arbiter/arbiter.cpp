@@ -8,7 +8,11 @@
 #include <chess/fen.h>
 #include "arbiter.h"
 #include "player.h"
+#include "time_format.h"
 
+#define LOG_INFO(X) std::cout << pretty_time() << " [INFO] [ARBITER] " << X
+
+using namespace std::chrono_literals;
 using namespace chess::core;
 
 arbiter::arbiter(player& white_player,
@@ -71,6 +75,15 @@ board arbiter::get_initial_board() {
     return b;
 }
 
+bool really_try_lock_for(std::timed_mutex& mutex, std::chrono::milliseconds time) {
+    auto start = std::chrono::steady_clock::now();
+    while (std::chrono::steady_clock::now() - start < time) {
+        if (mutex.try_lock()) return true;
+        std::this_thread::sleep_for(5ms);
+    }
+    return false;
+}
+
 void arbiter::start_game() {
 
     using namespace std::chrono_literals;
@@ -109,10 +122,10 @@ void arbiter::start_game() {
         if (legal_moves.empty()) {
             bool check = b.under_check(b.side_to_play);
             if (check) {
-                std::cout << "CHECKMATE" << std::endl;
+                LOG_INFO("CHECKMATE" << std::endl);
                 player_won[opposite(b.side_to_play)] = true;
             } else {
-                std::cout << "STALEMATE" << std::endl;
+                LOG_INFO("STALEMATE" << std::endl);
             }
             break;
         }
@@ -123,35 +136,35 @@ void arbiter::start_game() {
         if (current_time > 0ms) wait_time = std::min(wait_time, current_time);
 
         if (wait_time > 0ms) {
-            std::cout << "Wait for player move for " << wait_time.count() << "ms\n";
-            if (current_player.has_played.try_lock_for(wait_time + 50ms)) {
+            LOG_INFO("Wait for player move for " << wait_time.count() << "ms" << std::endl);
+            if (really_try_lock_for(current_player.has_played, wait_time + 150ms)) {
                 // all good
             } else {
                 player_won[opposite(b.side_to_play)] = true;
-                std::cout << side << " lost on time\n";
+                LOG_INFO(side << " lost on time" << std::endl);
                 break;
             }
         } else {
-            std::cout << "Wait for player move\n";
+            LOG_INFO("Wait for player move" << std::endl);
             current_player.has_played.lock();
         }
         if (i > 2) {
             auto move_duration = duration_cast<milliseconds>(current_player.last_move_duration);
-            std::cout << side << " took " << move_duration.count() << "ms." << std::endl;
+            LOG_INFO(side << " took " << move_duration.count() << "ms." << std::endl);
 
             if (current_settings.initial_time.count() > 0) {
                 current_time -= move_duration;
                 current_time += current_settings.time_increment;
 
-                std::cout << "White time: "
+                LOG_INFO("White time: "
                           << duration_cast<seconds>(white_time).count() / 60 << "m "
                           << duration_cast<seconds>(white_time).count() % 60 << "s"
-                          << std::endl;
+                          << std::endl);
 
-                std::cout << "Black time: "
+                LOG_INFO("Black time: "
                           << duration_cast<seconds>(black_time).count() / 60 << "m"
                           << duration_cast<seconds>(black_time).count() % 60 << "s"
-                          << std::endl;
+                          << std::endl);
             }
         }
 
@@ -162,7 +175,7 @@ void arbiter::start_game() {
             pgn_moves.push_back(b.move_in_pgn(*move_found, legal_moves));
             b.make_move(*move_found);
             if (half_move_clock >= 100) {
-                std::cout << "DRAW BY 50-move RULE" << std::endl;
+                LOG_INFO("DRAW BY 50-move RULE" << std::endl);
                 break;
             } else {
                 int repetition_count = 0;
@@ -170,16 +183,16 @@ void arbiter::start_game() {
                     repetition_count++;
 
                 if (repetition_count >= 3) {
-                    std::cout << "DRAW BY 3-FOLD-REPETITION" << std::endl;
+                    LOG_INFO("DRAW BY 3-FOLD-REPETITION" << std::endl);
                     break;
                 }
                 last_positions[half_move_clock] = b;
             }
 
         } else {
-            std::cout << "Move " << moves.back() << " not found in list of legal moves!!" << std::endl;
+            LOG_INFO("Move " << moves.back() << " not found in list of legal moves!!" << std::endl);
             // player resigned
-            std::cout << "RESIGNED/ILLEGAL MOVE" << std::endl;
+            LOG_INFO("RESIGNED/ILLEGAL MOVE" << std::endl);
             player_won[opposite(b.side_to_play)] = true;
             for (auto m : legal_moves) std::cout << to_long_move(m) << std::endl;
             break;

@@ -98,6 +98,7 @@ int main() {
 
     for (int i = 0; i < log.moves.size(); i++) {
         add_training_sample(g.states.back().b, log.evaluations[i], eval, std::cout);
+        if (log.moves[i] == "(none)") break;
         auto legal = chess::core::move_gen(g.states.back().b).generate();
         auto found = std::find_if(legal.begin(), legal.end(), [&](const chess::core::move& m) { return chess::core::to_long_move(m) == log.moves[i]; });
         if (found == legal.end()) {

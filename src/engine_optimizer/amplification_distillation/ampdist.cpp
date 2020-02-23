@@ -4,6 +4,8 @@
 
 #include <fstream>
 #include <random>
+#include <filesystem>
+
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include <chess/game.h>
@@ -15,8 +17,7 @@
 using namespace chess::core;
 
 void initialize_weights() {
-    std::ifstream ifs("weights.txt");
-    if (ifs.good()) return;
+    if (std::filesystem::exists("weights.txt")) return;
     std::random_device rd;
     chess::neural::mlp mlp(rd(), {nn_eval::INPUT_SIZE, 100, 1});
     mlp.output_to_stream(std::ofstream("weights.txt"));

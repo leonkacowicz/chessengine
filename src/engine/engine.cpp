@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <thread>
 #include <mutex>
+#include <future>
 
 #include <chess/move_gen.h>
 #include <chess/game.h>
@@ -20,7 +21,7 @@ using namespace chess::core;
 std::pair<move, int> engine::search_iterate(game& g) {
 
     time_over = false;
-    initial_search_time = std::chrono::system_clock::now();
+    initial_search_time = std::chrono::steady_clock::now();
     auto legal_moves = move_gen(g.states.back().b).generate();
     if (legal_moves.empty()) {
         if (g.states.back().b.under_check())
@@ -61,7 +62,7 @@ int engine::search_widen(game& g, int depth, int val) {
 }
 
 int engine::search_root(game& g, int depth, int alpha, int beta) {
-    if (time_over) return 0;
+    if (no_more_time()) return 0;
     auto b = g.states.back().b;
     auto hash = g.states.back().hash;
     tt_node node;
@@ -83,10 +84,10 @@ int engine::search_root(game& g, int depth, int alpha, int beta) {
             val = -search<true>(g, depth - 1, 1, -beta, -alpha);
         } else {
             int tmp = -search<false>(g, depth - 1, 1, -alpha - 1, -alpha);
-            if (time_over) return 0;
+            if (no_more_time()) return 0;
             if (tmp > alpha) {
                 val = -search<true>(g, depth - 1, 1, -beta, -alpha);
-                if (time_over) return 0;
+                if (no_more_time()) return 0;
             }
             else {
                 continue;
@@ -118,7 +119,7 @@ int engine::search_root(game& g, int depth, int alpha, int beta) {
 
 template<bool is_pv>
 int engine::search(game& g, int depth, int ply, int alpha, int beta) {
-    if (time_over) return 0;
+    if (no_more_time()) return 0;
     auto state = g.states.back();
     auto b = state.b;
     uint64_t hash = state.hash;
@@ -195,7 +196,7 @@ int engine::search(game& g, int depth, int ply, int alpha, int beta) {
             nmval = -search<is_pv>(g, depth - 3, ply + 1, -beta, -beta + 1);
         can_do_null_move = true;
         g.undo_last_move();
-        if (time_over) return 0;
+        if (no_more_time()) return 0;
         if (nmval >= beta) return nmval;
     }
 
@@ -211,13 +212,13 @@ int engine::search(game& g, int depth, int ply, int alpha, int beta) {
         auto _ = auto_undo_last_move(g);
         if (!raised_alpha) {
             val = -search<is_pv>(g, depth - 1, ply + 1, -beta, -alpha);
-            if (time_over) return 0;
+            if (no_more_time()) return 0;
         } else {
             int tmp = -search<false>(g, depth - 1, ply + 1, -alpha - 1, -alpha);
-            if (time_over) return 0;
+            if (no_more_time()) return 0;
             if (tmp > alpha) {
                 val = -search<true>(g, depth - 1, ply + 1, -beta, -alpha);
-                if (time_over) return 0;
+                if (no_more_time()) return 0;
             }
             else continue;
         }
@@ -317,7 +318,7 @@ void engine::set_killer_move(move m, int ply) {
 }
 
 int engine::qsearch(game& g, int ply, int alpha, int beta) {
-    if (time_over) return 0;
+    if (no_more_time()) return 0;
     if (g.is_draw_by_3foldrep() || g.is_draw_by_50move()) return 0;
     const board& b = g.states.back().b;
     nodes++;
@@ -370,7 +371,7 @@ int engine::qsearch(game& g, int ply, int alpha, int beta) {
             g.do_move(m);
             auto _ = auto_undo_last_move(g);
             val = -qsearch(g, ply + 1, -beta, -alpha);
-            if (time_over) return 0;
+            if (no_more_time()) return 0;
             if (val > alpha) {
                 if (val >= beta) return val;
                 alpha = val;
@@ -395,7 +396,7 @@ void engine::log_score(const board& b, int val) {
         ss << " score cp " << val;
     }
 
-    long time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now() - initial_search_time).count();
+    long time = std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - initial_search_time).count();
     ss << " nodes " << nodes;
     ss << " qnodes " << qnodes;
     ss << " nps " << int(double(nodes) * 1'000'000'000 / double(time));
@@ -423,18 +424,19 @@ void engine::log_score(const board& b, int val) {
 }
 
 move engine::timed_search(game& g, const std::chrono::milliseconds& time) {
-    std::timed_mutex mutex;
-    mutex.lock();
     time_over = false;
     bestmove = null_move;
-    std::thread thr([&] () {
-        search_iterate(g);
-        mutex.unlock();
-    });
-    if (!mutex.try_lock_for(time)) {
-        time_over = true;
-    }
-    thr.join();
+    max_time = time;
+    std::future<std::pair<move, int>> fut = std::async(std::launch::async, [&] () { return search_iterate(g); });
+    fut.wait_for(time);
+    time_over = true;
     return bestmove;
+}
+
+bool engine::no_more_time() {
+    if (time_over) return true;
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - initial_search_time);
+    time_over |= elapsed >= max_time;
+    return time_over;
 }
 

@@ -25,7 +25,7 @@ class arbiter;
 class player {
     std::ostream& in;
     std::istream& out;
-    std::chrono::system_clock::time_point last_saved_time = std::chrono::system_clock::time_point();
+    std::chrono::steady_clock::time_point last_saved_time = std::chrono::steady_clock::time_point();
     std::thread thrd;
     chess::uci::engine_wrapper wrapper;
 public:

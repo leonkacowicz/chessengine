@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import subprocess
 import boto3
@@ -39,12 +40,12 @@ def send_game_request(weights_file: str, initial_pos: str, outputdir: str, game_
         "outputdir": outputdir,
         "queue": RESULTS_QUEUE_URL,
         "white": {
-            "exec": "chessengine",
+            "exec": "./chessengine",
             "movetime": 50,
             "weights_file": "chess/players/ampdist/" + weights_file
         },
         "black": {
-            "exec": "chessengine",
+            "exec": "./chessengine",
             "movetime": 50,
             "weights_file": "chess/players/ampdist/" + weights_file
         },
@@ -92,20 +93,21 @@ def get_next_game_result():
                 return body['log_file']
             except Exception as e:
                 logging.warning("Message body is not valid game result: ", message.body, e)
-    pass
 
 
 def download_game_log(remote_log_file: str) -> str:
     s3 = boto3.client('s3')
+    logging.info("Downloading file s3://%s/%s" % (BUCKET, remote_log_file))
     s3.download_file(BUCKET, remote_log_file, 'game.log.gz')
+    logging.info("unzipping file")
     os.system("gunzip -f game.log.gz")
+    os.system("grep 'lost on time' game.log")
     return 'game.log'
-    pass
 
 
 def add_game_log_to_training_set(log_file: str, trainset_file: str):
-    os.system("./parselog < %s >> %s" % (log_file, trainset_file))
-    pass
+    if os.system("./parselog < %s >> %s" % (log_file, trainset_file)) != 0:
+        sys.exit(1)
 
 
 def main():
