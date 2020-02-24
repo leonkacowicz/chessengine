@@ -9,7 +9,7 @@ pip3 install boto3_type_annotations --upgrade
 mkdir -p worker_template
 aws s3 sync s3://leonkacowicz/chess/worker/ worker_template/
 chmod +x worker_template/*
-for CPU in $(awk '/^processor/{print $3}' < /proc/cpuinfo | head -n -1); do
+for CPU in $(awk '/^processor/{print $3}' < /proc/cpuinfo); do
     mkdir -p "worker_$CPU"
     cp -r worker_template/* "worker_$CPU"
     (
@@ -17,4 +17,3 @@ for CPU in $(awk '/^processor/{print $3}' < /proc/cpuinfo | head -n -1); do
         python3 ./worker.py &
     )
 done
-#python3 ./worker.py
