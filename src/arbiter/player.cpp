@@ -65,7 +65,7 @@ std::string player::get_next_move() {
             return bestmove;
         }
     }
-    LOG_DEBUG(buffer.str());
+    std::cout << buffer.str() << '\n';
     LOG_DEBUG("=================EOF================");
     return "(none)";
 }
