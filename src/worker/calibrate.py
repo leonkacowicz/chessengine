@@ -20,11 +20,11 @@ def send_game_request(outputdir: str, game_id: str, white_dilution: int, black_d
         "outputdir": outputdir,
         "queue": RESULTS_QUEUE_URL,
         "white": {
-            "exec": "./engine_diluter -p %.2f -e ./stockfish10" % (float(100 - white_dilution) / 100,),
+            "exec": "./engine_diluter -p %.2f -e ./stockfish10" % (float(white_dilution) / 100,),
             "depth": 4
         },
         "black": {
-            "exec": "./engine_diluter -p %.2f -e ./stockfish10" % (float(100 - black_dilution) / 100,),
+            "exec": "./engine_diluter -p %.2f -e ./stockfish10" % (float(black_dilution) / 100,),
             "depth": 4
         },
         "game_id": game_id,
@@ -98,7 +98,7 @@ def main():
 
     stronger_depth = 4
     weaker_depth = 4
-    num_games = 1
+    num_games = 100
 
     for weaker in range(len(dilutions) - 1):
         stronger = weaker + 1
@@ -120,7 +120,6 @@ def main():
             try:
                 message = get_next_game_result()
                 print(message)
-
             except Exception as e:
                 logging.error(e, exc_info=e)
     pass

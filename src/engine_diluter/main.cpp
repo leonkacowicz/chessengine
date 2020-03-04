@@ -13,7 +13,7 @@ using std::string;
 using namespace chess::core;
 
 struct cmdline_options {
-    double random_move_prob;
+    double engine_move_probability;
     uint64_t seed;
     bool seed_provided;
     std::string engine_cmd_line;
@@ -21,12 +21,12 @@ struct cmdline_options {
 
 cmdline_options parse_argv(int argc, char** argv) {
     cmdline_options o{};
-    o.random_move_prob = 0.0;
+    o.engine_move_probability = 0.0;
     try {
         boost::program_options::options_description options;
         options.add_options()
                 ("help,h", "pring usage message")
-                ("prob,p", boost::program_options::value<double>()->required(), "random move probability")
+                ("prob,p", boost::program_options::value<double>()->required(), "engine move probability (1 equivalent of engine playing directly, 0 equivalent of random-engine playing directly)")
                 ("seed,s", boost::program_options::value<uint64_t>(), "random seed number")
                 ("exec,e", boost::program_options::value<std::string>()->required(), "underlying engine exec cmd line")
                 ;
@@ -43,9 +43,9 @@ cmdline_options parse_argv(int argc, char** argv) {
             o.seed = vars["seed"].as<uint64_t>();
         }
         if (vars.count("prob")) {
-            o.random_move_prob = vars["prob"].as<double>();
-            if (o.random_move_prob < 0 || o.random_move_prob > 1) {
-                std::cerr << "Invalid probability provided: " << o.random_move_prob << std::endl;
+            o.engine_move_probability = vars["prob"].as<double>();
+            if (o.engine_move_probability < 0 || o.engine_move_probability > 1) {
+                std::cerr << "Invalid probability provided: " << o.engine_move_probability << std::endl;
                 std::cerr << "Probability must be >= 0 and <= 1" << std::endl;
                 std::exit(1);
             }
@@ -128,7 +128,9 @@ int main(int argc, char** argv) {
             }
             continue;
         } else if (words[0] == "go") {
-            if (unif01(mt) < options.random_move_prob) {
+            if (unif01(mt) < options.engine_move_probability) {
+                opstream << input << std::endl;
+            } else {
                 std::cout << "info string playing a random move this turn" << std::endl;
                 auto legal_moves = move_gen(g.states.back().b).generate();
                 if (legal_moves.empty()) {
@@ -138,8 +140,6 @@ int main(int argc, char** argv) {
                     int random_move_index = unif(mt) % size;
                     std::cout << "bestmove " << to_long_move(legal_moves[random_move_index]) << std::endl;
                 }
-            } else {
-                opstream << input << std::endl;
             }
         } else if (words[0] == "print") {
             g.states.back().b.print();
